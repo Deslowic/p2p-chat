@@ -1,10 +1,11 @@
 
+
 <!DOCTYPE html>
 <html lang="ru" class="dark">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>NexusP2P — Приватный HD Стриминг и Мессенджер</title>
+  <title>disstya — Приватный P2P HD Стриминг & Мессенджер</title>
 
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -12,105 +13,225 @@
   <!-- PeerJS for Serverless WebRTC Signaling -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 
-  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <!-- Google Fonts: Street Tag Fonts (Sedgwick Ave Display, Permanent Marker, Rubik Wet Paint, Rock Salt) + Space Grotesk, Inter & JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ['Inter', 'system-ui', 'sans-serif'],
-            mono: ['JetBrains Mono', 'monospace'],
-          },
-          colors: {
-            bg: {
-              950: '#090b10',
-              900: '#0f1219',
-              850: '#141824',
-              800: '#1c2232',
-              700: '#262f45',
-            },
-            accent: {
-              500: '#6366f1',
-              600: '#4f46e5',
-              400: '#818cf8',
-            }
-          }
-        }
-      }
-    };
-  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Permanent+Marker&family=Rock+Salt&family=Rubik+Wet+Paint&family=Sedgwick+Ave+Display&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 
   <style>
+    :root {
+      /* Dynamic Theme Customizer Variables */
+      --bg-base: #07070c;
+      --bg-surface: #0e0f18;
+      --bg-elevated: #161826;
+      --accent: #a855f7;
+      --accent-2: #ec4899;
+      --accent-rgb: 168, 85, 247;
+      --accent-2-rgb: 236, 72, 153;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --glass-blur: 20px;
+      --glass-opacity: 0.78;
+      --border-alpha: 0.10;
+      --radius-panel: 18px;
+      --radius-btn: 13px;
+      --glow-strength: 0.45;
+      --tag-font: 'Sedgwick Ave Display', cursive;
+      --ui-font: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+      --custom-wallpaper: none;
+    }
+
     * {
       box-sizing: border-box;
       scrollbar-width: thin;
-      scrollbar-color: #262f45 #0f1219;
+      scrollbar-color: rgba(var(--accent-rgb), 0.4) var(--bg-surface);
     }
+
     ::-webkit-scrollbar {
-      width: 6px;
-      height: 6px;
+      width: 5px;
+      height: 5px;
     }
     ::-webkit-scrollbar-track {
-      background: #0f1219;
+      background: transparent;
     }
     ::-webkit-scrollbar-thumb {
-      background: #262f45;
+      background: rgba(var(--accent-rgb), 0.35);
       border-radius: 9999px;
     }
     ::-webkit-scrollbar-thumb:hover {
-      background: #3b496b;
+      background: rgba(var(--accent-rgb), 0.65);
     }
 
     body {
-      background-color: #090b10;
-      color: #f3f4f6;
+      background-color: var(--bg-base);
+      color: var(--text-main);
+      font-family: var(--ui-font);
       overflow: hidden;
       user-select: none;
+      transition: background-color 0.25s ease;
     }
 
     .selectable-text {
       user-select: text;
     }
 
-    .glass-panel {
-      background: rgba(20, 24, 36, 0.82);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 1px solid rgba(255, 255, 255, 0.08);
+    /* Street Graffiti Tag Brand Logo Styling */
+    .street-tag {
+      font-family: var(--tag-font);
+      letter-spacing: 0.04em;
+      background: linear-gradient(135deg, #ffffff 0%, var(--accent) 55%, var(--accent-2) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 0 calc(14px * var(--glow-strength)) rgba(var(--accent-rgb), 0.75))
+              drop-shadow(2px 3px 0px rgba(0, 0, 0, 0.85));
+      transform: rotate(-3deg);
+      display: inline-block;
+      line-height: 1.1;
     }
 
-    .glass-dock {
-      background: rgba(15, 18, 25, 0.88);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.65);
+    .street-tag-hero {
+      font-family: var(--tag-font);
+      letter-spacing: 0.05em;
+      background: linear-gradient(135deg, #ffffff 10%, var(--accent) 50%, var(--accent-2) 95%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 0 calc(26px * var(--glow-strength)) rgba(var(--accent-rgb), 0.65))
+              drop-shadow(3px 5px 0px rgba(0, 0, 0, 0.9));
+      transform: rotate(-2.5deg);
+      display: inline-block;
     }
 
-    .video-stage {
-      background: radial-gradient(circle at center, #141824 0%, #090b10 100%);
+    /* Adaptive Glass Surfaces */
+    .theme-surface {
+      background: color-mix(in srgb, var(--bg-surface) calc(var(--glass-opacity) * 100%), transparent);
+      backdrop-filter: blur(var(--glass-blur));
+      -webkit-backdrop-filter: blur(var(--glass-blur));
+      border: 1px solid rgba(255, 255, 255, var(--border-alpha));
     }
 
+    .theme-panel {
+      background: color-mix(in srgb, var(--bg-elevated) calc(var(--glass-opacity) * 100%), transparent);
+      backdrop-filter: blur(var(--glass-blur));
+      -webkit-backdrop-filter: blur(var(--glass-blur));
+      border: 1px solid rgba(255, 255, 255, var(--border-alpha));
+      border-radius: var(--radius-panel);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6),
+                  0 0 calc(30px * var(--glow-strength)) rgba(var(--accent-rgb), 0.08);
+    }
+
+    .theme-dock {
+      background: color-mix(in srgb, var(--bg-surface) calc(min(0.95, var(--glass-opacity) + 0.12) * 100%), transparent);
+      backdrop-filter: blur(calc(var(--glass-blur) + 6px));
+      -webkit-backdrop-filter: blur(calc(var(--glass-blur) + 6px));
+      border: 1px solid rgba(255, 255, 255, calc(var(--border-alpha) + 0.04));
+      border-radius: calc(var(--radius-panel) + 4px);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.75),
+                  0 0 calc(35px * var(--glow-strength)) rgba(var(--accent-rgb), 0.16);
+    }
+
+    .theme-btn {
+      border-radius: var(--radius-btn);
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, var(--border-alpha));
+      transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .theme-btn:hover {
+      background: rgba(var(--accent-rgb), 0.14);
+      border-color: rgba(var(--accent-rgb), 0.45);
+      transform: translateY(-1px);
+    }
+    .theme-btn:active {
+      transform: scale(0.96);
+    }
+
+    .theme-btn-primary {
+      border-radius: var(--radius-btn);
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 8px 25px rgba(var(--accent-rgb), calc(0.55 * var(--glow-strength)));
+      transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .theme-btn-primary:hover {
+      filter: brightness(1.12);
+      box-shadow: 0 10px 30px rgba(var(--accent-rgb), calc(0.8 * var(--glow-strength)));
+      transform: translateY(-1px);
+    }
+    .theme-btn-primary:active {
+      transform: scale(0.97);
+    }
+
+    .theme-btn-active {
+      background: rgba(var(--accent-rgb), 0.22) !important;
+      border-color: var(--accent) !important;
+      color: #ffffff !important;
+      box-shadow: 0 0 calc(20px * var(--glow-strength)) rgba(var(--accent-rgb), 0.35);
+    }
+
+    .accent-text {
+      color: var(--accent);
+    }
+    .accent-border {
+      border-color: rgba(var(--accent-rgb), 0.5);
+    }
+    .accent-badge {
+      background: rgba(var(--accent-rgb), 0.15);
+      color: var(--accent);
+      border: 1px solid rgba(var(--accent-rgb), 0.35);
+    }
+
+    /* Stage Backdrop Patterns */
+    .stage-bg-aurora {
+      background:
+        radial-gradient(circle at 20% 20%, rgba(var(--accent-rgb), calc(0.18 * var(--glow-strength))) 0%, transparent 45%),
+        radial-gradient(circle at 80% 75%, rgba(var(--accent-2-rgb), calc(0.15 * var(--glow-strength))) 0%, transparent 45%),
+        radial-gradient(circle at 50% 50%, var(--bg-surface) 0%, var(--bg-base) 100%);
+    }
+
+    .stage-bg-grid {
+      background-color: var(--bg-base);
+      background-image:
+        radial-gradient(circle at 50% 45%, rgba(var(--accent-rgb), calc(0.16 * var(--glow-strength))) 0%, transparent 60%),
+        linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+      background-size: 100% 100%, 40px 40px, 40px 40px;
+    }
+
+    .stage-bg-dots {
+      background-color: var(--bg-base);
+      background-image:
+        radial-gradient(circle at 50% 50%, rgba(var(--accent-rgb), calc(0.14 * var(--glow-strength))) 0%, transparent 55%),
+        radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+      background-size: 100% 100%, 24px 24px;
+    }
+
+    .stage-bg-minimal {
+      background: var(--bg-base);
+    }
+
+    .stage-bg-custom {
+      background-image: var(--custom-wallpaper);
+      background-size: cover;
+      background-position: center;
+    }
+
+    /* Pulse indicator animation */
     @keyframes pulse-ring {
-      0% { transform: scale(0.95); opacity: 0.8; }
-      70% { transform: scale(1.25); opacity: 0; }
-      100% { transform: scale(1.25); opacity: 0; }
+      0% { transform: scale(0.95); opacity: 0.85; }
+      70% { transform: scale(1.8); opacity: 0; }
+      100% { transform: scale(1.8); opacity: 0; }
     }
     .pulse-indicator::before {
       content: '';
       position: absolute;
-      inset: -4px;
+      inset: -3px;
       border-radius: 9999px;
       background: inherit;
       animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
       z-index: -1;
     }
 
+    /* Custom Sliders */
     input[type="range"] {
       -webkit-appearance: none;
       appearance: none;
@@ -120,7 +241,7 @@
     input[type="range"]::-webkit-slider-runnable-track {
       height: 6px;
       border-radius: 999px;
-      background: #262f45;
+      background: rgba(255, 255, 255, 0.1);
     }
     input[type="range"]::-webkit-slider-thumb {
       -webkit-appearance: none;
@@ -128,92 +249,364 @@
       width: 16px;
       height: 16px;
       border-radius: 50%;
-      background: #818cf8;
+      background: var(--accent);
       margin-top: -5px;
-      box-shadow: 0 0 10px rgba(99, 102, 241, 0.6);
+      box-shadow: 0 0 12px rgba(var(--accent-rgb), 0.8);
+      border: 2px solid #ffffff;
       transition: transform 0.15s ease;
     }
     input[type="range"]::-webkit-slider-thumb:hover {
-      transform: scale(1.15);
+      transform: scale(1.18);
+    }
+
+    /* Color Input Styling */
+    input[type="color"] {
+      -webkit-appearance: none;
+      border: none;
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      cursor: pointer;
+      background: transparent;
+    }
+    input[type="color"]::-webkit-color-swatch-wrapper {
+      padding: 0;
+    }
+    input[type="color"]::-webkit-color-swatch {
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: 8px;
+    }
+
+    /* Message Self Bubble Gradient */
+    .chat-bubble-self {
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
+      color: #ffffff;
+      border-radius: var(--radius-btn);
+      border-bottom-right-radius: 4px;
+      box-shadow: 0 6px 20px rgba(var(--accent-rgb), 0.22);
+    }
+
+    .chat-bubble-remote {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, var(--border-alpha));
+      color: var(--text-main);
+      border-radius: var(--radius-btn);
+      border-bottom-left-radius: 4px;
     }
   </style>
 </head>
 
-<body class="h-screen w-screen flex flex-col font-sans antialiased">
+<body class="h-screen w-screen flex flex-col antialiased selection:bg-purple-500 selection:text-white">
 
   <!-- Toast Notifications Container -->
   <div id="toastContainer" class="fixed top-16 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-2 pointer-events-none"></div>
 
   <!-- Lightbox Modal for Image Preview -->
-  <div id="imageModal" class="fixed inset-0 z-50 hidden bg-black/90 backdrop-blur-md flex items-center justify-center p-4">
-    <button id="closeModalBtn" class="absolute top-5 right-5 w-11 h-11 rounded-full bg-bg-800 hover:bg-bg-700 text-white flex items-center justify-center border border-white/10 transition">
+  <div id="imageModal" class="fixed inset-0 z-50 hidden bg-black/90 backdrop-blur-xl flex items-center justify-center p-4">
+    <button id="closeModalBtn" class="absolute top-5 right-5 w-11 h-11 rounded-full theme-btn text-white flex items-center justify-center">
       <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
     </button>
-    <img id="modalImageSrc" src="" alt="Preview" class="max-w-full max-h-[90vh] rounded-xl shadow-2xl border border-white/10 object-contain" />
+    <img id="modalImageSrc" src="" alt="Preview" class="max-w-full max-h-[90vh] rounded-2xl shadow-2xl border border-white/10 object-contain" />
   </div>
 
-  <!-- Top Header Bar -->
-  <header class="h-14 px-4 bg-bg-900/95 border-b border-white/5 flex items-center justify-between shrink-0 z-30">
-    <!-- Brand & Connection Status -->
-    <div class="flex items-center gap-3">
-      <div class="flex items-center gap-2.5">
-        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
-          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-          </svg>
-        </div>
-        <div class="hidden sm:block">
-          <div class="flex items-center gap-2">
-            <span class="font-bold text-sm tracking-tight text-white">NexusP2P</span>
-            <span class="text-[10px] font-mono uppercase px-1.5 py-0.5 rounded bg-indigo-500/15 text-indigo-400 border border-indigo-500/30">Direct WebRTC</span>
+  <!-- Deep Theme Customizer Modal / Slide-over Studio -->
+  <div id="themeStudioModal" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-sm flex justify-end">
+    <div class="w-full max-w-md h-full theme-surface border-l border-white/10 flex flex-col shadow-2xl overflow-hidden animate-fade-in">
+      <!-- Studio Header -->
+      <div class="px-5 py-4 border-b border-white/10 flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg theme-btn-primary flex items-center justify-center">
+            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+            </svg>
           </div>
-          <p class="text-[11px] text-gray-400">E2E P2P Стриминг 1440p60 & Чат</p>
+          <div>
+            <h2 class="text-sm font-bold tracking-wide text-white">Студия стиля <span class="street-tag text-base ml-1">disstya</span></h2>
+            <p class="text-[11px] text-slate-400">Глубокая кастомизация интерфейса и тега</p>
+          </div>
         </div>
-      </div>
-
-      <div class="h-5 w-[1px] bg-white/10 mx-1 hidden sm:block"></div>
-
-      <!-- Connection Status Pill -->
-      <div id="connStatusPill" class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-bg-850 border border-white/10 text-xs font-medium">
-        <span id="connStatusDot" class="w-2.5 h-2.5 rounded-full bg-amber-400 relative"></span>
-        <span id="connStatusText" class="text-gray-300">Инициализация узла...</span>
-      </div>
-    </div>
-
-    <!-- Center / Right Room & Telemetry Controls -->
-    <div class="flex items-center gap-2 sm:gap-3">
-      <!-- My Peer ID Badge + Copy Invite -->
-      <div class="flex items-center bg-bg-850 border border-white/10 rounded-xl p-1">
-        <div class="px-2.5 py-1 flex items-center gap-1.5">
-          <span class="text-[11px] text-gray-400 hidden md:inline">Ваш ID:</span>
-          <span id="myPeerIdDisplay" class="font-mono text-xs font-semibold text-indigo-400 selectable-text">...</span>
-        </div>
-        <button id="copyInviteBtn" title="Скопировать ссылку-приглашение" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white text-xs font-medium transition shadow-sm">
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-          </svg>
-          <span>Пригласить</span>
+        <button id="closeThemeStudioBtn" class="w-8 h-8 rounded-lg theme-btn flex items-center justify-center text-slate-300 hover:text-white">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
       </div>
 
-      <!-- Manual Connect Input (shown when disconnected) -->
-      <div id="manualConnectBox" class="hidden lg:flex items-center bg-bg-850 border border-white/10 rounded-xl p-1">
-        <input id="remotePeerInput" type="text" placeholder="ID собеседника..." class="bg-transparent text-xs font-mono text-white placeholder-gray-500 px-2.5 py-1 focus:outline-none w-32" />
-        <button id="connectPeerBtn" class="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium transition">
+      <!-- Studio Scrollable Controls -->
+      <div class="flex-1 overflow-y-auto p-5 space-y-6 text-xs">
+
+        <!-- 1. User Nickname -->
+        <div class="space-y-2">
+          <label class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 flex items-center justify-between">
+            <span>Ваш уличный тег (Никнейм в чате)</span>
+            <span class="text-[10px] font-mono accent-text">P2P Sync</span>
+          </label>
+          <input id="customNicknameInput" type="text" maxlength="24" placeholder="Например: KILLA_TAG..." class="w-full bg-black/40 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-purple-500" />
+        </div>
+
+        <!-- 2. Ready-Made Street & Cyber Presets -->
+        <div class="space-y-2.5">
+          <label class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block">Готовые темы (Пресеты)</label>
+          <div class="grid grid-cols-2 gap-2.5">
+            <button data-preset="tokyo" class="theme-preset-btn p-2.5 rounded-xl border border-white/10 bg-black/40 hover:border-purple-500/50 flex items-center gap-2.5 text-left transition">
+              <span class="w-6 h-6 rounded-lg shrink-0" style="background: linear-gradient(135deg, #a855f7, #ec4899)"></span>
+              <div>
+                <div class="font-semibold text-white text-xs">Tokyo Tag</div>
+                <div class="text-[10px] text-slate-400">Фиолет & Неон</div>
+              </div>
+            </button>
+
+            <button data-preset="acid" class="theme-preset-btn p-2.5 rounded-xl border border-white/10 bg-black/40 hover:border-lime-500/50 flex items-center gap-2.5 text-left transition">
+              <span class="w-6 h-6 rounded-lg shrink-0" style="background: linear-gradient(135deg, #84cc16, #10b981)"></span>
+              <div>
+                <div class="font-semibold text-white text-xs">Acid Graffiti</div>
+                <div class="text-[10px] text-slate-400">Токсик Лайм</div>
+              </div>
+            </button>
+
+            <button data-preset="bloodline" class="theme-preset-btn p-2.5 rounded-xl border border-white/10 bg-black/40 hover:border-rose-500/50 flex items-center gap-2.5 text-left transition">
+              <span class="w-6 h-6 rounded-lg shrink-0" style="background: linear-gradient(135deg, #ef4444, #f97316)"></span>
+              <div>
+                <div class="font-semibold text-white text-xs">Bloodline</div>
+                <div class="text-[10px] text-slate-400">Алый Андерграунд</div>
+              </div>
+            </button>
+
+            <button data-preset="cyberice" class="theme-preset-btn p-2.5 rounded-xl border border-white/10 bg-black/40 hover:border-cyan-500/50 flex items-center gap-2.5 text-left transition">
+              <span class="w-6 h-6 rounded-lg shrink-0" style="background: linear-gradient(135deg, #06b6d4, #3b82f6)"></span>
+              <div>
+                <div class="font-semibold text-white text-xs">Cyber Ice</div>
+                <div class="text-[10px] text-slate-400">Ледяной Циан</div>
+              </div>
+            </button>
+
+            <button data-preset="goldchrome" class="theme-preset-btn p-2.5 rounded-xl border border-white/10 bg-black/40 hover:border-amber-500/50 flex items-center gap-2.5 text-left transition">
+              <span class="w-6 h-6 rounded-lg shrink-0" style="background: linear-gradient(135deg, #f59e0b, #eab308)"></span>
+              <div>
+                <div class="font-semibold text-white text-xs">Street Gold</div>
+                <div class="text-[10px] text-slate-400">Золотой Хром</div>
+              </div>
+            </button>
+
+            <button data-preset="oled" class="theme-preset-btn p-2.5 rounded-xl border border-white/10 bg-black/40 hover:border-white/40 flex items-center gap-2.5 text-left transition">
+              <span class="w-6 h-6 rounded-lg shrink-0 border border-white/20" style="background: linear-gradient(135deg, #ffffff, #64748b)"></span>
+              <div>
+                <div class="font-semibold text-white text-xs">OLED Monochrome</div>
+                <div class="text-[10px] text-slate-400">Чистый #000000</div>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- 3. Street Tag Font Selector -->
+        <div class="space-y-2">
+          <label class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block">Шрифт уличного тега «disstya»</label>
+          <div class="grid grid-cols-2 gap-2">
+            <button data-tagfont="'Sedgwick Ave Display', cursive" class="tag-font-btn p-2.5 rounded-xl theme-btn text-center">
+              <span style="font-family: 'Sedgwick Ave Display', cursive;" class="text-lg text-white block">disstya</span>
+              <span class="text-[10px] text-slate-400">Street Handstyle</span>
+            </button>
+            <button data-tagfont="'Permanent Marker', cursive" class="tag-font-btn p-2.5 rounded-xl theme-btn text-center">
+              <span style="font-family: 'Permanent Marker', cursive;" class="text-lg text-white block">disstya</span>
+              <span class="text-[10px] text-slate-400">Fat Marker</span>
+            </button>
+            <button data-tagfont="'Rubik Wet Paint', system-ui" class="tag-font-btn p-2.5 rounded-xl theme-btn text-center">
+              <span style="font-family: 'Rubik Wet Paint', system-ui;" class="text-lg text-white block">disstya</span>
+              <span class="text-[10px] text-slate-400">Spray Drip</span>
+            </button>
+            <button data-tagfont="'Rock Salt', cursive" class="tag-font-btn p-2.5 rounded-xl theme-btn text-center">
+              <span style="font-family: 'Rock Salt', cursive;" class="text-sm text-white block py-1">disstya</span>
+              <span class="text-[10px] text-slate-400">Raw Scratch</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 4. Custom Color Pickers -->
+        <div class="space-y-3 pt-2 border-t border-white/10">
+          <label class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block">Своя палитра цветов</label>
+          <div class="grid grid-cols-3 gap-2.5">
+            <div class="p-2.5 rounded-xl bg-black/40 border border-white/10 flex items-center gap-2">
+              <input type="color" id="colorAccent1" value="#a855f7" />
+              <div class="truncate">
+                <div class="text-[11px] font-medium text-white">Акцент 1</div>
+                <div id="colorAccent1Hex" class="text-[10px] font-mono text-slate-400">#a855f7</div>
+              </div>
+            </div>
+            <div class="p-2.5 rounded-xl bg-black/40 border border-white/10 flex items-center gap-2">
+              <input type="color" id="colorAccent2" value="#ec4899" />
+              <div class="truncate">
+                <div class="text-[11px] font-medium text-white">Акцент 2</div>
+                <div id="colorAccent2Hex" class="text-[10px] font-mono text-slate-400">#ec4899</div>
+              </div>
+            </div>
+            <div class="p-2.5 rounded-xl bg-black/40 border border-white/10 flex items-center gap-2">
+              <input type="color" id="colorBgBase" value="#07070c" />
+              <div class="truncate">
+                <div class="text-[11px] font-medium text-white">Фон базы</div>
+                <div id="colorBgBaseHex" class="text-[10px] font-mono text-slate-400">#07070c</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5. Stage Background & Ambilight -->
+        <div class="space-y-3 pt-2 border-t border-white/10">
+          <label class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block">Фон сцены и Эффекты</label>
+          <div class="grid grid-cols-2 gap-2">
+            <button data-bgmode="aurora" class="bg-mode-btn py-2 px-3 rounded-xl theme-btn text-xs font-medium text-white">
+              Неоновая Аврора
+            </button>
+            <button data-bgmode="grid" class="bg-mode-btn py-2 px-3 rounded-xl theme-btn text-xs font-medium text-slate-300">
+              Кибер-Сетка
+            </button>
+            <button data-bgmode="dots" class="bg-mode-btn py-2 px-3 rounded-xl theme-btn text-xs font-medium text-slate-300">
+              Уличный Дотинг
+            </button>
+            <button data-bgmode="minimal" class="bg-mode-btn py-2 px-3 rounded-xl theme-btn text-xs font-medium text-slate-300">
+              Чистый Мрак
+            </button>
+          </div>
+
+          <!-- Custom Background Image URL -->
+          <div class="pt-1 space-y-1.5">
+            <span class="text-[11px] text-slate-400 block">Свои обои сцены (URL картинки / гифки):</span>
+            <div class="flex gap-2">
+              <input id="customWallpaperInput" type="url" placeholder="https://example.com/wallpaper.jpg" class="flex-1 bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-purple-500" />
+              <button id="applyWallpaperBtn" class="px-3 py-2 rounded-xl theme-btn text-xs font-semibold text-white">ОК</button>
+            </div>
+          </div>
+
+          <!-- Ambilight Video Glow Toggle -->
+          <label class="flex items-center justify-between p-3 rounded-xl bg-black/40 border border-white/10 cursor-pointer">
+            <div>
+              <div class="font-semibold text-white text-xs">Ambilight-подсветка стрима</div>
+              <div class="text-[10px] text-slate-400">Динамическое свечение вокруг видеоплеера</div>
+            </div>
+            <input id="ambilightToggle" type="checkbox" checked class="w-4 h-4 accent-purple-500 rounded cursor-pointer" />
+          </label>
+        </div>
+
+        <!-- 6. Glassmorphism, Glow & Geometry Sliders -->
+        <div class="space-y-4 pt-2 border-t border-white/10">
+          <label class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block">Геометрия и Стекло (Glassmorphism)</label>
+
+          <div class="space-y-1">
+            <div class="flex justify-between">
+              <span class="text-slate-300">Размытие стекла (Blur)</span>
+              <span id="blurValLabel" class="font-mono accent-text">20px</span>
+            </div>
+            <input id="blurSlider" type="range" min="0" max="40" value="20" class="w-full" />
+          </div>
+
+          <div class="space-y-1">
+            <div class="flex justify-between">
+              <span class="text-slate-300">Плотность панелей (Opacity)</span>
+              <span id="opacityValLabel" class="font-mono accent-text">78%</span>
+            </div>
+            <input id="opacitySlider" type="range" min="35" max="98" value="78" class="w-full" />
+          </div>
+
+          <div class="space-y-1">
+            <div class="flex justify-between">
+              <span class="text-slate-300">Сила неонового свечения (Glow)</span>
+              <span id="glowValLabel" class="font-mono accent-text">45%</span>
+            </div>
+            <input id="glowSlider" type="range" min="0" max="100" value="45" class="w-full" />
+          </div>
+
+          <div class="space-y-1">
+            <div class="flex justify-between">
+              <span class="text-slate-300">Скругление углов (Radius)</span>
+              <span id="radiusValLabel" class="font-mono accent-text">18px</span>
+            </div>
+            <input id="radiusSlider" type="range" min="4" max="28" value="18" class="w-full" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Studio Footer -->
+      <div class="p-4 border-t border-white/10 flex items-center justify-between bg-black/40">
+        <button id="resetThemeBtn" class="px-3.5 py-2 rounded-xl theme-btn text-xs text-slate-300 hover:text-white">
+          Сбросить стиль
+        </button>
+        <button id="doneThemeBtn" class="px-5 py-2 rounded-xl theme-btn-primary text-xs font-semibold">
+          Готово
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Top Header Bar -->
+  <header class="h-16 px-4 sm:px-6 theme-surface border-b border-white/10 flex items-center justify-between shrink-0 z-30">
+    <!-- Brand Logo & Connection Status -->
+    <div class="flex items-center gap-3 sm:gap-4">
+      <div class="flex items-center gap-3">
+        <!-- Spray Can / Street Tag Emblem -->
+        <div class="relative w-10 h-10 rounded-2xl theme-btn-primary flex items-center justify-center shadow-lg">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+          <span class=" -bottom-1 -right-1 w-3 h-3 rounded-full bg-emerald-400 border-2 border-black"></span>
+        </div>
+
+        <div>
+          <div class="flex items-center gap-2.5">
+            <!-- Street Tag Brand Name -->
+            <span class="street-tag text-2xl sm:text-[26px] select-none">disstya</span>
+            <span class="text-[10px] font-mono uppercase px-2 py-0.5 rounded-full accent-badge hidden sm:inline-block">P2P 1440p60</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="h-6 w-[1px] bg-white/10 mx-1 hidden md:block"></div>
+
+      <!-- Connection Status Pill -->
+      <div id="connStatusPill" class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/40 border border-white/10 text-xs font-medium">
+        <span id="connStatusDot" class="w-2.5 h-2.5 rounded-full bg-amber-400 relative"></span>
+        <span id="connStatusText" class="text-slate-300 truncate max-w-[140px] sm:max-w-none">Инициализация...</span>
+      </div>
+    </div>
+
+    <!-- Right Controls: Room ID, Quick Connect, Telemetry, Theme Customizer, Chat Toggle -->
+    <div class="flex items-center gap-2 sm:gap-2.5">
+      <!-- My Peer ID Badge + Copy Invite -->
+      <div class="flex items-center bg-black/45 border border-white/10 rounded-2xl p-1">
+        <div class="px-2.5 py-1 flex items-center gap-1.5">
+          <span class="text-[11px] text-slate-400 hidden lg:inline">Ваш тег-ID:</span>
+          <span id="myPeerIdDisplay" class="font-mono text-xs font-semibold accent-text selectable-text">...</span>
+        </div>
+        <button id="copyInviteBtn" title="Скопировать ссылку-приглашение" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl theme-btn-primary text-xs font-semibold">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+          </svg>
+          <span class="hidden sm:inline">Пригласить</span>
+        </button>
+      </div>
+
+      <!-- Manual Connect Input (Desktop) -->
+      <div id="manualConnectBox" class="hidden xl:flex items-center bg-black/45 border border-white/10 rounded-2xl p-1">
+        <input id="remotePeerInput" type="text" placeholder="ID друга (ds-xxxx)..." class="bg-transparent text-xs font-mono text-white placeholder-slate-500 px-2.5 py-1 focus:outline-none w-36" />
+        <button id="connectPeerBtn" class="px-3 py-1.5 rounded-xl theme-btn text-white text-xs font-semibold">
           Войти
         </button>
       </div>
 
       <!-- Live Telemetry Toggle Button -->
-      <button id="toggleStatsBtn" title="Статистика WebRTC (FPS / Битрейт)" class="p-2 rounded-xl bg-bg-850 hover:bg-bg-800 border border-white/10 text-gray-300 hover:text-white transition flex items-center gap-1.5 text-xs font-mono">
+      <button id="toggleStatsBtn" title="Статистика WebRTC (FPS / Битрейт)" class="px-2.5 py-2 theme-btn text-slate-200 flex items-center gap-1.5 text-xs font-mono">
         <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
         </svg>
-        <span id="quickBitrateLabel" class="hidden sm:inline">0 kbps</span>
+        <span id="quickBitrateLabel" class="hidden md:inline">0 kbps</span>
+      </button>
+
+      <!-- Open Theme Studio Button -->
+      <button id="openThemeStudioBtn" title="Кастомизация темы и стиля disstya" class="px-3 py-2 theme-btn text-white flex items-center gap-1.5 text-xs font-semibold">
+        <svg class="w-4 h-4 accent-text" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+        </svg>
+        <span class="hidden sm:inline">Стиль</span>
       </button>
 
       <!-- Toggle Chat Drawer Button -->
-      <button id="toggleChatBtn" title="Открыть/скрыть чат" class="relative p-2 rounded-xl bg-bg-850 hover:bg-bg-800 border border-white/10 text-gray-300 hover:text-white transition">
+      <button id="toggleChatBtn" title="Открыть/скрыть чат" class="relative p-2.5 theme-btn text-slate-200 hover:text-white">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
         </svg>
@@ -226,149 +619,166 @@
   <main class="flex-1 flex overflow-hidden relative">
 
     <!-- Center Video & Stream Stage -->
-    <section id="videoStageContainer" class="flex-1 video-stage relative flex items-center justify-center overflow-hidden">
+    <section id="videoStageContainer" class="flex-1 stage-bg-aurora relative flex items-center justify-center overflow-hidden transition-all duration-500">
+
+      <!-- Dynamic Ambilight Glow Aura behind Remote Video -->
+      <div id="ambilightGlow" class="pointer-events-none absolute inset-12 rounded-3xl opacity-0 transition-opacity duration-700 blur-3xl" style="background: radial-gradient(circle, rgba(var(--accent-rgb), 0.38) 0%, rgba(var(--accent-2-rgb), 0.22) 50%, transparent 80%);"></div>
 
       <!-- Remote Video Player -->
-      <video id="remoteVideo" autoplay playsinline class="w-full h-full object-contain hidden"></video>
-      <!-- Dedicated Remote Audio Element so audio plays reliably even when video is hidden -->
+      <video id="remoteVideo" autoplay playsinline class="relative z-10 w-full h-full object-contain hidden"></video>
+      <!-- Dedicated Remote Audio Element -->
       <audio id="remoteAudio" autoplay></audio>
 
       <!-- Remote Stream Status Badges (Top Left) -->
       <div class="absolute top-4 left-4 z-20 flex flex-wrap items-center gap-2 pointer-events-none">
-        <div id="remoteModeBadge" class="hidden items-center gap-1.5 px-3 py-1 rounded-lg glass-panel text-xs font-medium text-white shadow">
-          <span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
-          <span id="remoteModeText">LIVE</span>
+        <div id="remoteModeBadge" class="hidden items-center gap-2 px-3.5 py-1.5 theme-panel text-xs font-semibold text-white">
+          <span class="w-2 h-2 rounded-full bg-rose-500 animate-ping"></span>
+          <span id="remoteModeText">LIVE 1080p60</span>
         </div>
-        <div id="remoteMicBadge" class="hidden items-center gap-1.5 px-2.5 py-1 rounded-lg glass-panel text-xs text-gray-300">
-          <svg id="remoteMicIconOn" class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
+        <div id="remoteMicBadge" class="hidden items-center gap-1.5 px-3 py-1.5 theme-panel text-xs text-slate-200">
+          <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
           <span id="remoteMicText">Микрофон вкл.</span>
         </div>
       </div>
 
-      <!-- Real-Time WebRTC Telemetry HUD (TopLeft under badges) -->
-      <div id="statsHud" class="hidden absolute top-14 left-4 z-20 w-72 rounded-2xl glass-panel p-3.5 text-xs font-mono space-y-2 shadow-2xl">
+      <!-- Real-Time WebRTC Telemetry HUD -->
+      <div id="statsHud" class="hidden absolute top-16 left-4 z-20 w-76 theme-panel p-4 text-xs font-mono space-y-2.5">
         <div class="flex items-center justify-between border-b border-white/10 pb-2">
-          <span class="font-semibold text-indigo-400 flex items-center gap-1.5">
+          <span class="font-semibold accent-text flex items-center gap-1.5">
             <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-            WebRTC Telemetry
+            disstya P2P Telemetry
           </span>
-          <span id="statPing" class="text-gray-400">RTT: -- ms</span>
+          <span id="statPing" class="text-slate-400">RTT: -- ms</span>
         </div>
-        <div class="grid grid-cols-2 gap-2 pt-1">
-          <div class="bg-bg-900/70 p-2 rounded-lg border border-white/5">
-            <div class="text-[10px] text-gray-400">Исходящий поток</div>
-            <div id="statOutBitrate" class="text-sm font-semibold text-white mt-0.5">0 kbps</div>
-            <div id="statOutResFps" class="text-[10px] text-indigo-400 mt-0.5">-- x -- @ 0 fps</div>
+        <div class="grid grid-cols-2 gap-2.5 pt-1">
+          <div class="bg-black/45 p-2.5 rounded-xl border border-white/5">
+            <div class="text-[10px] text-slate-400">Отдача (Out)</div>
+            <div id="statOutBitrate" class="text-sm font-bold text-white mt-0.5">0 kbps</div>
+            <div id="statOutResFps" class="text-[10px] accent-text mt-0.5">-- x -- @ 0 fps</div>
           </div>
-          <div class="bg-bg-900/70 p-2 rounded-lg border border-white/5">
-            <div class="text-[10px] text-gray-400">Входящий поток</div>
-            <div id="statInBitrate" class="text-sm font-semibold text-emerald-400 mt-0.5">0 kbps</div>
+          <div class="bg-black/45 p-2.5 rounded-xl border border-white/5">
+            <div class="text-[10px] text-slate-400">Прием (In)</div>
+            <div id="statInBitrate" class="text-sm font-bold text-emerald-400 mt-0.5">0 kbps</div>
             <div id="statInResFps" class="text-[10px] text-emerald-300 mt-0.5">-- x -- @ 0 fps</div>
           </div>
         </div>
-        <div class="flex items-center justify-between text-[11px] text-gray-400 pt-1">
-          <span>Целевой лимит: <strong id="statTargetBitrate" class="text-gray-200">8000 kbps</strong></span>
-          <span>Потери: <strong id="statPacketsLost" class="text-gray-200">0</strong></span>
+        <div class="flex items-center justify-between text-[11px] text-slate-400 pt-1">
+          <span>Лимит: <strong id="statTargetBitrate" class="text-slate-200">8500 kbps</strong></span>
+          <span>Потери: <strong id="statPacketsLost" class="text-slate-200">0 pkt</strong></span>
         </div>
       </div>
 
-      <!-- Idle / Lobby Overlay (shown when no remote video is active) -->
-      <div id="idleStageOverlay" class="max-w-md w-full mx-4 p-6 rounded-3xl glass-panel text-center space-y-5 shadow-2xl z-10">
-        <!-- Avatar / Status Graphic -->
-        <div class="relative mx-auto w-20 h-20 rounded-3xl bg-gradient-to-tr from-indigo-600/30 to-purple-500/30 border border-indigo-500/30 flex items-center justify-center shadow-inner">
-          <svg id="stageAvatarIcon" class="w-10 h-10 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-          </svg>
+      <!-- Street-Styled Center Lobby Card (shown when no remote video is active) -->
+      <div id="idleStageOverlay" class="max-w-lg w-full mx-4 p-7 sm:p-8 theme-panel text-center space-y-6 z-10 relative overflow-hidden">
+        <!-- Decorative Graffiti Spray Glow -->
+        <div class=" -top-16 -right-16 w-40 h-40 rounded-full blur-3xl pointer-events-none" style="background: rgba(var(--accent-rgb), 0.25);"></div>
+        <div class=" -bottom-16 -left-16 w-40 h-40 rounded-full blur-3xl pointer-events-none" style="background: rgba(var(--accent-2-rgb), 0.2);"></div>
+
+        <!-- Hero Street Tag Logo -->
+        <div class="space-y-2">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full accent-badge text-[11px] font-mono mb-1">
+            <span>DIRECT WEBRTC</span>
+            <span>•</span>
+            <span>NO SERVERS</span>
+            <span>•</span>
+            <span>60 FPS AUDIO</span>
+          </div>
+          <div>
+            <h1 class="street-tag-hero text-5xl sm:text-6xl select-none py-1">disstya</h1>
+          </div>
         </div>
 
         <div class="space-y-1.5">
-          <h2 id="stageTitle" class="text-lg font-bold text-white">Ожидание подключения собеседника</h2>
-          <p id="stageSubtitle" class="text-xs text-gray-400 leading-relaxed">
-            Скопируйте ссылку-приглашение и отправьте её другу. Как только он перейдет по ней, установится прямое P2P-соединение без промежуточных серверов.
+          <h2 id="stageTitle" class="text-base sm:text-lg font-bold text-white">Приватная комната готова к стриму</h2>
+          <p id="stageSubtitle" class="text-xs text-slate-300 leading-relaxed max-w-md mx-auto">
+            Кинь ссылку-приглашение бро — подключение пойдет напрямую комп-в-комп в 1080p/1440p 60 FPS со стереозвуком игры и кристальным войсом.
           </p>
         </div>
 
-        <!-- Invite Action Card -->
+        <!-- Invite & Quick Connect Actions -->
         <div id="lobbyInviteActions" class="space-y-3 pt-1">
-          <button id="heroCopyInviteBtn" class="w-full py-3 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:scale-[0.99] text-white font-semibold text-sm flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/25 transition">
+          <button id="heroCopyInviteBtn" class="w-full py-3.5 px-5 theme-btn-primary font-bold text-xs sm:text-sm flex items-center justify-center gap-2.5">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
             </svg>
-            <span>Скопировать ссылку-приглашение</span>
+            <span>Скопировать инвайт-ссылку</span>
           </button>
 
-          <!-- Mobile / Universal Manual ID Connect -->
+          <!-- Manual ID Connect -->
           <div class="flex items-center gap-2 pt-1">
-            <input id="lobbyRemoteIdInput" type="text" placeholder="Или введите ID собеседника..." class="flex-1 bg-bg-900/90 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs font-mono text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500" />
-            <button id="lobbyConnectBtn" class="px-4 py-2.5 rounded-xl bg-bg-800 hover:bg-bg-700 border border-white/10 text-xs font-semibold text-white transition">
-              Подключиться
+            <input id="lobbyRemoteIdInput" type="text" placeholder="Или вставь тег-ID друга (например ds-7k9p2m)..." class="flex-1 bg-black/50 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs font-mono text-white placeholder-slate-500 focus:outline-none focus:border-purple-500" />
+            <button id="lobbyConnectBtn" class="px-4 py-2.5 theme-btn text-xs font-semibold text-white">
+              Залететь
             </button>
           </div>
         </div>
       </div>
 
       <!-- Local Picture-in-Picture Preview (Bottom Right of Video Stage) -->
-      <div id="localPipCard" class="hidden absolute bottom-24 right-4 z-20 w-48 sm:w-64 aspect-video rounded-2xl overflow-hidden glass-panel shadow-2xl border border-white/15 group">
+      <div id="localPipCard" class="hidden absolute bottom-24 right-5 z-20 w-52 sm:w-64 aspect-video theme-panel overflow-hidden shadow-2xl group">
         <video id="localVideo" autoplay muted playsinline class="w-full h-full object-cover bg-black"></video>
-        <div class="absolute bottom-2 left-2 px-2 py-0.5 rounded bg-black/70 text-[10px] font-medium text-gray-200 flex items-center gap-1.5">
-          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-          <span id="localPipLabel">Вы (Экран)</span>
+        <div class="absolute bottom-2 left-2 px-2.5 py-1 rounded-lg bg-black/75 backdrop-blur-md text-[10px] font-semibold text-white flex items-center gap-1.5 border border-white/10">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span id="localPipLabel">Вы (Экран HD)</span>
         </div>
       </div>
 
       <!-- Stream Quality & Audio Mixer Popover (Above Dock) -->
-      <div id="settingsPopover" class="hidden absolute bottom-24 left-1/2 -translate-x-1/2 z-30 w-80 sm:w-96 rounded-2xl glass-dock p-4 space-y-4">
+      <div id="settingsPopover" class="hidden absolute bottom-24 left-1/2 -translate-x-1/2 z-30 w-80 sm:w-96 theme-dock p-5 space-y-4">
         <div class="flex items-center justify-between border-b border-white/10 pb-2.5">
-          <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-300">Настройки стрима и звука</h3>
-          <button id="closeSettingsBtn" class="text-gray-400 hover:text-white">
+          <div class="flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full accent-bg" style="background: var(--accent);"></span>
+            <h3 class="text-xs font-bold uppercase tracking-wider text-white">Настройки стрима и микшер</h3>
+          </div>
+          <button id="closeSettingsBtn" class="text-slate-400 hover:text-white">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
           </button>
         </div>
 
         <!-- Screen Quality Preset -->
         <div class="space-y-1.5">
-          <label class="text-xs text-gray-400 block">Качество демонстрации экрана и битрейт</label>
-          <select id="qualityPresetSelect" class="w-full bg-bg-900 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500">
+          <label class="text-xs text-slate-300 block">Разрешение и целевой битрейт</label>
+          <select id="qualityPresetSelect" class="w-full bg-black/60 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none">
             <option value="1440p60">QHD 1440p @ 60 FPS — Ultra (12 000 kbps)</option>
             <option value="1080p60" selected>Full HD 1080p @ 60 FPS — High (8 500 kbps)</option>
-            <option value="1080p30">Full HD 1080p @ 30 FPS — Четкий текст (6 000 kbps)</option>
+            <option value="1080p30">Full HD 1080p @ 30 FPS — Четкий код/текст (6 000 kbps)</option>
           </select>
         </div>
 
         <!-- Content Hint Optimization -->
         <div class="space-y-1.5">
-          <label class="text-xs text-gray-400 block">Профиль кодирования (Degradation Preference)</label>
+          <label class="text-xs text-slate-300 block">Приоритет видеокодека</label>
           <div class="grid grid-cols-2 gap-2">
-            <button id="hintMotionBtn" class="py-2 px-3 rounded-xl text-xs font-medium bg-indigo-600/20 border border-indigo-500 text-indigo-300 transition">
-              Игры / Видео (60 FPS)
+            <button id="hintMotionBtn" class="py-2 px-3 rounded-xl text-xs font-semibold theme-btn theme-btn-active">
+              Игры / Кино (60 FPS)
             </button>
-            <button id="hintDetailBtn" class="py-2 px-3 rounded-xl text-xs font-medium bg-bg-900 border border-white/10 text-gray-400 hover:text-white transition">
-              Код / Текст (Резкость)
+            <button id="hintDetailBtn" class="py-2 px-3 rounded-xl text-xs font-semibold theme-btn text-slate-300">
+              Текст / Код (Резкость)
             </button>
           </div>
         </div>
 
         <!-- Web Audio API Mixer Sliders -->
-        <div class="space-y-3 pt-1 border-t border-white/10">
+        <div class="space-y-3 pt-2 border-t border-white/10">
           <div class="space-y-1">
             <div class="flex justify-between text-xs">
-              <span class="text-gray-300">Громкость вашего микрофона</span>
-              <span id="micGainLabel" class="font-mono text-indigo-400">100%</span>
+              <span class="text-slate-300">Ваш микрофон (Send Gain)</span>
+              <span id="micGainLabel" class="font-mono accent-text">100%</span>
             </div>
             <input id="micGainSlider" type="range" min="0" max="200" value="100" class="w-full" />
           </div>
 
           <div class="space-y-1">
             <div class="flex justify-between text-xs">
-              <span class="text-gray-300">Громкость звука экрана (игры/системы)</span>
-              <span id="sysGainLabel" class="font-mono text-indigo-400">100%</span>
+              <span class="text-slate-300">Звук экрана / игры (System Audio)</span>
+              <span id="sysGainLabel" class="font-mono accent-text">100%</span>
             </div>
             <input id="sysGainSlider" type="range" min="0" max="200" value="100" class="w-full" />
           </div>
 
           <div class="space-y-1">
             <div class="flex justify-between text-xs">
-              <span class="text-gray-300">Громкость собеседника</span>
+              <span class="text-slate-300">Громкость собеседника</span>
               <span id="remoteVolLabel" class="font-mono text-emerald-400">100%</span>
             </div>
             <input id="remoteVolSlider" type="range" min="0" max="100" value="100" class="w-full" />
@@ -377,9 +787,9 @@
       </div>
 
       <!-- Floating Bottom Control Dock -->
-      <div class="absolute bottom-5 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 sm:gap-3 px-4 py-2.5 rounded-2xl glass-dock">
+      <div class="absolute bottom-5 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 sm:gap-2.5 px-4 py-2.5 theme-dock">
         <!-- Microphone Toggle -->
-        <button id="micToggleBtn" title="Включить / выключить микрофон (с шумоподавлением)" class="w-11 h-11 rounded-xl bg-bg-800 hover:bg-bg-700 border border-white/10 text-white flex items-center justify-center transition active:scale-95">
+        <button id="micToggleBtn" title="Включить / выключить микрофон (с шумоподавлением)" class="w-11 h-11 theme-btn text-white flex items-center justify-center relative">
           <svg id="micIconOn" class="w-5 h-5 hidden text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
           </svg>
@@ -389,47 +799,47 @@
         </button>
 
         <!-- Screen Share HD Button -->
-        <button id="screenShareBtn" title="Демонстрация экрана 1080p/1440p 60 FPS со звуком" class="h-11 px-4 rounded-xl bg-bg-800 hover:bg-bg-700 border border-white/10 text-white flex items-center gap-2 text-xs font-semibold transition active:scale-95">
-          <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <button id="screenShareBtn" title="Демонстрация экрана 1080p/1440p 60 FPS со звуком" class="h-11 px-4 theme-btn text-white flex items-center gap-2 text-xs font-bold">
+          <svg class="w-5 h-5 accent-text" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
           </svg>
-          <span id="screenShareBtnText" class="hidden sm:inline">Экран HD</span>
+          <span id="screenShareBtnText" class="hidden sm:inline">Демка HD</span>
         </button>
 
         <!-- Webcam Toggle Button -->
-        <button id="cameraToggleBtn" title="Включить / выключить веб-камеру" class="w-11 h-11 rounded-xl bg-bg-800 hover:bg-bg-700 border border-white/10 text-white flex items-center justify-center transition active:scale-95">
-          <svg class="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <button id="cameraToggleBtn" title="Включить / выключить веб-камеру" class="w-11 h-11 theme-btn text-white flex items-center justify-center">
+          <svg class="w-5 h-5 text-slate-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
           </svg>
         </button>
 
-        <!-- Stop Video/Screen Broadcast Button (shown when streaming) -->
-        <button id="stopStreamBtn" title="Остановить видеопоток" class="hidden h-11 px-3.5 rounded-xl bg-rose-600/20 hover:bg-rose-600/30 border border-rose-500/40 text-rose-300 items-center gap-1.5 text-xs font-semibold transition">
+        <!-- Stop Video/Screen Broadcast Button -->
+        <button id="stopStreamBtn" title="Остановить стрим" class="hidden h-11 px-3.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/40 text-rose-300 items-center gap-1.5 text-xs font-bold transition">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
           </svg>
-          <span class="hidden md:inline">Стоп стрим</span>
+          <span class="hidden md:inline">Стоп</span>
         </button>
 
         <div class="h-6 w-[1px] bg-white/10 mx-0.5"></div>
 
         <!-- Stream Settings & Audio Mixer Button -->
-        <button id="openSettingsBtn" title="Настройки битрейта и аудио-микшер" class="w-11 h-11 rounded-xl bg-bg-800 hover:bg-bg-700 border border-white/10 text-gray-300 hover:text-white flex items-center justify-center transition">
+        <button id="openSettingsBtn" title="Микшер звука и битрейт" class="w-11 h-11 theme-btn text-slate-200 hover:text-white flex items-center justify-center">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
           </svg>
         </button>
 
         <!-- Fullscreen Button -->
-        <button id="fullscreenBtn" title="На весь экран" class="w-11 h-11 rounded-xl bg-bg-800 hover:bg-bg-700 border border-white/10 text-gray-300 hover:text-white flex items-center justify-center transition">
+        <button id="fullscreenBtn" title="На весь экран" class="w-11 h-11 theme-btn text-slate-200 hover:text-white flex items-center justify-center">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
           </svg>
         </button>
 
-        <!-- Disconnect Call Button (active when connected) -->
-        <button id="disconnectBtn" title="Разорвать соединение" class="hidden w-11 h-11 rounded-xl bg-rose-600 hover:bg-rose-500 text-white items-center justify-center shadow-lg shadow-rose-600/30 transition">
+        <!-- Disconnect Call Button -->
+        <button id="disconnectBtn" title="Отключиться" class="hidden w-11 h-11 rounded-xl bg-rose-600 hover:bg-rose-500 text-white items-center justify-center shadow-lg shadow-rose-600/30 transition">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2M5 3a2 2 0 00-2 2v1c0 8.284 6.716 15 15 15h1a2 2 0 002-2v-3.28a1 1 0 00-.684-.948l-4.493-1.498a1 1 0 00-1.21.502l-1.13 2.257a11.042 11.042 0 01-5.516-5.517l2.257-1.128a1 1 0 00.502-1.21L9.228 3.683A1 1 0 008.279 3H5z" />
           </svg>
@@ -438,48 +848,53 @@
     </section>
 
     <!-- Right Collapsible Chat Sidebar (RTCDataChannel) -->
-    <aside id="chatSidebar" class="w-80 sm:w-96 bg-bg-900 border-l border-white/5 flex flex-col shrink-0 transition-all duration-300 z-30">
+    <aside id="chatSidebar" class="w-80 sm:w-96 theme-surface border-l border-white/10 flex flex-col shrink-0 transition-all duration-300 z-30">
       <!-- Chat Header -->
-      <div class="h-12 px-4 border-b border-white/5 flex items-center justify-between">
+      <div class="h-12 px-4 border-b border-white/10 flex items-center justify-between">
         <div class="flex items-center gap-2">
-          <span class="w-2 h-2 rounded-full bg-indigo-400"></span>
-          <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-200">Приватный DataChannel Чат</h3>
+          <span class="w-2 h-2 rounded-full" style="background: var(--accent);"></span>
+          <h3 class="text-xs font-bold uppercase tracking-wider text-white">Чат комнаты</h3>
         </div>
-        <span class="text-[10px] font-mono text-gray-500">Без логов на сервере</span>
+        <span class="text-[10px] font-mono accent-badge px-2 py-0.5 rounded-md">E2E DataChannel</span>
       </div>
 
       <!-- Messages Feed -->
       <div id="chatMessages" class="flex-1 overflow-y-auto p-4 space-y-3 selectable-text">
-        <!-- Welcome System Notice -->
-        <div class="p-3 rounded-xl bg-bg-850/90 border border-white/5 text-[11px] text-gray-400 leading-relaxed">
-          <strong class="text-indigo-400 block mb-0.5">Шифрование WebRTC (DTLS/SRTP)</strong>
-          Сообщения, файлы и изображения передаются напрямую из браузера в браузер через <code class="text-gray-300 font-mono">RTCDataChannel</code>.
+        <!-- Welcome Card -->
+        <div class="p-3.5 rounded-2xl bg-black/40 border border-white/10 text-[11px] text-slate-300 leading-relaxed space-y-1">
+          <div class="flex items-center justify-between">
+            <span class="street-tag text-base">disstya</span>
+            <span class="text-[10px] font-mono text-emerald-400">P2P Encrypted</span>
+          </div>
+          <p class="text-slate-400">
+            Сообщения, скриншоты и файлы до 50 МБ летят напрямую из браузера в браузер мимо серверов. Можешь просто перетащить файл мышкой в окно.
+          </p>
         </div>
       </div>
 
       <!-- Drag & Drop / File Upload Progress Bar -->
-      <div id="fileProgressBox" class="hidden px-4 py-2 bg-bg-850 border-t border-white/5">
-        <div class="flex justify-between text-[11px] text-gray-300 mb-1">
+      <div id="fileProgressBox" class="hidden px-4 py-2.5 bg-black/50 border-t border-white/10">
+        <div class="flex justify-between text-[11px] text-slate-300 mb-1">
           <span id="fileProgressLabel">Передача файла...</span>
-          <span id="fileProgressPct" class="font-mono text-indigo-400">0%</span>
+          <span id="fileProgressPct" class="font-mono accent-text">0%</span>
         </div>
-        <div class="w-full h-1.5 bg-bg-700 rounded-full overflow-hidden">
-          <div id="fileProgressBar" class="h-full bg-indigo-500 w-0 transition-all"></div>
+        <div class="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
+          <div id="fileProgressBar" class="h-full w-0 transition-all" style="background: linear-gradient(90deg, var(--accent), var(--accent-2));"></div>
         </div>
       </div>
 
       <!-- Message & File Input Footer -->
-      <form id="chatForm" class="p-3 bg-bg-850/60 border-t border-white/5 flex items-end gap-2">
+      <form id="chatForm" class="p-3 bg-black/35 border-t border-white/10 flex items-end gap-2">
         <input id="fileInput" type="file" class="hidden" />
-        <button type="button" id="attachFileBtn" title="Отправить изображение или файл напрямую (P2P)" class="p-2.5 rounded-xl bg-bg-800 hover:bg-bg-700 text-gray-300 hover:text-white border border-white/10 transition shrink-0">
+        <button type="button" id="attachFileBtn" title="Отправить картинку или файл напрямую (P2P)" class="p-2.5 theme-btn text-slate-300 hover:text-white shrink-0">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
           </svg>
         </button>
 
-        <input id="chatInput" type="text" autocomplete="off" placeholder="Написать сообщение..." class="flex-1 bg-bg-900 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500" />
+        <input id="chatInput" type="text" autocomplete="off" placeholder="Написать в disstya..." class="flex-1 bg-black/50 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-purple-500" />
 
-        <button type="submit" class="p-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white transition shrink-0 shadow">
+        <button type="submit" class="p-2.5 theme-btn-primary shrink-0">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
           </svg>
@@ -491,12 +906,7 @@
 
   <script>
     /*************************************************************************
-     * NEXUSP2P — PRODUCTION WEBRTC P2P ENGINE
-     * Features:
-     * - Persistent Dual-Track Media Pipeline (seamless replaceTrack without renegotiation drops)
-     * - Web Audio API Mixer combining Microphone + Screen System Audio in stereo
-     * - High-Bitrate Enforcement via RTCRtpSender.setParameters + SDP Munging (up to 12 Mbps 60fps)
-     * - Chunked ArrayBuffer File & Image Transfer over RTCDataChannel
+     * DISSTYA — PRODUCTION WEBRTC P2P ENGINE + DEEP THEME STUDIO
      *************************************************************************/
 
     const QUALITY_PRESETS = {
@@ -505,7 +915,76 @@
       '1080p30': { width: 1920, height: 1080, fps: 30, maxBitrate: 6_000_000,  kbps: 6000 },
     };
 
-    const CHUNK_SIZE = 64 * 1024; // 64 KB chunks for safe RTCDataChannel binary transfer
+    const THEME_PRESETS = {
+      tokyo: {
+        accent: '#a855f7',
+        accent2: '#ec4899',
+        bgBase: '#07070c',
+        bgSurface: '#0e0f18',
+        bgElevated: '#161826',
+        bgMode: 'aurora'
+      },
+      acid: {
+        accent: '#84cc16',
+        accent2: '#10b981',
+        bgBase: '#060906',
+        bgSurface: '#0c130d',
+        bgElevated: '#131f15',
+        bgMode: 'grid'
+      },
+      bloodline: {
+        accent: '#ef4444',
+        accent2: '#f97316',
+        bgBase: '#090506',
+        bgSurface: '#140b0d',
+        bgElevated: '#1f1114',
+        bgMode: 'aurora'
+      },
+      cyberice: {
+        accent: '#06b6d4',
+        accent2: '#3b82f6',
+        bgBase: '#04080e',
+        bgSurface: '#0a121e',
+        bgElevated: '#101c2e',
+        bgMode: 'grid'
+      },
+      goldchrome: {
+        accent: '#f59e0b',
+        accent2: '#eab308',
+        bgBase: '#090806',
+        bgSurface: '#14120d',
+        bgElevated: '#211d15',
+        bgMode: 'dots'
+      },
+      oled: {
+        accent: '#e2e8f0',
+        accent2: '#64748b',
+        bgBase: '#000000',
+        bgSurface: '#08080a',
+        bgElevated: '#121216',
+        bgMode: 'minimal'
+      }
+    };
+
+    const DEFAULT_THEME = {
+      nickname: '',
+      preset: 'tokyo',
+      accent: '#a855f7',
+      accent2: '#ec4899',
+      bgBase: '#07070c',
+      bgSurface: '#0e0f18',
+      bgElevated: '#161826',
+      tagFont: "'Sedgwick Ave Display', cursive",
+      bgMode: 'aurora',
+      customWallpaper: '',
+      ambilight: true,
+      blur: 20,
+      opacity: 78,
+      glow: 45,
+      radius: 18
+    };
+
+    const CHUNK_SIZE = 64 * 1024; // 64 KB chunks for RTCDataChannel binary transfer
 
     const state = {
       myPeerId: null,
@@ -513,12 +992,13 @@
       dataConn: null,
       mediaCall: null,
       remotePeerId: null,
+      remoteNickname: null,
 
       // Media modes: 'none' | 'screen' | 'camera'
       videoMode: 'none',
       micEnabled: false,
       sysAudioAvailable: false,
-      contentHintMode: 'motion', // 'motion' (60fps games/video) or 'detail' (crisp text/code)
+      contentHintMode: 'motion',
       selectedPreset: '1080p60',
 
       // Underlying MediaStreams
@@ -545,7 +1025,10 @@
       prevStatsTimestamp: 0,
 
       // Incoming File Assembler
-      incomingFiles: {}
+      incomingFiles: {},
+
+      // Theme Configuration
+      theme: { ...DEFAULT_THEME }
     };
 
     // DOM Elements Map
@@ -564,6 +1047,7 @@
       manualConnectBox: document.getElementById('manualConnectBox'),
 
       videoStageContainer: document.getElementById('videoStageContainer'),
+      ambilightGlow: document.getElementById('ambilightGlow'),
       remoteVideo: document.getElementById('remoteVideo'),
       remoteAudio: document.getElementById('remoteAudio'),
       idleStageOverlay: document.getElementById('idleStageOverlay'),
@@ -629,18 +1113,154 @@
       imageModal: document.getElementById('imageModal'),
       modalImageSrc: document.getElementById('modalImageSrc'),
       closeModalBtn: document.getElementById('closeModalBtn'),
+
+      // Theme Studio Elements
+      openThemeStudioBtn: document.getElementById('openThemeStudioBtn'),
+      closeThemeStudioBtn: document.getElementById('closeThemeStudioBtn'),
+      doneThemeBtn: document.getElementById('doneThemeBtn'),
+      resetThemeBtn: document.getElementById('resetThemeBtn'),
+      themeStudioModal: document.getElementById('themeStudioModal'),
+      customNicknameInput: document.getElementById('customNicknameInput'),
+      colorAccent1: document.getElementById('colorAccent1'),
+      colorAccent1Hex: document.getElementById('colorAccent1Hex'),
+      colorAccent2: document.getElementById('colorAccent2'),
+      colorAccent2Hex: document.getElementById('colorAccent2Hex'),
+      colorBgBase: document.getElementById('colorBgBase'),
+      colorBgBaseHex: document.getElementById('colorBgBaseHex'),
+      customWallpaperInput: document.getElementById('customWallpaperInput'),
+      applyWallpaperBtn: document.getElementById('applyWallpaperBtn'),
+      ambilightToggle: document.getElementById('ambilightToggle'),
+      blurSlider: document.getElementById('blurSlider'),
+      blurValLabel: document.getElementById('blurValLabel'),
+      opacitySlider: document.getElementById('opacitySlider'),
+      opacityValLabel: document.getElementById('opacityValLabel'),
+      glowSlider: document.getElementById('glowSlider'),
+      glowValLabel: document.getElementById('glowValLabel'),
+      radiusSlider: document.getElementById('radiusSlider'),
+      radiusValLabel: document.getElementById('radiusValLabel'),
     };
+
+    function hexToRgbString(hex) {
+      const clean = hex.replace('#', '');
+      const num = parseInt(clean, 16);
+      if (isNaN(num)) return '168, 85, 247';
+      const r = (num >> 16) & 255;
+      const g = (num >> 8) & 255;
+      const b = num & 255;
+      return `${r}, ${g}, ${b}`;
+    }
+
+    function loadSavedTheme() {
+      try {
+        const raw = localStorage.getItem('disstya_theme_v1');
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          state.theme = { ...DEFAULT_THEME, ...parsed };
+        }
+      } catch (e) {
+        console.warn('Theme load warning:', e);
+      }
+      applyThemeToDOM();
+      syncThemeStudioInputs();
+    }
+
+    function saveTheme() {
+      try {
+        localStorage.setItem('disstya_theme_v1', JSON.stringify(state.theme));
+      } catch (e) {}
+    }
+
+    function applyThemeToDOM() {
+      const t = state.theme;
+      const root = document.documentElement;
+
+      root.style.setProperty('--accent', t.accent);
+      root.style.setProperty('--accent-2', t.accent2);
+      root.style.setProperty('--accent-rgb', hexToRgbString(t.accent));
+      root.style.setProperty('--accent-2-rgb', hexToRgbString(t.accent2));
+      root.style.setProperty('--bg-base', t.bgBase);
+      root.style.setProperty('--bg-surface', t.bgSurface);
+      root.style.setProperty('--bg-elevated', t.bgElevated);
+      root.style.setProperty('--tag-font', t.tagFont);
+      root.style.setProperty('--glass-blur', `${t.blur}px`);
+      root.style.setProperty('--glass-opacity', (t.opacity / 100).toFixed(2));
+      root.style.setProperty('--glow-strength', (t.glow / 100).toFixed(2));
+      root.style.setProperty('--radius-panel', `${t.radius}px`);
+      root.style.setProperty('--radius-btn', `${Math.max(4, t.radius - 5)}px`);
+
+      // Apply Stage Background Pattern or Custom Wallpaper
+      el.videoStageContainer.classList.remove(
+        'stage-bg-aurora',
+        'stage-bg-grid',
+        'stage-bg-dots',
+        'stage-bg-minimal',
+        'stage-bg-custom'
+      );
+
+      if (t.customWallpaper && t.bgMode === 'custom') {
+        root.style.setProperty('--custom-wallpaper', `url("${t.customWallpaper}")`);
+        el.videoStageContainer.classList.add('stage-bg-custom');
+      } else {
+        el.videoStageContainer.classList.add(`stage-bg-${t.bgMode || 'aurora'}`);
+      }
+
+      // Ambilight visibility when video is active
+      updateAmbilightVisibility();
+    }
+
+    function updateAmbilightVisibility() {
+      const isStreamingRemote = !el.remoteVideo.classList.contains('hidden');
+      if (state.theme.ambilight && isStreamingRemote) {
+        el.ambilightGlow.classList.remove('opacity-0');
+        el.ambilightGlow.classList.add('opacity-100');
+      } else {
+        el.ambilightGlow.classList.remove('opacity-100');
+        el.ambilightGlow.classList.add('opacity-0');
+      }
+    }
+
+    function syncThemeStudioInputs() {
+      const t = state.theme;
+      el.customNicknameInput.value = t.nickname || '';
+      el.colorAccent1.value = t.accent;
+      el.colorAccent1Hex.textContent = t.accent;
+      el.colorAccent2.value = t.accent2;
+      el.colorAccent2Hex.textContent = t.accent2;
+      el.colorBgBase.value = t.bgBase;
+      el.colorBgBaseHex.textContent = t.bgBase;
+      el.customWallpaperInput.value = t.customWallpaper || '';
+      el.ambilightToggle.checked = Boolean(t.ambilight);
+
+      el.blurSlider.value = t.blur;
+      el.blurValLabel.textContent = `${t.blur}px`;
+      el.opacitySlider.value = t.opacity;
+      el.opacityValLabel.textContent = `${t.opacity}%`;
+      el.glowSlider.value = t.glow;
+      el.glowValLabel.textContent = `${t.glow}%`;
+      el.radiusSlider.value = t.radius;
+      el.radiusValLabel.textContent = `${t.radius}px`;
+
+      // Highlight active tag font button
+      document.querySelectorAll('.tag-font-btn').forEach(btn => {
+        btn.classList.toggle('theme-btn-active', btn.dataset.tagfont === t.tagFont);
+      });
+
+      // Highlight active background mode button
+      document.querySelectorAll('.bg-mode-btn').forEach(btn => {
+        btn.classList.toggle('theme-btn-active', btn.dataset.bgmode === t.bgMode);
+      });
+    }
 
     // Non-blocking Toast Notification
     function showToast(message, type = 'info') {
       const colors = {
-        info: 'bg-bg-800 border-indigo-500/40 text-gray-100',
+        info: 'theme-panel text-slate-100',
         success: 'bg-emerald-950/90 border-emerald-500/40 text-emerald-200',
         warn: 'bg-amber-950/90 border-amber-500/40 text-amber-200',
         error: 'bg-rose-950/90 border-rose-500/40 text-rose-200'
       };
       const toast = document.createElement('div');
-      toast.className = `px-4 py-2.5 rounded-xl border backdrop-blur-md text-xs font-medium shadow-xl transition-all duration-300 flex items-center gap-2 ${colors[type] || colors.info}`;
+      toast.className = `px-4 py-2.5 rounded-2xl border backdrop-blur-xl text-xs font-semibold shadow-2xl transition-all duration-300 flex items-center gap-2 ${colors[type] || colors.info}`;
       toast.innerHTML = `<span>${escapeHtml(message)}</span>`;
       el.toastContainer.appendChild(toast);
       setTimeout(() => {
@@ -667,43 +1287,36 @@
       textarea.select();
       try {
         document.execCommand('copy');
-        showToast('Ссылка-приглашение скопирована в буфер обмена!', 'success');
+        showToast('Инвайт-ссылка disstya скопирована в буфер!', 'success');
       } catch (err) {
         showToast('Не удалось скопировать ссылку', 'error');
       }
       document.body.removeChild(textarea);
     }
 
-    // Generate short readable Peer ID (e.g., nx-7k9p2m)
     function generateShortPeerId() {
       const chars = 'abcdefghjkmnpqrstuvwxyz23456789';
-      let code = 'nx-';
+      let code = 'ds-';
       for (let i = 0; i < 6; i++) {
         code += chars.charAt(Math.floor(Math.random() * chars.length));
       }
       return code;
     }
 
-    /**
-     * Initializes the Master Outgoing Stream containing:
-     * 1. A standby low-FPS canvas video track (replaced on-the-fly with 1440p60 Screen or Camera)
-     * 2. A Web Audio API mixed stereo audio track (combining Microphone + Screen System Audio)
-     */
     function initMasterMediaPipeline() {
       if (state.masterOutStream) return state.masterOutStream;
 
-      // 1. Create Standby Canvas Video Track so m=video is always negotiated in SDP
+      // 1. Standby Canvas Video Track
       const canvas = document.createElement('canvas');
       canvas.width = 640;
       canvas.height = 360;
       const ctx = canvas.getContext('2d');
 
       function drawStandbyFrame() {
-        ctx.fillStyle = '#090b10';
+        ctx.fillStyle = '#07070c';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
       }
       drawStandbyFrame();
-      // Keep a 1 FPS heartbeat on the standby canvas so WebRTC transceiver stays primed
       setInterval(() => {
         if (state.videoMode === 'none') drawStandbyFrame();
       }, 1000);
@@ -711,13 +1324,12 @@
       const canvasStream = canvas.captureStream(5);
       state.standbyCanvasTrack = canvasStream.getVideoTracks()[0];
 
-      // 2. Initialize Web Audio API Mixer for Microphone + System Audio
+      // 2. Web Audio API Stereo Mixer (Microphone + System Audio)
       const AudioContextClass = window.AudioContext || window.webkitAudioContext;
       state.audioCtx = new AudioContextClass({ sampleRate: 48000, latencyHint: 'interactive' });
       state.audioDest = state.audioCtx.createMediaStreamDestination();
       state.audioDest.channelCount = 2;
 
-      // Gain nodes for independent volume control
       state.micGainNode = state.audioCtx.createGain();
       state.micGainNode.gain.value = 1.0;
       state.micGainNode.connect(state.audioDest);
@@ -726,7 +1338,6 @@
       state.sysGainNode.gain.value = 1.0;
       state.sysGainNode.connect(state.audioDest);
 
-      // Connect a silent oscillator so the audio stream always emits RTP packets cleanly
       const silentOsc = state.audioCtx.createOscillator();
       const silentGain = state.audioCtx.createGain();
       silentGain.gain.value = 0;
@@ -748,15 +1359,10 @@
       if (state.audioCtx && state.audioCtx.state === 'suspended') {
         try {
           await state.audioCtx.resume();
-        } catch (e) {
-          console.warn('AudioContext resume error:', e);
-        }
+        } catch (e) {}
       }
     }
 
-    /**
-     * Modifies SDP to unlock high video bitrate (8000-12000 kbps) and stereo high-bitrate Opus audio
-     */
     function mungeSdpForHighQuality(sdp) {
       if (!sdp) return sdp;
       const preset = QUALITY_PRESETS[state.selectedPreset] || QUALITY_PRESETS['1080p60'];
@@ -776,7 +1382,6 @@
           inVideo = false;
         }
 
-        // Inject bandwidth limit right after c=IN line inside video section
         if (inVideo && line.startsWith('c=IN')) {
           result.push(line);
           result.push(`b=AS:${targetKbps}`);
@@ -784,13 +1389,11 @@
           continue;
         }
 
-        // Boost Opus audio to stereo 256 kbps for crisp system/game audio
         if (line.includes('a=fmtp:') && line.includes('minptime=10')) {
           result.push(`${line};stereo=1;sprop-stereo=1;maxaveragebitrate=256000;cbr=1`);
           continue;
         }
 
-        // Add google bitrate hints to video fmtp lines
         if (inVideo && line.startsWith('a=fmtp:') && !line.includes('x-google-max-bitrate')) {
           result.push(`${line};x-google-max-bitrate=${targetKbps};x-google-min-bitrate=2500;x-google-start-bitrate=5000`);
           continue;
@@ -802,9 +1405,6 @@
       return result.join('\r\n');
     }
 
-    /**
-     * Enforces high video bitrate & framerate on active RTCRtpSender via setParameters
-     */
     async function applyHighBitrateToSender() {
       if (!state.mediaCall || !state.mediaCall.peerConnection) return;
 
@@ -826,7 +1426,6 @@
             params.encodings[0].priority = 'high';
             params.encodings[0].networkPriority = 'high';
 
-            // Set degradation preference based on user optimization mode
             params.degradationPreference = state.contentHintMode === 'detail'
               ? 'maintain-resolution'
               : 'maintain-framerate';
@@ -839,16 +1438,11 @@
       }
     }
 
-    /**
-     * Replaces the outgoing video track seamlessly without dropping the call
-     */
     async function replaceOutgoingVideoTrack(newVideoTrack) {
-      // Update Master Stream track
       const oldTracks = state.masterOutStream.getVideoTracks();
       oldTracks.forEach(t => state.masterOutStream.removeTrack(t));
       state.masterOutStream.addTrack(newVideoTrack);
 
-      // Replace track inside active RTCPeerConnection sender if connected
       if (state.mediaCall && state.mediaCall.peerConnection) {
         const videoSender = state.mediaCall.peerConnection
           .getSenders()
@@ -861,9 +1455,6 @@
       }
     }
 
-    /**
-     * Starts High-Definition Screen Share with System Audio
-     */
     async function startScreenShare() {
       await resumeAudioContextIfNeeded();
       const preset = QUALITY_PRESETS[state.selectedPreset] || QUALITY_PRESETS['1080p60'];
@@ -885,7 +1476,6 @@
           }
         });
 
-        // Stop any previous active video stream
         cleanupActiveVideoStream();
 
         state.activeVideoStream = displayStream;
@@ -896,22 +1486,20 @@
           videoTrack.contentHint = state.contentHintMode;
         }
 
-        // Handle user clicking native browser "Stop sharing" button
         videoTrack.onended = () => {
           stopVideoBroadcast();
         };
 
-        // Check if system audio was shared and wire it into Web Audio API Mixer
         const sysAudioTracks = displayStream.getAudioTracks();
         if (sysAudioTracks.length > 0) {
           state.sysAudioAvailable = true;
           const sysOnlyStream = new MediaStream([sysAudioTracks[0]]);
           state.sysSourceNode = state.audioCtx.createMediaStreamSource(sysOnlyStream);
           state.sysSourceNode.connect(state.sysGainNode);
-          showToast(`Трансляция экрана (${preset.height}p${preset.fps}) со системным звуком запущена!`, 'success');
+          showToast(`Демка ${preset.height}p${preset.fps} + Системный стереозвук в эфире!`, 'success');
         } else {
           state.sysAudioAvailable = false;
-          showToast(`Трансляция экрана (${preset.height}p${preset.fps}) запущена (без системного аудио)`, 'info');
+          showToast(`Демка ${preset.height}p${preset.fps} запущена (без системного звука)`, 'info');
         }
 
         await replaceOutgoingVideoTrack(videoTrack);
@@ -919,14 +1507,11 @@
         broadcastMediaState();
       } catch (err) {
         if (err.name !== 'NotAllowedError') {
-          showToast('Ошибка запуска демонстрации экрана: ' + err.message, 'error');
+          showToast('Не удалось запустить демку: ' + err.message, 'error');
         }
       }
     }
 
-    /**
-     * Starts Webcam Capture
-     */
     async function startCameraShare() {
       await resumeAudioContextIfNeeded();
       if (state.videoMode === 'camera') {
@@ -966,9 +1551,6 @@
       }
     }
 
-    /**
-     * Stops active screen or webcam broadcast and reverts to standby track
-     */
     async function stopVideoBroadcast() {
       cleanupActiveVideoStream();
       state.videoMode = 'none';
@@ -993,9 +1575,6 @@
       }
     }
 
-    /**
-     * Toggles Microphone with Echo Cancellation & Noise Suppression wired to Web Audio Mixer
-     */
     async function toggleMicrophone() {
       await resumeAudioContextIfNeeded();
 
@@ -1014,9 +1593,9 @@
           state.micSourceNode = state.audioCtx.createMediaStreamSource(state.micStream);
           state.micSourceNode.connect(state.micGainNode);
           state.micEnabled = true;
-          showToast('Микрофон включен (шумоподавление активно)', 'success');
+          showToast('Микрофон включен (шумодав активен)', 'success');
         } catch (err) {
-          showToast('Не удалось получить доступ к микрофону', 'error');
+          showToast('Нет доступа к микрофону', 'error');
           return;
         }
       } else {
@@ -1024,7 +1603,7 @@
         state.micStream.getAudioTracks().forEach(t => {
           t.enabled = state.micEnabled;
         });
-        showToast(state.micEnabled ? 'Микрофон включен' : 'Микрофон выключен', 'info');
+        showToast(state.micEnabled ? 'Микрофон включен' : 'Микрофон замьючен', 'info');
       }
 
       updateMicUI();
@@ -1035,11 +1614,11 @@
       if (state.micEnabled) {
         el.micIconOn.classList.remove('hidden');
         el.micIconOff.classList.add('hidden');
-        el.micToggleBtn.classList.add('border-emerald-500/50', 'bg-emerald-500/10');
+        el.micToggleBtn.classList.add('theme-btn-active');
       } else {
         el.micIconOn.classList.add('hidden');
         el.micIconOff.classList.remove('hidden');
-        el.micToggleBtn.classList.remove('border-emerald-500/50', 'bg-emerald-500/10');
+        el.micToggleBtn.classList.remove('theme-btn-active');
       }
     }
 
@@ -1049,9 +1628,9 @@
         el.localVideo.srcObject = null;
         el.stopStreamBtn.classList.add('hidden');
         el.stopStreamBtn.classList.remove('flex');
-        el.screenShareBtn.classList.remove('border-indigo-500', 'bg-indigo-600/20');
-        el.cameraToggleBtn.classList.remove('border-indigo-500', 'bg-indigo-600/20');
-        el.screenShareBtnText.textContent = 'Экран HD';
+        el.screenShareBtn.classList.remove('theme-btn-active');
+        el.cameraToggleBtn.classList.remove('theme-btn-active');
+        el.screenShareBtnText.textContent = 'Демка HD';
       } else {
         el.localPipCard.classList.remove('hidden');
         el.localVideo.srcObject = state.activeVideoStream;
@@ -1060,14 +1639,14 @@
 
         if (state.videoMode === 'screen') {
           el.localPipLabel.textContent = state.sysAudioAvailable ? 'Вы (Экран + Звук)' : 'Вы (Экран)';
-          el.screenShareBtn.classList.add('border-indigo-500', 'bg-indigo-600/20');
-          el.cameraToggleBtn.classList.remove('border-indigo-500', 'bg-indigo-600/20');
+          el.screenShareBtn.classList.add('theme-btn-active');
+          el.cameraToggleBtn.classList.remove('theme-btn-active');
           el.screenShareBtnText.textContent = 'Сменить экран';
         } else {
           el.localPipLabel.textContent = 'Вы (Камера)';
-          el.cameraToggleBtn.classList.add('border-indigo-500', 'bg-indigo-600/20');
-          el.screenShareBtn.classList.remove('border-indigo-500', 'bg-indigo-600/20');
-          el.screenShareBtnText.textContent = 'Экран HD';
+          el.cameraToggleBtn.classList.add('theme-btn-active');
+          el.screenShareBtn.classList.remove('theme-btn-active');
+          el.screenShareBtnText.textContent = 'Демка HD';
         }
       }
     }
@@ -1083,7 +1662,7 @@
       } else if (status === 'connecting') {
         el.connStatusDot.classList.add('bg-amber-400', 'pulse-indicator');
       } else if (status === 'ready') {
-        el.connStatusDot.classList.add('bg-indigo-400');
+        el.connStatusDot.classList.add('bg-purple-400');
         el.disconnectBtn.classList.add('hidden');
         el.disconnectBtn.classList.remove('flex');
         el.manualConnectBox.classList.remove('hidden');
@@ -1114,38 +1693,33 @@
       state.peer.on('open', (id) => {
         state.myPeerId = id;
         el.myPeerIdDisplay.textContent = id;
-        setConnectionStatus('ready', 'Готов к подключению');
-
-        // Check if URL has an invite hash (#PEER_ID) and auto-connect
+        setConnectionStatus('ready', 'Готов к коннекту');
         checkUrlHashAndAutoConnect();
       });
 
-      // Handle Incoming DataChannel Connection
       state.peer.on('connection', (conn) => {
         setupDataChannel(conn);
       });
 
-      // Handle Incoming Media Call
       state.peer.on('call', (call) => {
         answerIncomingCall(call);
       });
 
       state.peer.on('disconnected', () => {
-        setConnectionStatus('disconnected', 'Сигналинг переподключается...');
+        setConnectionStatus('disconnected', 'Реконнект сигналинга...');
         state.peer.reconnect();
       });
 
       state.peer.on('error', (err) => {
         console.error('PeerJS error:', err);
         if (err.type === 'peer-unavailable') {
-          setConnectionStatus('ready', 'Собеседник не найден');
-          showToast('Собеседник с таким ID сейчас не в сети или закрыл вкладку', 'error');
+          setConnectionStatus('ready', 'Друг не найден');
+          showToast('Пользователь с таким ID сейчас не в сети', 'error');
         } else if (err.type === 'unavailable-id') {
-          // Retry with a new ID
           state.peer.destroy();
           initPeerNode();
         } else {
-          showToast(`Ошибка сети: ${err.type}`, 'warn');
+          showToast(`Сетевой статус: ${err.type}`, 'warn');
         }
       });
     }
@@ -1159,30 +1733,23 @@
       }
     }
 
-    /**
-     * Initiates both DataChannel and Media Call to target Peer ID
-     */
     async function connectToRemotePeer(targetId) {
       const cleanId = extractPeerId(targetId);
       if (!cleanId) {
-        showToast('Введите корректный ID собеседника', 'warn');
+        showToast('Введи корректный ID друга', 'warn');
         return;
       }
       if (cleanId === state.myPeerId) {
-        showToast('Нельзя подключиться к самому себе', 'warn');
+        showToast('Это твой собственный ID бро :)', 'warn');
         return;
       }
 
       await resumeAudioContextIfNeeded();
-      setConnectionStatus('connecting', `Подключение к ${cleanId}...`);
+      setConnectionStatus('connecting', `Коннект к ${cleanId}...`);
 
-      // 1. Open DataConnection
-      const conn = state.peer.connect(cleanId, {
-        reliable: true
-      });
+      const conn = state.peer.connect(cleanId, { reliable: true });
       setupDataChannel(conn);
 
-      // 2. Initiate Media Call with Master Stream & SDP Munging
       const call = state.peer.call(cleanId, state.masterOutStream, {
         sdpTransform: mungeSdpForHighQuality
       });
@@ -1215,14 +1782,14 @@
       state.remotePeerId = remoteId;
 
       call.on('stream', (remoteStream) => {
-        // Attach video & audio streams
         el.remoteVideo.srcObject = remoteStream;
         el.remoteAudio.srcObject = remoteStream;
 
         el.remoteVideo.play().catch(() => {});
         el.remoteAudio.play().catch(() => {});
 
-        setConnectionStatus('connected', `На связи: ${remoteId}`);
+        const displayPeer = state.remoteNickname || remoteId;
+        setConnectionStatus('connected', `В комнате: ${displayPeer}`);
         updateStageConnectedIdleUI();
         applyHighBitrateToSender();
         startWebRtcStatsLoop();
@@ -1233,8 +1800,7 @@
         handleCallClosed();
       });
 
-      call.on('error', (err) => {
-        console.warn('MediaCall error:', err);
+      call.on('error', () => {
         handleCallClosed();
       });
     }
@@ -1246,11 +1812,12 @@
       el.idleStageOverlay.classList.remove('hidden');
       el.remoteModeBadge.classList.add('hidden');
       el.remoteMicBadge.classList.add('hidden');
+      updateAmbilightVisibility();
 
-      el.stageTitle.textContent = 'Соединение завершено';
-      el.stageSubtitle.textContent = 'Собеседник отключился. Вы можете пригласить его снова или подключиться к другому ID.';
+      el.stageTitle.textContent = 'Связь завершена';
+      el.stageSubtitle.textContent = 'Собеседник отключился. Скопируй инвайт-ссылку или введи новый ID.';
       el.lobbyInviteActions.classList.remove('hidden');
-      setConnectionStatus('ready', 'Готов к подключению');
+      setConnectionStatus('ready', 'Готов к коннекту');
     }
 
     function disconnectSession() {
@@ -1267,8 +1834,9 @@
     }
 
     function updateStageConnectedIdleUI() {
-      el.stageTitle.textContent = `Подключено к ${state.remotePeerId}`;
-      el.stageSubtitle.textContent = 'Прямой P2P канал активен. Нажмите «Экран HD» в нижней панели, чтобы начать демонстрацию экрана со звуком.';
+      const displayPeer = state.remoteNickname || state.remotePeerId;
+      el.stageTitle.textContent = `На связи с ${displayPeer}`;
+      el.stageSubtitle.textContent = 'Прямой P2P-канал установлен! Жми «Демка HD» снизу, чтобы подрубить стрим экрана 60 FPS со звуком.';
       el.lobbyInviteActions.classList.add('hidden');
     }
 
@@ -1281,9 +1849,9 @@
       state.remotePeerId = conn.peer;
 
       conn.on('open', () => {
-        setConnectionStatus('connected', `На связи: ${conn.peer}`);
+        setConnectionStatus('connected', `В комнате: ${state.remoteNickname || conn.peer}`);
         updateStageConnectedIdleUI();
-        appendSystemChatMessage(`Установлен защищенный P2P DataChannel с узлом ${conn.peer}`);
+        appendSystemChatMessage(`Прямой P2P-канал с ${conn.peer} открыт`);
         broadcastMediaState();
       });
 
@@ -1296,6 +1864,10 @@
       });
     }
 
+    function getMyDisplayName() {
+      return (state.theme.nickname && state.theme.nickname.trim()) || state.myPeerId || 'Вы';
+    }
+
     function broadcastMediaState() {
       if (!state.dataConn || !state.dataConn.open) return;
       const preset = QUALITY_PRESETS[state.selectedPreset];
@@ -1304,7 +1876,8 @@
         videoMode: state.videoMode,
         micEnabled: state.micEnabled,
         sysAudio: state.sysAudioAvailable,
-        presetLabel: `${preset.height}p${preset.fps}`
+        presetLabel: `${preset.height}p${preset.fps}`,
+        nickname: state.theme.nickname ? state.theme.nickname.trim() : ''
       });
     }
 
@@ -1313,8 +1886,9 @@
 
       switch (packet.type) {
         case 'chat-text':
+          if (packet.senderName) state.remoteNickname = packet.senderName;
           appendChatMessage({
-            sender: state.remotePeerId || 'Собеседник',
+            sender: packet.senderName || state.remoteNickname || state.remotePeerId || 'Бро',
             text: packet.text,
             timestamp: packet.timestamp,
             isSelf: false
@@ -1323,6 +1897,10 @@
           break;
 
         case 'media-state':
+          if (packet.nickname) {
+            state.remoteNickname = packet.nickname;
+            setConnectionStatus('connected', `В комнате: ${state.remoteNickname}`);
+          }
           updateRemoteStageUI(packet);
           break;
 
@@ -1332,6 +1910,7 @@
             mime: packet.mime,
             size: packet.size,
             totalChunks: packet.totalChunks,
+            senderName: packet.senderName,
             chunks: [],
             receivedBytes: 0
           };
@@ -1351,7 +1930,7 @@
             const blob = new Blob(entry.chunks, { type: entry.mime || 'application/octet-stream' });
             delete state.incomingFiles[packet.fileId];
             appendFileChatMessage({
-              sender: state.remotePeerId || 'Собеседник',
+              sender: entry.senderName || state.remoteNickname || state.remotePeerId || 'Бро',
               name: entry.name,
               mime: entry.mime,
               size: entry.size,
@@ -1366,18 +1945,17 @@
     }
 
     function updateRemoteStageUI(remoteState) {
-      // Update Remote Mic indicator
+      const peerLabel = remoteState.nickname || state.remoteNickname || '';
       el.remoteMicBadge.classList.remove('hidden');
       el.remoteMicBadge.classList.add('flex');
       if (remoteState.micEnabled) {
-        el.remoteMicText.textContent = 'Микрофон вкл.';
+        el.remoteMicText.textContent = peerLabel ? `${peerLabel}: Микро вкл.` : 'Микрофон вкл.';
         el.remoteMicText.className = 'text-emerald-300';
       } else {
-        el.remoteMicText.textContent = 'Микрофон выкл.';
-        el.remoteMicText.className = 'text-gray-400';
+        el.remoteMicText.textContent = peerLabel ? `${peerLabel}: Мьют` : 'Микрофон выкл.';
+        el.remoteMicText.className = 'text-slate-400';
       }
 
-      // Show or Hide Remote Video Player based on remote videoMode
       if (remoteState.videoMode === 'screen' || remoteState.videoMode === 'camera') {
         el.remoteVideo.classList.remove('hidden');
         el.idleStageOverlay.classList.add('hidden');
@@ -1385,9 +1963,9 @@
         el.remoteModeBadge.classList.add('flex');
 
         if (remoteState.videoMode === 'screen') {
-          el.remoteModeText.textContent = `LIVE ЭКРАН • ${remoteState.presetLabel || 'HD'}${remoteState.sysAudio ? ' + АУДИО' : ''}`;
+          el.remoteModeText.textContent = `LIVE • ${remoteState.presetLabel || 'HD'}${remoteState.sysAudio ? ' + СТЕРЕО' : ''}`;
         } else {
-          el.remoteModeText.textContent = 'ВЕБ-КАМЕРА';
+          el.remoteModeText.textContent = 'КАМЕРА LIVE';
         }
       } else {
         el.remoteVideo.classList.add('hidden');
@@ -1396,6 +1974,8 @@
         el.remoteModeBadge.classList.remove('flex');
         updateStageConnectedIdleUI();
       }
+
+      updateAmbilightVisibility();
     }
 
     function formatTime(ts) {
@@ -1412,7 +1992,7 @@
     function appendSystemChatMessage(text) {
       const div = document.createElement('div');
       div.className = 'text-center my-2';
-      div.innerHTML = `<span class="inline-block px-3 py-1 rounded-full bg-bg-850 border border-white/5 text-[11px] text-gray-400">${escapeHtml(text)}</span>`;
+      div.innerHTML = `<span class="inline-block px-3 py-1 rounded-full bg-black/45 border border-white/10 text-[11px] text-slate-400">${escapeHtml(text)}</span>`;
       el.chatMessages.appendChild(div);
       el.chatMessages.scrollTop = el.chatMessages.scrollHeight;
     }
@@ -1421,16 +2001,14 @@
       const wrapper = document.createElement('div');
       wrapper.className = `flex flex-col ${isSelf ? 'items-end' : 'items-start'}`;
 
-      const bubbleClass = isSelf
-        ? 'bg-indigo-600 text-white rounded-2xl rounded-br-sm'
-        : 'bg-bg-800 text-gray-100 border border-white/5 rounded-2xl rounded-bl-sm';
+      const bubbleClass = isSelf ? 'chat-bubble-self' : 'chat-bubble-remote';
 
       wrapper.innerHTML = `
         <div class="flex items-center gap-1.5 mb-1 px-1">
-          <span class="text-[10px] font-semibold ${isSelf ? 'text-indigo-400' : 'text-emerald-400'}">${escapeHtml(sender)}</span>
-          <span class="text-[10px] text-gray-500 font-mono">${formatTime(timestamp)}</span>
+          <span class="text-[10px] font-bold ${isSelf ? 'accent-text' : 'text-emerald-400'}">${escapeHtml(sender)}</span>
+          <span class="text-[10px] text-slate-500 font-mono">${formatTime(timestamp)}</span>
         </div>
-        <div class="max-w-[85%] px-3.5 py-2 text-xs leading-relaxed break-words shadow ${bubbleClass}">
+        <div class="max-w-[86%] px-3.5 py-2.5 text-xs leading-relaxed break-words ${bubbleClass}">
           ${escapeHtml(text)}
         </div>
       `;
@@ -1445,30 +2023,26 @@
       const wrapper = document.createElement('div');
       wrapper.className = `flex flex-col ${isSelf ? 'items-end' : 'items-start'}`;
 
-      const cardBg = isSelf
-        ? 'bg-indigo-950/60 border-indigo-500/30'
-        : 'bg-bg-800 border-white/10';
-
       let mediaContent = '';
       if (isImage) {
         mediaContent = `
-          <img src="${url}" alt="${escapeHtml(name)}" class="max-h-48 rounded-lg object-cover cursor-pointer mb-2 border border-white/10 hover:opacity-90 transition previewable-img" />
+          <img src="${url}" alt="${escapeHtml(name)}" class="max-h-52 rounded-xl object-cover cursor-pointer mb-2 border border-white/10 hover:opacity-90 transition previewable-img" />
         `;
       }
 
       wrapper.innerHTML = `
         <div class="flex items-center gap-1.5 mb-1 px-1">
-          <span class="text-[10px] font-semibold ${isSelf ? 'text-indigo-400' : 'text-emerald-400'}">${escapeHtml(sender)}</span>
-          <span class="text-[10px] text-gray-500 font-mono">${formatTime()}</span>
+          <span class="text-[10px] font-bold ${isSelf ? 'accent-text' : 'text-emerald-400'}">${escapeHtml(sender)}</span>
+          <span class="text-[10px] text-slate-500 font-mono">${formatTime()}</span>
         </div>
-        <div class="max-w-[85%] p-2.5 rounded-2xl border ${cardBg} text-xs space-y-1.5 shadow">
+        <div class="max-w-[86%] p-3 theme-panel text-xs space-y-1.5">
           ${mediaContent}
           <div class="flex items-center justify-between gap-3">
             <div class="truncate">
-              <div class="font-medium text-white truncate">${escapeHtml(name)}</div>
-              <div class="text-[10px] text-gray-400 font-mono">${formatBytes(size)}</div>
+              <div class="font-semibold text-white truncate">${escapeHtml(name)}</div>
+              <div class="text-[10px] text-slate-400 font-mono">${formatBytes(size)}</div>
             </div>
-            <a href="${url}" download="${escapeHtml(name)}" class="p-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white shrink-0 transition" title="Скачать">
+            <a href="${url}" download="${escapeHtml(name)}" class="p-2 theme-btn-primary shrink-0" title="Скачать файл">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
               </svg>
@@ -1491,12 +2065,12 @@
 
     async function sendFileOverDataChannel(file) {
       if (!state.dataConn || !state.dataConn.open) {
-        showToast('Нет активного P2P-соединения для отправки файла', 'warn');
+        showToast('Сначала подключись к другу для отправки файлов', 'warn');
         return;
       }
 
       if (file.size > 50 * 1024 * 1024) {
-        showToast('Максимальный размер файла для быстрой передачи — 50 МБ', 'warn');
+        showToast('Максимальный размер файла для P2P-передачи — 50 МБ', 'warn');
         return;
       }
 
@@ -1504,14 +2078,14 @@
       const totalChunks = Math.ceil(arrayBuffer.byteLength / CHUNK_SIZE) || 1;
       const fileId = `f-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 
-      // Send file metadata header
       state.dataConn.send({
         type: 'file-meta',
         fileId,
         name: file.name,
         mime: file.type || 'application/octet-stream',
         size: file.size,
-        totalChunks
+        totalChunks,
+        senderName: getMyDisplayName()
       });
 
       showFileProgress(`Отправка: ${file.name}`, 0);
@@ -1530,7 +2104,6 @@
         const pct = Math.round(((i + 1) / totalChunks) * 100);
         showFileProgress(`Отправка: ${file.name}`, pct);
 
-        // Yield every 8 chunks so UI and DataChannel buffer stay smooth
         if (i % 8 === 0) {
           await new Promise(r => setTimeout(r, 8));
         }
@@ -1538,7 +2111,7 @@
 
       hideFileProgress();
       appendFileChatMessage({
-        sender: 'Вы',
+        sender: getMyDisplayName(),
         name: file.name,
         mime: file.type,
         size: file.size,
@@ -1636,10 +2209,8 @@
             : 'Ожидание видео';
 
           el.statPing.textContent = rttMs !== null ? `RTT: ${rttMs} ms` : 'RTT: <1 ms';
-          el.statPacketsLost.textContent = String(packetsLost);
-        } catch (e) {
-          console.warn('WebRTC stats read error:', e);
-        }
+          el.statPacketsLost.textContent = `${packetsLost} pkt`;
+        } catch (e) {}
       }, 1000);
     }
 
@@ -1652,10 +2223,9 @@
     }
 
     function bindEvents() {
-      // Copy Invite Link Buttons
       const handleCopyInvite = () => {
         if (!state.myPeerId) {
-          showToast('Подождите генерации вашего ID...', 'warn');
+          showToast('Генерируем твой тег-ID, секунду...', 'warn');
           return;
         }
         const inviteUrl = `${window.location.origin}${window.location.pathname}#${state.myPeerId}`;
@@ -1665,7 +2235,6 @@
       el.copyInviteBtn.addEventListener('click', handleCopyInvite);
       el.heroCopyInviteBtn.addEventListener('click', handleCopyInvite);
 
-      // Manual Connect Buttons
       el.connectPeerBtn.addEventListener('click', () => {
         connectToRemotePeer(el.remotePeerInput.value);
       });
@@ -1680,19 +2249,17 @@
         if (e.key === 'Enter') connectToRemotePeer(el.lobbyRemoteIdInput.value);
       });
 
-      // Hash change listener if user pastes new #ID in URL bar
       window.addEventListener('hashchange', () => {
         checkUrlHashAndAutoConnect();
       });
 
-      // Media Control Dock Buttons
+      // Media Control Dock
       el.micToggleBtn.addEventListener('click', toggleMicrophone);
       el.screenShareBtn.addEventListener('click', startScreenShare);
       el.cameraToggleBtn.addEventListener('click', startCameraShare);
       el.stopStreamBtn.addEventListener('click', stopVideoBroadcast);
       el.disconnectBtn.addEventListener('click', disconnectSession);
 
-      // Fullscreen Toggle
       el.fullscreenBtn.addEventListener('click', () => {
         if (!document.fullscreenElement) {
           el.videoStageContainer.requestFullscreen().catch(() => {});
@@ -1709,7 +2276,6 @@
         el.settingsPopover.classList.add('hidden');
       });
 
-      // Preset Change
       el.qualityPresetSelect.addEventListener('change', async (e) => {
         state.selectedPreset = e.target.value;
         await applyHighBitrateToSender();
@@ -1727,14 +2293,13 @@
           }
           broadcastMediaState();
         }
-        showToast(`Выбран пресет: ${state.selectedPreset} (${QUALITY_PRESETS[state.selectedPreset].kbps} kbps)`, 'info');
+        showToast(`Пресет стрима: ${state.selectedPreset} (${QUALITY_PRESETS[state.selectedPreset].kbps} kbps)`, 'info');
       });
 
-      // ContentHint Mode Buttons (Motion vs Detail)
       el.hintMotionBtn.addEventListener('click', () => {
         state.contentHintMode = 'motion';
-        el.hintMotionBtn.className = 'py-2 px-3 rounded-xl text-xs font-medium bg-indigo-600/20 border border-indigo-500 text-indigo-300 transition';
-        el.hintDetailBtn.className = 'py-2 px-3 rounded-xl text-xs font-medium bg-bg-900 border border-white/10 text-gray-400 hover:text-white transition';
+        el.hintMotionBtn.classList.add('theme-btn-active');
+        el.hintDetailBtn.classList.remove('theme-btn-active');
         if (state.activeVideoStream) {
           const track = state.activeVideoStream.getVideoTracks()[0];
           if (track && 'contentHint' in track) track.contentHint = 'motion';
@@ -1744,8 +2309,8 @@
 
       el.hintDetailBtn.addEventListener('click', () => {
         state.contentHintMode = 'detail';
-        el.hintDetailBtn.className = 'py-2 px-3 rounded-xl text-xs font-medium bg-indigo-600/20 border border-indigo-500 text-indigo-300 transition';
-        el.hintMotionBtn.className = 'py-2 px-3 rounded-xl text-xs font-medium bg-bg-900 border border-white/10 text-gray-400 hover:text-white transition';
+        el.hintDetailBtn.classList.add('theme-btn-active');
+        el.hintMotionBtn.classList.remove('theme-btn-active');
         if (state.activeVideoStream) {
           const track = state.activeVideoStream.getVideoTracks()[0];
           if (track && 'contentHint' in track) track.contentHint = 'detail';
@@ -1753,7 +2318,6 @@
         applyHighBitrateToSender();
       });
 
-      // Web Audio Mixer Gain Sliders
       el.micGainSlider.addEventListener('input', (e) => {
         const val = Number(e.target.value);
         el.micGainLabel.textContent = `${val}%`;
@@ -1773,13 +2337,11 @@
         el.remoteAudio.volume = val / 100;
       });
 
-      // Stats HUD Toggle
       el.toggleStatsBtn.addEventListener('click', () => {
         state.statsVisible = !state.statsVisible;
         el.statsHud.classList.toggle('hidden', !state.statsVisible);
       });
 
-      // Chat Drawer Toggle
       el.toggleChatBtn.addEventListener('click', () => {
         state.chatOpen = !state.chatOpen;
         if (state.chatOpen) {
@@ -1791,26 +2353,27 @@
         }
       });
 
-      // Chat Message Submit
       el.chatForm.addEventListener('submit', (e) => {
         e.preventDefault();
         const text = el.chatInput.value.trim();
         if (!text) return;
 
         if (!state.dataConn || !state.dataConn.open) {
-          showToast('Сначала подключитесь к собеседнику', 'warn');
+          showToast('Сначала подключись к собеседнику', 'warn');
           return;
         }
 
         const timestamp = Date.now();
+        const senderName = getMyDisplayName();
         state.dataConn.send({
           type: 'chat-text',
           text,
-          timestamp
+          timestamp,
+          senderName
         });
 
         appendChatMessage({
-          sender: 'Вы',
+          sender: senderName,
           text,
           timestamp,
           isSelf: true
@@ -1819,7 +2382,6 @@
         el.chatInput.value = '';
       });
 
-      // File Attachment & Drag-and-Drop
       el.attachFileBtn.addEventListener('click', () => el.fileInput.click());
       el.fileInput.addEventListener('change', (e) => {
         const file = e.target.files[0];
@@ -1837,17 +2399,158 @@
         }
       });
 
-      // Lightbox Close
       el.closeModalBtn.addEventListener('click', () => {
         el.imageModal.classList.add('hidden');
       });
       el.imageModal.addEventListener('click', (e) => {
         if (e.target === el.imageModal) el.imageModal.classList.add('hidden');
       });
+
+      // ================= THEME STUDIO EVENTS =================
+      const closeStudio = () => el.themeStudioModal.classList.add('hidden');
+      el.openThemeStudioBtn.addEventListener('click', () => {
+        el.themeStudioModal.classList.remove('hidden');
+      });
+      el.closeThemeStudioBtn.addEventListener('click', closeStudio);
+      el.doneThemeBtn.addEventListener('click', closeStudio);
+      el.themeStudioModal.addEventListener('click', (e) => {
+        if (e.target === el.themeStudioModal) closeStudio();
+      });
+
+      // Nickname Input
+      el.customNicknameInput.addEventListener('input', (e) => {
+        state.theme.nickname = e.target.value;
+        saveTheme();
+        broadcastMediaState();
+      });
+
+      // Theme Presets
+      document.querySelectorAll('.theme-preset-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const key = btn.dataset.preset;
+          const p = THEME_PRESETS[key];
+          if (!p) return;
+          state.theme = {
+            ...state.theme,
+            preset: key,
+            accent: p.accent,
+            accent2: p.accent2,
+            bgBase: p.bgBase,
+            bgSurface: p.bgSurface,
+            bgElevated: p.bgElevated,
+            bgMode: p.bgMode
+          };
+          applyThemeToDOM();
+          syncThemeStudioInputs();
+          saveTheme();
+          showToast(`Тема «${key.toUpperCase()}» применена`, 'info');
+        });
+      });
+
+      // Street Tag Font Buttons
+      document.querySelectorAll('.tag-font-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.theme.tagFont = btn.dataset.tagfont;
+          applyThemeToDOM();
+          syncThemeStudioInputs();
+          saveTheme();
+        });
+      });
+
+      // Color Pickers
+      el.colorAccent1.addEventListener('input', (e) => {
+        state.theme.accent = e.target.value;
+        el.colorAccent1Hex.textContent = e.target.value;
+        applyThemeToDOM();
+        saveTheme();
+      });
+
+      el.colorAccent2.addEventListener('input', (e) => {
+        state.theme.accent2 = e.target.value;
+        el.colorAccent2Hex.textContent = e.target.value;
+        applyThemeToDOM();
+        saveTheme();
+      });
+
+      el.colorBgBase.addEventListener('input', (e) => {
+        state.theme.bgBase = e.target.value;
+        state.theme.bgSurface = e.target.value;
+        el.colorBgBaseHex.textContent = e.target.value;
+        applyThemeToDOM();
+        saveTheme();
+      });
+
+      // Stage Background Mode Buttons
+      document.querySelectorAll('.bg-mode-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.theme.bgMode = btn.dataset.bgmode;
+          applyThemeToDOM();
+          syncThemeStudioInputs();
+          saveTheme();
+        });
+      });
+
+      // Custom Wallpaper URL
+      el.applyWallpaperBtn.addEventListener('click', () => {
+        const url = el.customWallpaperInput.value.trim();
+        state.theme.customWallpaper = url;
+        state.theme.bgMode = url ? 'custom' : 'aurora';
+        applyThemeToDOM();
+        syncThemeStudioInputs();
+        saveTheme();
+        showToast(url ? 'Свои обои сцены установлены!' : 'Обои сброшены', 'success');
+      });
+
+      // Ambilight Toggle
+      el.ambilightToggle.addEventListener('change', (e) => {
+        state.theme.ambilight = e.target.checked;
+        updateAmbilightVisibility();
+        saveTheme();
+      });
+
+      // Geometry & Glass Sliders
+      el.blurSlider.addEventListener('input', (e) => {
+        state.theme.blur = Number(e.target.value);
+        el.blurValLabel.textContent = `${state.theme.blur}px`;
+        applyThemeToDOM();
+        saveTheme();
+      });
+
+      el.opacitySlider.addEventListener('input', (e) => {
+        state.theme.opacity = Number(e.target.value);
+        el.opacityValLabel.textContent = `${state.theme.opacity}%`;
+        applyThemeToDOM();
+        saveTheme();
+      });
+
+      el.glowSlider.addEventListener('input', (e) => {
+        state.theme.glow = Number(e.target.value);
+        el.glowValLabel.textContent = `${state.theme.glow}%`;
+        applyThemeToDOM();
+        saveTheme();
+      });
+
+      el.radiusSlider.addEventListener('input', (e) => {
+        state.theme.radius = Number(e.target.value);
+        el.radiusValLabel.textContent = `${state.theme.radius}px`;
+        applyThemeToDOM();
+        saveTheme();
+      });
+
+      // Reset Theme
+      el.resetThemeBtn.addEventListener('click', () => {
+        const savedNick = state.theme.nickname;
+        state.theme = { ...DEFAULT_THEME, nickname: savedNick };
+        applyThemeToDOM();
+        syncThemeStudioInputs();
+        saveTheme();
+        showToast('Оформление сброшено к фирменному стилю disstya', 'info');
+      });
     }
 
-    // Boot Application on load
+    // Boot Application
     window.addEventListener('DOMContentLoaded', () => {
+      loadSavedTheme();
       bindEvents();
       initPeerNode();
     });
