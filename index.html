@@ -1,0 +1,1858 @@
+```html
+<!DOCTYPE html>
+<html lang="ru" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>NexusP2P — Приватный HD Стриминг и Мессенджер</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- PeerJS for Serverless WebRTC Signaling -->
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            bg: {
+              950: '#090b10',
+              900: '#0f1219',
+              850: '#141824',
+              800: '#1c2232',
+              700: '#262f45',
+            },
+            accent: {
+              500: '#6366f1',
+              600: '#4f46e5',
+              400: '#818cf8',
+            }
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      scrollbar-width: thin;
+      scrollbar-color: #262f45 #0f1219;
+    }
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0f1219;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #262f45;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #3b496b;
+    }
+
+    body {
+      background-color: #090b10;
+      color: #f3f4f6;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    .selectable-text {
+      user-select: text;
+    }
+
+    .glass-panel {
+      background: rgba(20, 24, 36, 0.82);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .glass-dock {
+      background: rgba(15, 18, 25, 0.88);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.65);
+    }
+
+    .video-stage {
+      background: radial-gradient(circle at center, #141824 0%, #090b10 100%);
+    }
+
+    @keyframes pulse-ring {
+      0% { transform: scale(0.95); opacity: 0.8; }
+      70% { transform: scale(1.25); opacity: 0; }
+      100% { transform: scale(1.25); opacity: 0; }
+    }
+    .pulse-indicator::before {
+      content: '';
+      position: absolute;
+      inset: -4px;
+      border-radius: 9999px;
+      background: inherit;
+      animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+      z-index: -1;
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      background: transparent;
+      cursor: pointer;
+    }
+    input[type="range"]::-webkit-slider-runnable-track {
+      height: 6px;
+      border-radius: 999px;
+      background: #262f45;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #818cf8;
+      margin-top: -5px;
+      box-shadow: 0 0 10px rgba(99, 102, 241, 0.6);
+      transition: transform 0.15s ease;
+    }
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.15);
+    }
+  </style>
+</head>
+
+<body class="h-screen w-screen flex flex-col font-sans antialiased">
+
+  <!-- Toast Notifications Container -->
+  <div id="toastContainer" class="fixed top-16 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-2 pointer-events-none"></div>
+
+  <!-- Lightbox Modal for Image Preview -->
+  <div id="imageModal" class="fixed inset-0 z-50 hidden bg-black/90 backdrop-blur-md flex items-center justify-center p-4">
+    <button id="closeModalBtn" class="absolute top-5 right-5 w-11 h-11 rounded-full bg-bg-800 hover:bg-bg-700 text-white flex items-center justify-center border border-white/10 transition">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+    </button>
+    <img id="modalImageSrc" src="" alt="Preview" class="max-w-full max-h-[90vh] rounded-xl shadow-2xl border border-white/10 object-contain" />
+  </div>
+
+  <!-- Top Header Bar -->
+  <header class="h-14 px-4 bg-bg-900/95 border-b border-white/5 flex items-center justify-between shrink-0 z-30">
+    <!-- Brand & Connection Status -->
+    <div class="flex items-center gap-3">
+      <div class="flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+          </svg>
+        </div>
+        <div class="hidden sm:block">
+          <div class="flex items-center gap-2">
+            <span class="font-bold text-sm tracking-tight text-white">NexusP2P</span>
+            <span class="text-[10px] font-mono uppercase px-1.5 py-0.5 rounded bg-indigo-500/15 text-indigo-400 border border-indigo-500/30">Direct WebRTC</span>
+          </div>
+          <p class="text-[11px] text-gray-400">E2E P2P Стриминг 1440p60 & Чат</p>
+        </div>
+      </div>
+
+      <div class="h-5 w-[1px] bg-white/10 mx-1 hidden sm:block"></div>
+
+      <!-- Connection Status Pill -->
+      <div id="connStatusPill" class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-bg-850 border border-white/10 text-xs font-medium">
+        <span id="connStatusDot" class="w-2.5 h-2.5 rounded-full bg-amber-400 relative"></span>
+        <span id="connStatusText" class="text-gray-300">Инициализация узла...</span>
+      </div>
+    </div>
+
+    <!-- Center / Right Room & Telemetry Controls -->
+    <div class="flex items-center gap-2 sm:gap-3">
+      <!-- My Peer ID Badge + Copy Invite -->
+      <div class="flex items-center bg-bg-850 border border-white/10 rounded-xl p-1">
+        <div class="px-2.5 py-1 flex items-center gap-1.5">
+          <span class="text-[11px] text-gray-400 hidden md:inline">Ваш ID:</span>
+          <span id="myPeerIdDisplay" class="font-mono text-xs font-semibold text-indigo-400 selectable-text">...</span>
+        </div>
+        <button id="copyInviteBtn" title="Скопировать ссылку-приглашение" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white text-xs font-medium transition shadow-sm">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+          </svg>
+          <span>Пригласить</span>
+        </button>
+      </div>
+
+      <!-- Manual Connect Input (shown when disconnected) -->
+      <div id="manualConnectBox" class="hidden lg:flex items-center bg-bg-850 border border-white/10 rounded-xl p-1">
+        <input id="remotePeerInput" type="text" placeholder="ID собеседника..." class="bg-transparent text-xs font-mono text-white placeholder-gray-500 px-2.5 py-1 focus:outline-none w-32" />
+        <button id="connectPeerBtn" class="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium transition">
+          Войти
+        </button>
+      </div>
+
+      <!-- Live Telemetry Toggle Button -->
+      <button id="toggleStatsBtn" title="Статистика WebRTC (FPS / Битрейт)" class="p-2 rounded-xl bg-bg-850 hover:bg-bg-800 border border-white/10 text-gray-300 hover:text-white transition flex items-center gap-1.5 text-xs font-mono">
+        <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+        </svg>
+        <span id="quickBitrateLabel" class="hidden sm:inline">0 kbps</span>
+      </button>
+
+      <!-- Toggle Chat Drawer Button -->
+      <button id="toggleChatBtn" title="Открыть/скрыть чат" class="relative p-2 rounded-xl bg-bg-850 hover:bg-bg-800 border border-white/10 text-gray-300 hover:text-white transition">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+        </svg>
+        <span id="unreadBadge" class="hidden absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-rose-500 text-[10px] font-bold text-white flex items-center justify-center shadow">0</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Workspace Container -->
+  <main class="flex-1 flex overflow-hidden relative">
+
+    <!-- Center Video & Stream Stage -->
+    <section id="videoStageContainer" class="flex-1 video-stage relative flex items-center justify-center overflow-hidden">
+
+      <!-- Remote Video Player -->
+      <video id="remoteVideo" autoplay playsinline class="w-full h-full object-contain hidden"></video>
+      <!-- Dedicated Remote Audio Element so audio plays reliably even when video is hidden -->
+      <audio id="remoteAudio" autoplay></audio>
+
+      <!-- Remote Stream Status Badges (Top Left) -->
+      <div class="absolute top-4 left-4 z-20 flex flex-wrap items-center gap-2 pointer-events-none">
+        <div id="remoteModeBadge" class="hidden items-center gap-1.5 px-3 py-1 rounded-lg glass-panel text-xs font-medium text-white shadow">
+          <span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
+          <span id="remoteModeText">LIVE</span>
+        </div>
+        <div id="remoteMicBadge" class="hidden items-center gap-1.5 px-2.5 py-1 rounded-lg glass-panel text-xs text-gray-300">
+          <svg id="remoteMicIconOn" class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
+          <span id="remoteMicText">Микрофон вкл.</span>
+        </div>
+      </div>
+
+      <!-- Real-Time WebRTC Telemetry HUD (TopLeft under badges) -->
+      <div id="statsHud" class="hidden absolute top-14 left-4 z-20 w-72 rounded-2xl glass-panel p-3.5 text-xs font-mono space-y-2 shadow-2xl">
+        <div class="flex items-center justify-between border-b border-white/10 pb-2">
+          <span class="font-semibold text-indigo-400 flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+            WebRTC Telemetry
+          </span>
+          <span id="statPing" class="text-gray-400">RTT: -- ms</span>
+        </div>
+        <div class="grid grid-cols-2 gap-2 pt-1">
+          <div class="bg-bg-900/70 p-2 rounded-lg border border-white/5">
+            <div class="text-[10px] text-gray-400">Исходящий поток</div>
+            <div id="statOutBitrate" class="text-sm font-semibold text-white mt-0.5">0 kbps</div>
+            <div id="statOutResFps" class="text-[10px] text-indigo-400 mt-0.5">-- x -- @ 0 fps</div>
+          </div>
+          <div class="bg-bg-900/70 p-2 rounded-lg border border-white/5">
+            <div class="text-[10px] text-gray-400">Входящий поток</div>
+            <div id="statInBitrate" class="text-sm font-semibold text-emerald-400 mt-0.5">0 kbps</div>
+            <div id="statInResFps" class="text-[10px] text-emerald-300 mt-0.5">-- x -- @ 0 fps</div>
+          </div>
+        </div>
+        <div class="flex items-center justify-between text-[11px] text-gray-400 pt-1">
+          <span>Целевой лимит: <strong id="statTargetBitrate" class="text-gray-200">8000 kbps</strong></span>
+          <span>Потери: <strong id="statPacketsLost" class="text-gray-200">0</strong></span>
+        </div>
+      </div>
+
+      <!-- Idle / Lobby Overlay (shown when no remote video is active) -->
+      <div id="idleStageOverlay" class="max-w-md w-full mx-4 p-6 rounded-3xl glass-panel text-center space-y-5 shadow-2xl z-10">
+        <!-- Avatar / Status Graphic -->
+        <div class="relative mx-auto w-20 h-20 rounded-3xl bg-gradient-to-tr from-indigo-600/30 to-purple-500/30 border border-indigo-500/30 flex items-center justify-center shadow-inner">
+          <svg id="stageAvatarIcon" class="w-10 h-10 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+        </div>
+
+        <div class="space-y-1.5">
+          <h2 id="stageTitle" class="text-lg font-bold text-white">Ожидание подключения собеседника</h2>
+          <p id="stageSubtitle" class="text-xs text-gray-400 leading-relaxed">
+            Скопируйте ссылку-приглашение и отправьте её другу. Как только он перейдет по ней, установится прямое P2P-соединение без промежуточных серверов.
+          </p>
+        </div>
+
+        <!-- Invite Action Card -->
+        <div id="lobbyInviteActions" class="space-y-3 pt-1">
+          <button id="heroCopyInviteBtn" class="w-full py-3 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:scale-[0.99] text-white font-semibold text-sm flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/25 transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+            </svg>
+            <span>Скопировать ссылку-приглашение</span>
+          </button>
+
+          <!-- Mobile / Universal Manual ID Connect -->
+          <div class="flex items-center gap-2 pt-1">
+            <input id="lobbyRemoteIdInput" type="text" placeholder="Или введите ID собеседника..." class="flex-1 bg-bg-900/90 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs font-mono text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500" />
+            <button id="lobbyConnectBtn" class="px-4 py-2.5 rounded-xl bg-bg-800 hover:bg-bg-700 border border-white/10 text-xs font-semibold text-white transition">
+              Подключиться
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Local Picture-in-Picture Preview (Bottom Right of Video Stage) -->
+      <div id="localPipCard" class="hidden absolute bottom-24 right-4 z-20 w-48 sm:w-64 aspect-video rounded-2xl overflow-hidden glass-panel shadow-2xl border border-white/15 group">
+        <video id="localVideo" autoplay muted playsinline class="w-full h-full object-cover bg-black"></video>
+        <div class="absolute bottom-2 left-2 px-2 py-0.5 rounded bg-black/70 text-[10px] font-medium text-gray-200 flex items-center gap-1.5">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+          <span id="localPipLabel">Вы (Экран)</span>
+        </div>
+      </div>
+
+      <!-- Stream Quality & Audio Mixer Popover (Above Dock) -->
+      <div id="settingsPopover" class="hidden absolute bottom-24 left-1/2 -translate-x-1/2 z-30 w-80 sm:w-96 rounded-2xl glass-dock p-4 space-y-4">
+        <div class="flex items-center justify-between border-b border-white/10 pb-2.5">
+          <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-300">Настройки стрима и звука</h3>
+          <button id="closeSettingsBtn" class="text-gray-400 hover:text-white">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+
+        <!-- Screen Quality Preset -->
+        <div class="space-y-1.5">
+          <label class="text-xs text-gray-400 block">Качество демонстрации экрана и битрейт</label>
+          <select id="qualityPresetSelect" class="w-full bg-bg-900 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500">
+            <option value="1440p60">QHD 1440p @ 60 FPS — Ultra (12 000 kbps)</option>
+            <option value="1080p60" selected>Full HD 1080p @ 60 FPS — High (8 500 kbps)</option>
+            <option value="1080p30">Full HD 1080p @ 30 FPS — Четкий текст (6 000 kbps)</option>
+          </select>
+        </div>
+
+        <!-- Content Hint Optimization -->
+        <div class="space-y-1.5">
+          <label class="text-xs text-gray-400 block">Профиль кодирования (Degradation Preference)</label>
+          <div class="grid grid-cols-2 gap-2">
+            <button id="hintMotionBtn" class="py-2 px-3 rounded-xl text-xs font-medium bg-indigo-600/20 border border-indigo-500 text-indigo-300 transition">
+              Игры / Видео (60 FPS)
+            </button>
+            <button id="hintDetailBtn" class="py-2 px-3 rounded-xl text-xs font-medium bg-bg-900 border border-white/10 text-gray-400 hover:text-white transition">
+              Код / Текст (Резкость)
+            </button>
+          </div>
+        </div>
+
+        <!-- Web Audio API Mixer Sliders -->
+        <div class="space-y-3 pt-1 border-t border-white/10">
+          <div class="space-y-1">
+            <div class="flex justify-between text-xs">
+              <span class="text-gray-300">Громкость вашего микрофона</span>
+              <span id="micGainLabel" class="font-mono text-indigo-400">100%</span>
+            </div>
+            <input id="micGainSlider" type="range" min="0" max="200" value="100" class="w-full" />
+          </div>
+
+          <div class="space-y-1">
+            <div class="flex justify-between text-xs">
+              <span class="text-gray-300">Громкость звука экрана (игры/системы)</span>
+              <span id="sysGainLabel" class="font-mono text-indigo-400">100%</span>
+            </div>
+            <input id="sysGainSlider" type="range" min="0" max="200" value="100" class="w-full" />
+          </div>
+
+          <div class="space-y-1">
+            <div class="flex justify-between text-xs">
+              <span class="text-gray-300">Громкость собеседника</span>
+              <span id="remoteVolLabel" class="font-mono text-emerald-400">100%</span>
+            </div>
+            <input id="remoteVolSlider" type="range" min="0" max="100" value="100" class="w-full" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Floating Bottom Control Dock -->
+      <div class="absolute bottom-5 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 sm:gap-3 px-4 py-2.5 rounded-2xl glass-dock">
+        <!-- Microphone Toggle -->
+        <button id="micToggleBtn" title="Включить / выключить микрофон (с шумоподавлением)" class="w-11 h-11 rounded-xl bg-bg-800 hover:bg-bg-700 border border-white/10 text-white flex items-center justify-center transition active:scale-95">
+          <svg id="micIconOn" class="w-5 h-5 hidden text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+          </svg>
+          <svg id="micIconOff" class="w-5 h-5 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3zM3 3l18 18" />
+          </svg>
+        </button>
+
+        <!-- Screen Share HD Button -->
+        <button id="screenShareBtn" title="Демонстрация экрана 1080p/1440p 60 FPS со звуком" class="h-11 px-4 rounded-xl bg-bg-800 hover:bg-bg-700 border border-white/10 text-white flex items-center gap-2 text-xs font-semibold transition active:scale-95">
+          <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+          </svg>
+          <span id="screenShareBtnText" class="hidden sm:inline">Экран HD</span>
+        </button>
+
+        <!-- Webcam Toggle Button -->
+        <button id="cameraToggleBtn" title="Включить / выключить веб-камеру" class="w-11 h-11 rounded-xl bg-bg-800 hover:bg-bg-700 border border-white/10 text-white flex items-center justify-center transition active:scale-95">
+          <svg class="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+          </svg>
+        </button>
+
+        <!-- Stop Video/Screen Broadcast Button (shown when streaming) -->
+        <button id="stopStreamBtn" title="Остановить видеопоток" class="hidden h-11 px-3.5 rounded-xl bg-rose-600/20 hover:bg-rose-600/30 border border-rose-500/40 text-rose-300 items-center gap-1.5 text-xs font-semibold transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
+          </svg>
+          <span class="hidden md:inline">Стоп стрим</span>
+        </button>
+
+        <div class="h-6 w-[1px] bg-white/10 mx-0.5"></div>
+
+        <!-- Stream Settings & Audio Mixer Button -->
+        <button id="openSettingsBtn" title="Настройки битрейта и аудио-микшер" class="w-11 h-11 rounded-xl bg-bg-800 hover:bg-bg-700 border border-white/10 text-gray-300 hover:text-white flex items-center justify-center transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+          </svg>
+        </button>
+
+        <!-- Fullscreen Button -->
+        <button id="fullscreenBtn" title="На весь экран" class="w-11 h-11 rounded-xl bg-bg-800 hover:bg-bg-700 border border-white/10 text-gray-300 hover:text-white flex items-center justify-center transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+          </svg>
+        </button>
+
+        <!-- Disconnect Call Button (active when connected) -->
+        <button id="disconnectBtn" title="Разорвать соединение" class="hidden w-11 h-11 rounded-xl bg-rose-600 hover:bg-rose-500 text-white items-center justify-center shadow-lg shadow-rose-600/30 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2M5 3a2 2 0 00-2 2v1c0 8.284 6.716 15 15 15h1a2 2 0 002-2v-3.28a1 1 0 00-.684-.948l-4.493-1.498a1 1 0 00-1.21.502l-1.13 2.257a11.042 11.042 0 01-5.516-5.517l2.257-1.128a1 1 0 00.502-1.21L9.228 3.683A1 1 0 008.279 3H5z" />
+          </svg>
+        </button>
+      </div>
+    </section>
+
+    <!-- Right Collapsible Chat Sidebar (RTCDataChannel) -->
+    <aside id="chatSidebar" class="w-80 sm:w-96 bg-bg-900 border-l border-white/5 flex flex-col shrink-0 transition-all duration-300 z-30">
+      <!-- Chat Header -->
+      <div class="h-12 px-4 border-b border-white/5 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-indigo-400"></span>
+          <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-200">Приватный DataChannel Чат</h3>
+        </div>
+        <span class="text-[10px] font-mono text-gray-500">Без логов на сервере</span>
+      </div>
+
+      <!-- Messages Feed -->
+      <div id="chatMessages" class="flex-1 overflow-y-auto p-4 space-y-3 selectable-text">
+        <!-- Welcome System Notice -->
+        <div class="p-3 rounded-xl bg-bg-850/90 border border-white/5 text-[11px] text-gray-400 leading-relaxed">
+          <strong class="text-indigo-400 block mb-0.5">Шифрование WebRTC (DTLS/SRTP)</strong>
+          Сообщения, файлы и изображения передаются напрямую из браузера в браузер через <code class="text-gray-300 font-mono">RTCDataChannel</code>.
+        </div>
+      </div>
+
+      <!-- Drag & Drop / File Upload Progress Bar -->
+      <div id="fileProgressBox" class="hidden px-4 py-2 bg-bg-850 border-t border-white/5">
+        <div class="flex justify-between text-[11px] text-gray-300 mb-1">
+          <span id="fileProgressLabel">Передача файла...</span>
+          <span id="fileProgressPct" class="font-mono text-indigo-400">0%</span>
+        </div>
+        <div class="w-full h-1.5 bg-bg-700 rounded-full overflow-hidden">
+          <div id="fileProgressBar" class="h-full bg-indigo-500 w-0 transition-all"></div>
+        </div>
+      </div>
+
+      <!-- Message & File Input Footer -->
+      <form id="chatForm" class="p-3 bg-bg-850/60 border-t border-white/5 flex items-end gap-2">
+        <input id="fileInput" type="file" class="hidden" />
+        <button type="button" id="attachFileBtn" title="Отправить изображение или файл напрямую (P2P)" class="p-2.5 rounded-xl bg-bg-800 hover:bg-bg-700 text-gray-300 hover:text-white border border-white/10 transition shrink-0">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+          </svg>
+        </button>
+
+        <input id="chatInput" type="text" autocomplete="off" placeholder="Написать сообщение..." class="flex-1 bg-bg-900 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500" />
+
+        <button type="submit" class="p-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white transition shrink-0 shadow">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+          </svg>
+        </button>
+      </form>
+    </aside>
+
+  </main>
+
+  <script>
+    /*************************************************************************
+     * NEXUSP2P — PRODUCTION WEBRTC P2P ENGINE
+     * Features:
+     * - Persistent Dual-Track Media Pipeline (seamless replaceTrack without renegotiation drops)
+     * - Web Audio API Mixer combining Microphone + Screen System Audio in stereo
+     * - High-Bitrate Enforcement via RTCRtpSender.setParameters + SDP Munging (up to 12 Mbps 60fps)
+     * - Chunked ArrayBuffer File & Image Transfer over RTCDataChannel
+     *************************************************************************/
+
+    const QUALITY_PRESETS = {
+      '1440p60': { width: 2560, height: 1440, fps: 60, maxBitrate: 12_000_000, kbps: 12000 },
+      '1080p60': { width: 1920, height: 1080, fps: 60, maxBitrate: 8_500_000,  kbps: 8500 },
+      '1080p30': { width: 1920, height: 1080, fps: 30, maxBitrate: 6_000_000,  kbps: 6000 },
+    };
+
+    const CHUNK_SIZE = 64 * 1024; // 64 KB chunks for safe RTCDataChannel binary transfer
+
+    const state = {
+      myPeerId: null,
+      peer: null,
+      dataConn: null,
+      mediaCall: null,
+      remotePeerId: null,
+
+      // Media modes: 'none' | 'screen' | 'camera'
+      videoMode: 'none',
+      micEnabled: false,
+      sysAudioAvailable: false,
+      contentHintMode: 'motion', // 'motion' (60fps games/video) or 'detail' (crisp text/code)
+      selectedPreset: '1080p60',
+
+      // Underlying MediaStreams
+      masterOutStream: null,
+      standbyCanvasTrack: null,
+      activeVideoStream: null,
+      micStream: null,
+
+      // Web Audio API Mixer Nodes
+      audioCtx: null,
+      audioDest: null,
+      micSourceNode: null,
+      micGainNode: null,
+      sysSourceNode: null,
+      sysGainNode: null,
+
+      // UI & Telemetry
+      chatOpen: true,
+      unreadCount: 0,
+      statsVisible: false,
+      statsInterval: null,
+      prevBytesSent: 0,
+      prevBytesRecv: 0,
+      prevStatsTimestamp: 0,
+
+      // Incoming File Assembler
+      incomingFiles: {}
+    };
+
+    // DOM Elements Map
+    const el = {
+      toastContainer: document.getElementById('toastContainer'),
+      connStatusDot: document.getElementById('connStatusDot'),
+      connStatusText: document.getElementById('connStatusText'),
+      myPeerIdDisplay: document.getElementById('myPeerIdDisplay'),
+      copyInviteBtn: document.getElementById('copyInviteBtn'),
+      heroCopyInviteBtn: document.getElementById('heroCopyInviteBtn'),
+      remotePeerInput: document.getElementById('remotePeerInput'),
+      connectPeerBtn: document.getElementById('connectPeerBtn'),
+      lobbyRemoteIdInput: document.getElementById('lobbyRemoteIdInput'),
+      lobbyConnectBtn: document.getElementById('lobbyConnectBtn'),
+      lobbyInviteActions: document.getElementById('lobbyInviteActions'),
+      manualConnectBox: document.getElementById('manualConnectBox'),
+
+      videoStageContainer: document.getElementById('videoStageContainer'),
+      remoteVideo: document.getElementById('remoteVideo'),
+      remoteAudio: document.getElementById('remoteAudio'),
+      idleStageOverlay: document.getElementById('idleStageOverlay'),
+      stageTitle: document.getElementById('stageTitle'),
+      stageSubtitle: document.getElementById('stageSubtitle'),
+
+      remoteModeBadge: document.getElementById('remoteModeBadge'),
+      remoteModeText: document.getElementById('remoteModeText'),
+      remoteMicBadge: document.getElementById('remoteMicBadge'),
+      remoteMicText: document.getElementById('remoteMicText'),
+
+      localPipCard: document.getElementById('localPipCard'),
+      localVideo: document.getElementById('localVideo'),
+      localPipLabel: document.getElementById('localPipLabel'),
+
+      micToggleBtn: document.getElementById('micToggleBtn'),
+      micIconOn: document.getElementById('micIconOn'),
+      micIconOff: document.getElementById('micIconOff'),
+      screenShareBtn: document.getElementById('screenShareBtn'),
+      screenShareBtnText: document.getElementById('screenShareBtnText'),
+      cameraToggleBtn: document.getElementById('cameraToggleBtn'),
+      stopStreamBtn: document.getElementById('stopStreamBtn'),
+      disconnectBtn: document.getElementById('disconnectBtn'),
+      fullscreenBtn: document.getElementById('fullscreenBtn'),
+
+      openSettingsBtn: document.getElementById('openSettingsBtn'),
+      closeSettingsBtn: document.getElementById('closeSettingsBtn'),
+      settingsPopover: document.getElementById('settingsPopover'),
+      qualityPresetSelect: document.getElementById('qualityPresetSelect'),
+      hintMotionBtn: document.getElementById('hintMotionBtn'),
+      hintDetailBtn: document.getElementById('hintDetailBtn'),
+      micGainSlider: document.getElementById('micGainSlider'),
+      micGainLabel: document.getElementById('micGainLabel'),
+      sysGainSlider: document.getElementById('sysGainSlider'),
+      sysGainLabel: document.getElementById('sysGainLabel'),
+      remoteVolSlider: document.getElementById('remoteVolSlider'),
+      remoteVolLabel: document.getElementById('remoteVolLabel'),
+
+      toggleStatsBtn: document.getElementById('toggleStatsBtn'),
+      statsHud: document.getElementById('statsHud'),
+      quickBitrateLabel: document.getElementById('quickBitrateLabel'),
+      statPing: document.getElementById('statPing'),
+      statOutBitrate: document.getElementById('statOutBitrate'),
+      statOutResFps: document.getElementById('statOutResFps'),
+      statInBitrate: document.getElementById('statInBitrate'),
+      statInResFps: document.getElementById('statInResFps'),
+      statTargetBitrate: document.getElementById('statTargetBitrate'),
+      statPacketsLost: document.getElementById('statPacketsLost'),
+
+      toggleChatBtn: document.getElementById('toggleChatBtn'),
+      unreadBadge: document.getElementById('unreadBadge'),
+      chatSidebar: document.getElementById('chatSidebar'),
+      chatMessages: document.getElementById('chatMessages'),
+      chatForm: document.getElementById('chatForm'),
+      chatInput: document.getElementById('chatInput'),
+      attachFileBtn: document.getElementById('attachFileBtn'),
+      fileInput: document.getElementById('fileInput'),
+      fileProgressBox: document.getElementById('fileProgressBox'),
+      fileProgressLabel: document.getElementById('fileProgressLabel'),
+      fileProgressPct: document.getElementById('fileProgressPct'),
+      fileProgressBar: document.getElementById('fileProgressBar'),
+
+      imageModal: document.getElementById('imageModal'),
+      modalImageSrc: document.getElementById('modalImageSrc'),
+      closeModalBtn: document.getElementById('closeModalBtn'),
+    };
+
+    // Non-blocking Toast Notification
+    function showToast(message, type = 'info') {
+      const colors = {
+        info: 'bg-bg-800 border-indigo-500/40 text-gray-100',
+        success: 'bg-emerald-950/90 border-emerald-500/40 text-emerald-200',
+        warn: 'bg-amber-950/90 border-amber-500/40 text-amber-200',
+        error: 'bg-rose-950/90 border-rose-500/40 text-rose-200'
+      };
+      const toast = document.createElement('div');
+      toast.className = `px-4 py-2.5 rounded-xl border backdrop-blur-md text-xs font-medium shadow-xl transition-all duration-300 flex items-center gap-2 ${colors[type] || colors.info}`;
+      toast.innerHTML = `<span>${escapeHtml(message)}</span>`;
+      el.toastContainer.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(-8px)';
+        setTimeout(() => toast.remove(), 300);
+      }, 3400);
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function copyTextToClipboard(text) {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        document.execCommand('copy');
+        showToast('Ссылка-приглашение скопирована в буфер обмена!', 'success');
+      } catch (err) {
+        showToast('Не удалось скопировать ссылку', 'error');
+      }
+      document.body.removeChild(textarea);
+    }
+
+    // Generate short readable Peer ID (e.g., nx-7k9p2m)
+    function generateShortPeerId() {
+      const chars = 'abcdefghjkmnpqrstuvwxyz23456789';
+      let code = 'nx-';
+      for (let i = 0; i < 6; i++) {
+        code += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      return code;
+    }
+
+    /**
+     * Initializes the Master Outgoing Stream containing:
+     * 1. A standby low-FPS canvas video track (replaced on-the-fly with 1440p60 Screen or Camera)
+     * 2. A Web Audio API mixed stereo audio track (combining Microphone + Screen System Audio)
+     */
+    function initMasterMediaPipeline() {
+      if (state.masterOutStream) return state.masterOutStream;
+
+      // 1. Create Standby Canvas Video Track so m=video is always negotiated in SDP
+      const canvas = document.createElement('canvas');
+      canvas.width = 640;
+      canvas.height = 360;
+      const ctx = canvas.getContext('2d');
+
+      function drawStandbyFrame() {
+        ctx.fillStyle = '#090b10';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+      drawStandbyFrame();
+      // Keep a 1 FPS heartbeat on the standby canvas so WebRTC transceiver stays primed
+      setInterval(() => {
+        if (state.videoMode === 'none') drawStandbyFrame();
+      }, 1000);
+
+      const canvasStream = canvas.captureStream(5);
+      state.standbyCanvasTrack = canvasStream.getVideoTracks()[0];
+
+      // 2. Initialize Web Audio API Mixer for Microphone + System Audio
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      state.audioCtx = new AudioContextClass({ sampleRate: 48000, latencyHint: 'interactive' });
+      state.audioDest = state.audioCtx.createMediaStreamDestination();
+      state.audioDest.channelCount = 2;
+
+      // Gain nodes for independent volume control
+      state.micGainNode = state.audioCtx.createGain();
+      state.micGainNode.gain.value = 1.0;
+      state.micGainNode.connect(state.audioDest);
+
+      state.sysGainNode = state.audioCtx.createGain();
+      state.sysGainNode.gain.value = 1.0;
+      state.sysGainNode.connect(state.audioDest);
+
+      // Connect a silent oscillator so the audio stream always emits RTP packets cleanly
+      const silentOsc = state.audioCtx.createOscillator();
+      const silentGain = state.audioCtx.createGain();
+      silentGain.gain.value = 0;
+      silentOsc.connect(silentGain);
+      silentGain.connect(state.audioDest);
+      silentOsc.start();
+
+      const mixedAudioTrack = state.audioDest.stream.getAudioTracks()[0];
+
+      state.masterOutStream = new MediaStream([
+        state.standbyCanvasTrack,
+        mixedAudioTrack
+      ]);
+
+      return state.masterOutStream;
+    }
+
+    async function resumeAudioContextIfNeeded() {
+      if (state.audioCtx && state.audioCtx.state === 'suspended') {
+        try {
+          await state.audioCtx.resume();
+        } catch (e) {
+          console.warn('AudioContext resume error:', e);
+        }
+      }
+    }
+
+    /**
+     * Modifies SDP to unlock high video bitrate (8000-12000 kbps) and stereo high-bitrate Opus audio
+     */
+    function mungeSdpForHighQuality(sdp) {
+      if (!sdp) return sdp;
+      const preset = QUALITY_PRESETS[state.selectedPreset] || QUALITY_PRESETS['1080p60'];
+      const targetKbps = preset.kbps;
+
+      let lines = sdp.split('\r\n');
+      let inVideo = false;
+      let result = [];
+
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        if (line.startsWith('m=video')) {
+          inVideo = true;
+          result.push(line);
+          continue;
+        } else if (line.startsWith('m=')) {
+          inVideo = false;
+        }
+
+        // Inject bandwidth limit right after c=IN line inside video section
+        if (inVideo && line.startsWith('c=IN')) {
+          result.push(line);
+          result.push(`b=AS:${targetKbps}`);
+          result.push(`b=TIAS:${targetKbps * 1000}`);
+          continue;
+        }
+
+        // Boost Opus audio to stereo 256 kbps for crisp system/game audio
+        if (line.includes('a=fmtp:') && line.includes('minptime=10')) {
+          result.push(`${line};stereo=1;sprop-stereo=1;maxaveragebitrate=256000;cbr=1`);
+          continue;
+        }
+
+        // Add google bitrate hints to video fmtp lines
+        if (inVideo && line.startsWith('a=fmtp:') && !line.includes('x-google-max-bitrate')) {
+          result.push(`${line};x-google-max-bitrate=${targetKbps};x-google-min-bitrate=2500;x-google-start-bitrate=5000`);
+          continue;
+        }
+
+        result.push(line);
+      }
+
+      return result.join('\r\n');
+    }
+
+    /**
+     * Enforces high video bitrate & framerate on active RTCRtpSender via setParameters
+     */
+    async function applyHighBitrateToSender() {
+      if (!state.mediaCall || !state.mediaCall.peerConnection) return;
+
+      const pc = state.mediaCall.peerConnection;
+      const preset = QUALITY_PRESETS[state.selectedPreset] || QUALITY_PRESETS['1080p60'];
+      el.statTargetBitrate.textContent = `${preset.kbps} kbps`;
+
+      const senders = pc.getSenders();
+      for (const sender of senders) {
+        if (sender.track && sender.track.kind === 'video') {
+          try {
+            const params = sender.getParameters();
+            if (!params.encodings || params.encodings.length === 0) {
+              params.encodings = [{}];
+            }
+            params.encodings[0].maxBitrate = preset.maxBitrate;
+            params.encodings[0].maxFramerate = preset.fps;
+            params.encodings[0].scaleResolutionDownBy = 1.0;
+            params.encodings[0].priority = 'high';
+            params.encodings[0].networkPriority = 'high';
+
+            // Set degradation preference based on user optimization mode
+            params.degradationPreference = state.contentHintMode === 'detail'
+              ? 'maintain-resolution'
+              : 'maintain-framerate';
+
+            await sender.setParameters(params);
+          } catch (err) {
+            console.warn('RTCRtpSender.setParameters warning:', err);
+          }
+        }
+      }
+    }
+
+    /**
+     * Replaces the outgoing video track seamlessly without dropping the call
+     */
+    async function replaceOutgoingVideoTrack(newVideoTrack) {
+      // Update Master Stream track
+      const oldTracks = state.masterOutStream.getVideoTracks();
+      oldTracks.forEach(t => state.masterOutStream.removeTrack(t));
+      state.masterOutStream.addTrack(newVideoTrack);
+
+      // Replace track inside active RTCPeerConnection sender if connected
+      if (state.mediaCall && state.mediaCall.peerConnection) {
+        const videoSender = state.mediaCall.peerConnection
+          .getSenders()
+          .find(s => s.track && s.track.kind === 'video');
+
+        if (videoSender) {
+          await videoSender.replaceTrack(newVideoTrack);
+          await applyHighBitrateToSender();
+        }
+      }
+    }
+
+    /**
+     * Starts High-Definition Screen Share with System Audio
+     */
+    async function startScreenShare() {
+      await resumeAudioContextIfNeeded();
+      const preset = QUALITY_PRESETS[state.selectedPreset] || QUALITY_PRESETS['1080p60'];
+
+      try {
+        const displayStream = await navigator.mediaDevices.getDisplayMedia({
+          video: {
+            width: { ideal: preset.width, max: preset.width },
+            height: { ideal: preset.height, max: preset.height },
+            frameRate: { ideal: preset.fps, max: preset.fps },
+            cursor: 'always'
+          },
+          audio: {
+            echoCancellation: false,
+            noiseSuppression: false,
+            autoGainControl: false,
+            sampleRate: 48000,
+            channelCount: 2
+          }
+        });
+
+        // Stop any previous active video stream
+        cleanupActiveVideoStream();
+
+        state.activeVideoStream = displayStream;
+        state.videoMode = 'screen';
+
+        const videoTrack = displayStream.getVideoTracks()[0];
+        if ('contentHint' in videoTrack) {
+          videoTrack.contentHint = state.contentHintMode;
+        }
+
+        // Handle user clicking native browser "Stop sharing" button
+        videoTrack.onended = () => {
+          stopVideoBroadcast();
+        };
+
+        // Check if system audio was shared and wire it into Web Audio API Mixer
+        const sysAudioTracks = displayStream.getAudioTracks();
+        if (sysAudioTracks.length > 0) {
+          state.sysAudioAvailable = true;
+          const sysOnlyStream = new MediaStream([sysAudioTracks[0]]);
+          state.sysSourceNode = state.audioCtx.createMediaStreamSource(sysOnlyStream);
+          state.sysSourceNode.connect(state.sysGainNode);
+          showToast(`Трансляция экрана (${preset.height}p${preset.fps}) со системным звуком запущена!`, 'success');
+        } else {
+          state.sysAudioAvailable = false;
+          showToast(`Трансляция экрана (${preset.height}p${preset.fps}) запущена (без системного аудио)`, 'info');
+        }
+
+        await replaceOutgoingVideoTrack(videoTrack);
+        updateLocalPreviewUI();
+        broadcastMediaState();
+      } catch (err) {
+        if (err.name !== 'NotAllowedError') {
+          showToast('Ошибка запуска демонстрации экрана: ' + err.message, 'error');
+        }
+      }
+    }
+
+    /**
+     * Starts Webcam Capture
+     */
+    async function startCameraShare() {
+      await resumeAudioContextIfNeeded();
+      if (state.videoMode === 'camera') {
+        await stopVideoBroadcast();
+        return;
+      }
+
+      try {
+        const camStream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            width: { ideal: 1920 },
+            height: { ideal: 1080 },
+            frameRate: { ideal: 30 }
+          },
+          audio: false
+        });
+
+        cleanupActiveVideoStream();
+        state.activeVideoStream = camStream;
+        state.videoMode = 'camera';
+
+        const videoTrack = camStream.getVideoTracks()[0];
+        if ('contentHint' in videoTrack) {
+          videoTrack.contentHint = 'motion';
+        }
+
+        videoTrack.onended = () => {
+          stopVideoBroadcast();
+        };
+
+        await replaceOutgoingVideoTrack(videoTrack);
+        updateLocalPreviewUI();
+        broadcastMediaState();
+        showToast('Веб-камера включена', 'success');
+      } catch (err) {
+        showToast('Нет доступа к веб-камере: ' + err.message, 'error');
+      }
+    }
+
+    /**
+     * Stops active screen or webcam broadcast and reverts to standby track
+     */
+    async function stopVideoBroadcast() {
+      cleanupActiveVideoStream();
+      state.videoMode = 'none';
+      state.sysAudioAvailable = false;
+
+      if (state.standbyCanvasTrack) {
+        await replaceOutgoingVideoTrack(state.standbyCanvasTrack);
+      }
+
+      updateLocalPreviewUI();
+      broadcastMediaState();
+    }
+
+    function cleanupActiveVideoStream() {
+      if (state.sysSourceNode) {
+        try { state.sysSourceNode.disconnect(); } catch (e) {}
+        state.sysSourceNode = null;
+      }
+      if (state.activeVideoStream) {
+        state.activeVideoStream.getTracks().forEach(t => t.stop());
+        state.activeVideoStream = null;
+      }
+    }
+
+    /**
+     * Toggles Microphone with Echo Cancellation & Noise Suppression wired to Web Audio Mixer
+     */
+    async function toggleMicrophone() {
+      await resumeAudioContextIfNeeded();
+
+      if (!state.micStream) {
+        try {
+          state.micStream = await navigator.mediaDevices.getUserMedia({
+            audio: {
+              echoCancellation: true,
+              noiseSuppression: true,
+              autoGainControl: true,
+              sampleRate: 48000
+            },
+            video: false
+          });
+
+          state.micSourceNode = state.audioCtx.createMediaStreamSource(state.micStream);
+          state.micSourceNode.connect(state.micGainNode);
+          state.micEnabled = true;
+          showToast('Микрофон включен (шумоподавление активно)', 'success');
+        } catch (err) {
+          showToast('Не удалось получить доступ к микрофону', 'error');
+          return;
+        }
+      } else {
+        state.micEnabled = !state.micEnabled;
+        state.micStream.getAudioTracks().forEach(t => {
+          t.enabled = state.micEnabled;
+        });
+        showToast(state.micEnabled ? 'Микрофон включен' : 'Микрофон выключен', 'info');
+      }
+
+      updateMicUI();
+      broadcastMediaState();
+    }
+
+    function updateMicUI() {
+      if (state.micEnabled) {
+        el.micIconOn.classList.remove('hidden');
+        el.micIconOff.classList.add('hidden');
+        el.micToggleBtn.classList.add('border-emerald-500/50', 'bg-emerald-500/10');
+      } else {
+        el.micIconOn.classList.add('hidden');
+        el.micIconOff.classList.remove('hidden');
+        el.micToggleBtn.classList.remove('border-emerald-500/50', 'bg-emerald-500/10');
+      }
+    }
+
+    function updateLocalPreviewUI() {
+      if (state.videoMode === 'none') {
+        el.localPipCard.classList.add('hidden');
+        el.localVideo.srcObject = null;
+        el.stopStreamBtn.classList.add('hidden');
+        el.stopStreamBtn.classList.remove('flex');
+        el.screenShareBtn.classList.remove('border-indigo-500', 'bg-indigo-600/20');
+        el.cameraToggleBtn.classList.remove('border-indigo-500', 'bg-indigo-600/20');
+        el.screenShareBtnText.textContent = 'Экран HD';
+      } else {
+        el.localPipCard.classList.remove('hidden');
+        el.localVideo.srcObject = state.activeVideoStream;
+        el.stopStreamBtn.classList.remove('hidden');
+        el.stopStreamBtn.classList.add('flex');
+
+        if (state.videoMode === 'screen') {
+          el.localPipLabel.textContent = state.sysAudioAvailable ? 'Вы (Экран + Звук)' : 'Вы (Экран)';
+          el.screenShareBtn.classList.add('border-indigo-500', 'bg-indigo-600/20');
+          el.cameraToggleBtn.classList.remove('border-indigo-500', 'bg-indigo-600/20');
+          el.screenShareBtnText.textContent = 'Сменить экран';
+        } else {
+          el.localPipLabel.textContent = 'Вы (Камера)';
+          el.cameraToggleBtn.classList.add('border-indigo-500', 'bg-indigo-600/20');
+          el.screenShareBtn.classList.remove('border-indigo-500', 'bg-indigo-600/20');
+          el.screenShareBtnText.textContent = 'Экран HD';
+        }
+      }
+    }
+
+    function setConnectionStatus(status, text) {
+      el.connStatusText.textContent = text;
+      el.connStatusDot.className = 'w-2.5 h-2.5 rounded-full relative ';
+      if (status === 'connected') {
+        el.connStatusDot.classList.add('bg-emerald-400', 'pulse-indicator');
+        el.disconnectBtn.classList.remove('hidden');
+        el.disconnectBtn.classList.add('flex');
+        el.manualConnectBox.classList.add('hidden');
+      } else if (status === 'connecting') {
+        el.connStatusDot.classList.add('bg-amber-400', 'pulse-indicator');
+      } else if (status === 'ready') {
+        el.connStatusDot.classList.add('bg-indigo-400');
+        el.disconnectBtn.classList.add('hidden');
+        el.disconnectBtn.classList.remove('flex');
+        el.manualConnectBox.classList.remove('hidden');
+      } else {
+        el.connStatusDot.classList.add('bg-rose-500');
+        el.disconnectBtn.classList.add('hidden');
+        el.disconnectBtn.classList.remove('flex');
+      }
+    }
+
+    function initPeerNode() {
+      initMasterMediaPipeline();
+      const desiredId = generateShortPeerId();
+
+      state.peer = new Peer(desiredId, {
+        debug: 1,
+        config: {
+          iceServers: [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:stun1.l.google.com:19302' },
+            { urls: 'stun:stun2.l.google.com:19302' },
+            { urls: 'stun:global.stun.twilio.com:3478' }
+          ],
+          sdpSemantics: 'unified-plan'
+        }
+      });
+
+      state.peer.on('open', (id) => {
+        state.myPeerId = id;
+        el.myPeerIdDisplay.textContent = id;
+        setConnectionStatus('ready', 'Готов к подключению');
+
+        // Check if URL has an invite hash (#PEER_ID) and auto-connect
+        checkUrlHashAndAutoConnect();
+      });
+
+      // Handle Incoming DataChannel Connection
+      state.peer.on('connection', (conn) => {
+        setupDataChannel(conn);
+      });
+
+      // Handle Incoming Media Call
+      state.peer.on('call', (call) => {
+        answerIncomingCall(call);
+      });
+
+      state.peer.on('disconnected', () => {
+        setConnectionStatus('disconnected', 'Сигналинг переподключается...');
+        state.peer.reconnect();
+      });
+
+      state.peer.on('error', (err) => {
+        console.error('PeerJS error:', err);
+        if (err.type === 'peer-unavailable') {
+          setConnectionStatus('ready', 'Собеседник не найден');
+          showToast('Собеседник с таким ID сейчас не в сети или закрыл вкладку', 'error');
+        } else if (err.type === 'unavailable-id') {
+          // Retry with a new ID
+          state.peer.destroy();
+          initPeerNode();
+        } else {
+          showToast(`Ошибка сети: ${err.type}`, 'warn');
+        }
+      });
+    }
+
+    function checkUrlHashAndAutoConnect() {
+      const rawHash = window.location.hash.replace(/^#/, '').trim();
+      if (rawHash && rawHash !== state.myPeerId) {
+        el.remotePeerInput.value = rawHash;
+        el.lobbyRemoteIdInput.value = rawHash;
+        connectToRemotePeer(rawHash);
+      }
+    }
+
+    /**
+     * Initiates both DataChannel and Media Call to target Peer ID
+     */
+    async function connectToRemotePeer(targetId) {
+      const cleanId = extractPeerId(targetId);
+      if (!cleanId) {
+        showToast('Введите корректный ID собеседника', 'warn');
+        return;
+      }
+      if (cleanId === state.myPeerId) {
+        showToast('Нельзя подключиться к самому себе', 'warn');
+        return;
+      }
+
+      await resumeAudioContextIfNeeded();
+      setConnectionStatus('connecting', `Подключение к ${cleanId}...`);
+
+      // 1. Open DataConnection
+      const conn = state.peer.connect(cleanId, {
+        reliable: true
+      });
+      setupDataChannel(conn);
+
+      // 2. Initiate Media Call with Master Stream & SDP Munging
+      const call = state.peer.call(cleanId, state.masterOutStream, {
+        sdpTransform: mungeSdpForHighQuality
+      });
+      setupMediaCall(call, cleanId);
+    }
+
+    function extractPeerId(input) {
+      if (!input) return '';
+      const trimmed = input.trim();
+      if (trimmed.includes('#')) {
+        return trimmed.split('#').pop().trim();
+      }
+      return trimmed;
+    }
+
+    async function answerIncomingCall(call) {
+      await resumeAudioContextIfNeeded();
+      call.answer(state.masterOutStream, {
+        sdpTransform: mungeSdpForHighQuality
+      });
+      setupMediaCall(call, call.peer);
+    }
+
+    function setupMediaCall(call, remoteId) {
+      if (state.mediaCall && state.mediaCall !== call) {
+        try { state.mediaCall.close(); } catch (e) {}
+      }
+
+      state.mediaCall = call;
+      state.remotePeerId = remoteId;
+
+      call.on('stream', (remoteStream) => {
+        // Attach video & audio streams
+        el.remoteVideo.srcObject = remoteStream;
+        el.remoteAudio.srcObject = remoteStream;
+
+        el.remoteVideo.play().catch(() => {});
+        el.remoteAudio.play().catch(() => {});
+
+        setConnectionStatus('connected', `На связи: ${remoteId}`);
+        updateStageConnectedIdleUI();
+        applyHighBitrateToSender();
+        startWebRtcStatsLoop();
+        broadcastMediaState();
+      });
+
+      call.on('close', () => {
+        handleCallClosed();
+      });
+
+      call.on('error', (err) => {
+        console.warn('MediaCall error:', err);
+        handleCallClosed();
+      });
+    }
+
+    function handleCallClosed() {
+      stopWebRtcStatsLoop();
+      el.remoteVideo.srcObject = null;
+      el.remoteVideo.classList.add('hidden');
+      el.idleStageOverlay.classList.remove('hidden');
+      el.remoteModeBadge.classList.add('hidden');
+      el.remoteMicBadge.classList.add('hidden');
+
+      el.stageTitle.textContent = 'Соединение завершено';
+      el.stageSubtitle.textContent = 'Собеседник отключился. Вы можете пригласить его снова или подключиться к другому ID.';
+      el.lobbyInviteActions.classList.remove('hidden');
+      setConnectionStatus('ready', 'Готов к подключению');
+    }
+
+    function disconnectSession() {
+      if (state.mediaCall) {
+        try { state.mediaCall.close(); } catch (e) {}
+        state.mediaCall = null;
+      }
+      if (state.dataConn) {
+        try { state.dataConn.close(); } catch (e) {}
+        state.dataConn = null;
+      }
+      handleCallClosed();
+      appendSystemChatMessage('Соединение разорвано.');
+    }
+
+    function updateStageConnectedIdleUI() {
+      el.stageTitle.textContent = `Подключено к ${state.remotePeerId}`;
+      el.stageSubtitle.textContent = 'Прямой P2P канал активен. Нажмите «Экран HD» в нижней панели, чтобы начать демонстрацию экрана со звуком.';
+      el.lobbyInviteActions.classList.add('hidden');
+    }
+
+    function setupDataChannel(conn) {
+      if (state.dataConn && state.dataConn !== conn) {
+        try { state.dataConn.close(); } catch (e) {}
+      }
+
+      state.dataConn = conn;
+      state.remotePeerId = conn.peer;
+
+      conn.on('open', () => {
+        setConnectionStatus('connected', `На связи: ${conn.peer}`);
+        updateStageConnectedIdleUI();
+        appendSystemChatMessage(`Установлен защищенный P2P DataChannel с узлом ${conn.peer}`);
+        broadcastMediaState();
+      });
+
+      conn.on('data', (data) => {
+        handleIncomingDataPacket(data);
+      });
+
+      conn.on('close', () => {
+        appendSystemChatMessage('Собеседник закрыл канал данных.');
+      });
+    }
+
+    function broadcastMediaState() {
+      if (!state.dataConn || !state.dataConn.open) return;
+      const preset = QUALITY_PRESETS[state.selectedPreset];
+      state.dataConn.send({
+        type: 'media-state',
+        videoMode: state.videoMode,
+        micEnabled: state.micEnabled,
+        sysAudio: state.sysAudioAvailable,
+        presetLabel: `${preset.height}p${preset.fps}`
+      });
+    }
+
+    function handleIncomingDataPacket(packet) {
+      if (!packet || typeof packet !== 'object') return;
+
+      switch (packet.type) {
+        case 'chat-text':
+          appendChatMessage({
+            sender: state.remotePeerId || 'Собеседник',
+            text: packet.text,
+            timestamp: packet.timestamp,
+            isSelf: false
+          });
+          notifyUnreadIfNeeded();
+          break;
+
+        case 'media-state':
+          updateRemoteStageUI(packet);
+          break;
+
+        case 'file-meta':
+          state.incomingFiles[packet.fileId] = {
+            name: packet.name,
+            mime: packet.mime,
+            size: packet.size,
+            totalChunks: packet.totalChunks,
+            chunks: [],
+            receivedBytes: 0
+          };
+          showFileProgress(`Прием: ${packet.name}`, 0);
+          break;
+
+        case 'file-chunk': {
+          const entry = state.incomingFiles[packet.fileId];
+          if (!entry) return;
+          entry.chunks.push(packet.chunk);
+          entry.receivedBytes += packet.chunk.byteLength || packet.chunk.size || 0;
+          const pct = Math.min(100, Math.round((entry.chunks.length / entry.totalChunks) * 100));
+          showFileProgress(`Прием: ${entry.name}`, pct);
+
+          if (entry.chunks.length >= entry.totalChunks) {
+            hideFileProgress();
+            const blob = new Blob(entry.chunks, { type: entry.mime || 'application/octet-stream' });
+            delete state.incomingFiles[packet.fileId];
+            appendFileChatMessage({
+              sender: state.remotePeerId || 'Собеседник',
+              name: entry.name,
+              mime: entry.mime,
+              size: entry.size,
+              blob,
+              isSelf: false
+            });
+            notifyUnreadIfNeeded();
+          }
+          break;
+        }
+      }
+    }
+
+    function updateRemoteStageUI(remoteState) {
+      // Update Remote Mic indicator
+      el.remoteMicBadge.classList.remove('hidden');
+      el.remoteMicBadge.classList.add('flex');
+      if (remoteState.micEnabled) {
+        el.remoteMicText.textContent = 'Микрофон вкл.';
+        el.remoteMicText.className = 'text-emerald-300';
+      } else {
+        el.remoteMicText.textContent = 'Микрофон выкл.';
+        el.remoteMicText.className = 'text-gray-400';
+      }
+
+      // Show or Hide Remote Video Player based on remote videoMode
+      if (remoteState.videoMode === 'screen' || remoteState.videoMode === 'camera') {
+        el.remoteVideo.classList.remove('hidden');
+        el.idleStageOverlay.classList.add('hidden');
+        el.remoteModeBadge.classList.remove('hidden');
+        el.remoteModeBadge.classList.add('flex');
+
+        if (remoteState.videoMode === 'screen') {
+          el.remoteModeText.textContent = `LIVE ЭКРАН • ${remoteState.presetLabel || 'HD'}${remoteState.sysAudio ? ' + АУДИО' : ''}`;
+        } else {
+          el.remoteModeText.textContent = 'ВЕБ-КАМЕРА';
+        }
+      } else {
+        el.remoteVideo.classList.add('hidden');
+        el.idleStageOverlay.classList.remove('hidden');
+        el.remoteModeBadge.classList.add('hidden');
+        el.remoteModeBadge.classList.remove('flex');
+        updateStageConnectedIdleUI();
+      }
+    }
+
+    function formatTime(ts) {
+      const d = ts ? new Date(ts) : new Date();
+      return d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function formatBytes(bytes) {
+      if (bytes < 1024) return `${bytes} B`;
+      if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+      return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+    }
+
+    function appendSystemChatMessage(text) {
+      const div = document.createElement('div');
+      div.className = 'text-center my-2';
+      div.innerHTML = `<span class="inline-block px-3 py-1 rounded-full bg-bg-850 border border-white/5 text-[11px] text-gray-400">${escapeHtml(text)}</span>`;
+      el.chatMessages.appendChild(div);
+      el.chatMessages.scrollTop = el.chatMessages.scrollHeight;
+    }
+
+    function appendChatMessage({ sender, text, timestamp, isSelf }) {
+      const wrapper = document.createElement('div');
+      wrapper.className = `flex flex-col ${isSelf ? 'items-end' : 'items-start'}`;
+
+      const bubbleClass = isSelf
+        ? 'bg-indigo-600 text-white rounded-2xl rounded-br-sm'
+        : 'bg-bg-800 text-gray-100 border border-white/5 rounded-2xl rounded-bl-sm';
+
+      wrapper.innerHTML = `
+        <div class="flex items-center gap-1.5 mb-1 px-1">
+          <span class="text-[10px] font-semibold ${isSelf ? 'text-indigo-400' : 'text-emerald-400'}">${escapeHtml(sender)}</span>
+          <span class="text-[10px] text-gray-500 font-mono">${formatTime(timestamp)}</span>
+        </div>
+        <div class="max-w-[85%] px-3.5 py-2 text-xs leading-relaxed break-words shadow ${bubbleClass}">
+          ${escapeHtml(text)}
+        </div>
+      `;
+      el.chatMessages.appendChild(wrapper);
+      el.chatMessages.scrollTop = el.chatMessages.scrollHeight;
+    }
+
+    function appendFileChatMessage({ sender, name, mime, size, blob, isSelf }) {
+      const url = URL.createObjectURL(blob);
+      const isImage = mime && mime.startsWith('image/');
+
+      const wrapper = document.createElement('div');
+      wrapper.className = `flex flex-col ${isSelf ? 'items-end' : 'items-start'}`;
+
+      const cardBg = isSelf
+        ? 'bg-indigo-950/60 border-indigo-500/30'
+        : 'bg-bg-800 border-white/10';
+
+      let mediaContent = '';
+      if (isImage) {
+        mediaContent = `
+          <img src="${url}" alt="${escapeHtml(name)}" class="max-h-48 rounded-lg object-cover cursor-pointer mb-2 border border-white/10 hover:opacity-90 transition previewable-img" />
+        `;
+      }
+
+      wrapper.innerHTML = `
+        <div class="flex items-center gap-1.5 mb-1 px-1">
+          <span class="text-[10px] font-semibold ${isSelf ? 'text-indigo-400' : 'text-emerald-400'}">${escapeHtml(sender)}</span>
+          <span class="text-[10px] text-gray-500 font-mono">${formatTime()}</span>
+        </div>
+        <div class="max-w-[85%] p-2.5 rounded-2xl border ${cardBg} text-xs space-y-1.5 shadow">
+          ${mediaContent}
+          <div class="flex items-center justify-between gap-3">
+            <div class="truncate">
+              <div class="font-medium text-white truncate">${escapeHtml(name)}</div>
+              <div class="text-[10px] text-gray-400 font-mono">${formatBytes(size)}</div>
+            </div>
+            <a href="${url}" download="${escapeHtml(name)}" class="p-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white shrink-0 transition" title="Скачать">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+            </a>
+          </div>
+        </div>
+      `;
+
+      const imgEl = wrapper.querySelector('.previewable-img');
+      if (imgEl) {
+        imgEl.addEventListener('click', () => {
+          el.modalImageSrc.src = url;
+          el.imageModal.classList.remove('hidden');
+        });
+      }
+
+      el.chatMessages.appendChild(wrapper);
+      el.chatMessages.scrollTop = el.chatMessages.scrollHeight;
+    }
+
+    async function sendFileOverDataChannel(file) {
+      if (!state.dataConn || !state.dataConn.open) {
+        showToast('Нет активного P2P-соединения для отправки файла', 'warn');
+        return;
+      }
+
+      if (file.size > 50 * 1024 * 1024) {
+        showToast('Максимальный размер файла для быстрой передачи — 50 МБ', 'warn');
+        return;
+      }
+
+      const arrayBuffer = await file.arrayBuffer();
+      const totalChunks = Math.ceil(arrayBuffer.byteLength / CHUNK_SIZE) || 1;
+      const fileId = `f-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+
+      // Send file metadata header
+      state.dataConn.send({
+        type: 'file-meta',
+        fileId,
+        name: file.name,
+        mime: file.type || 'application/octet-stream',
+        size: file.size,
+        totalChunks
+      });
+
+      showFileProgress(`Отправка: ${file.name}`, 0);
+
+      for (let i = 0; i < totalChunks; i++) {
+        const start = i * CHUNK_SIZE;
+        const end = Math.min(start + CHUNK_SIZE, arrayBuffer.byteLength);
+        const chunk = arrayBuffer.slice(start, end);
+
+        state.dataConn.send({
+          type: 'file-chunk',
+          fileId,
+          chunk
+        });
+
+        const pct = Math.round(((i + 1) / totalChunks) * 100);
+        showFileProgress(`Отправка: ${file.name}`, pct);
+
+        // Yield every 8 chunks so UI and DataChannel buffer stay smooth
+        if (i % 8 === 0) {
+          await new Promise(r => setTimeout(r, 8));
+        }
+      }
+
+      hideFileProgress();
+      appendFileChatMessage({
+        sender: 'Вы',
+        name: file.name,
+        mime: file.type,
+        size: file.size,
+        blob: file,
+        isSelf: true
+      });
+    }
+
+    function showFileProgress(label, pct) {
+      el.fileProgressBox.classList.remove('hidden');
+      el.fileProgressLabel.textContent = label;
+      el.fileProgressPct.textContent = `${pct}%`;
+      el.fileProgressBar.style.width = `${pct}%`;
+    }
+
+    function hideFileProgress() {
+      setTimeout(() => {
+        el.fileProgressBox.classList.add('hidden');
+        el.fileProgressBar.style.width = '0%';
+      }, 500);
+    }
+
+    function notifyUnreadIfNeeded() {
+      if (!state.chatOpen) {
+        state.unreadCount++;
+        el.unreadBadge.textContent = state.unreadCount;
+        el.unreadBadge.classList.remove('hidden');
+      }
+    }
+
+    function startWebRtcStatsLoop() {
+      stopWebRtcStatsLoop();
+      state.prevBytesSent = 0;
+      state.prevBytesRecv = 0;
+      state.prevStatsTimestamp = performance.now();
+
+      state.statsInterval = setInterval(async () => {
+        if (!state.mediaCall || !state.mediaCall.peerConnection) return;
+
+        try {
+          const stats = await state.mediaCall.peerConnection.getStats();
+          const now = performance.now();
+          const deltaSec = Math.max(0.1, (now - state.prevStatsTimestamp) / 1000);
+          state.prevStatsTimestamp = now;
+
+          let outBytes = 0;
+          let inBytes = 0;
+          let outWidth = 0, outHeight = 0, outFps = 0;
+          let inWidth = 0, inHeight = 0, inFps = 0;
+          let rttMs = null;
+          let packetsLost = 0;
+
+          stats.forEach(report => {
+            if (report.type === 'outbound-rtp' && report.kind === 'video') {
+              outBytes = report.bytesSent || 0;
+              outWidth = report.frameWidth || 0;
+              outHeight = report.frameHeight || 0;
+              outFps = report.framesPerSecond ? Math.round(report.framesPerSecond) : 0;
+            }
+            if (report.type === 'inbound-rtp' && report.kind === 'video') {
+              inBytes = report.bytesReceived || 0;
+              inWidth = report.frameWidth || 0;
+              inHeight = report.frameHeight || 0;
+              inFps = report.framesPerSecond ? Math.round(report.framesPerSecond) : 0;
+              packetsLost = report.packetsLost || 0;
+            }
+            if (report.type === 'candidate-pair' && report.state === 'succeeded' && report.currentRoundTripTime !== undefined) {
+              rttMs = Math.round(report.currentRoundTripTime * 1000);
+            }
+          });
+
+          const outKbps = state.prevBytesSent > 0
+            ? Math.max(0, Math.round(((outBytes - state.prevBytesSent) * 8) / 1000 / deltaSec))
+            : 0;
+          const inKbps = state.prevBytesRecv > 0
+            ? Math.max(0, Math.round(((inBytes - state.prevBytesRecv) * 8) / 1000 / deltaSec))
+            : 0;
+
+          state.prevBytesSent = outBytes;
+          state.prevBytesRecv = inBytes;
+
+          const activeKbps = Math.max(outKbps, inKbps);
+          el.quickBitrateLabel.textContent = activeKbps > 1000
+            ? `${(activeKbps / 1000).toFixed(1)} Mbps`
+            : `${activeKbps} kbps`;
+
+          el.statOutBitrate.textContent = `${outKbps} kbps`;
+          el.statOutResFps.textContent = outWidth
+            ? `${outWidth}x${outHeight} @ ${outFps} fps`
+            : 'Ожидание видео';
+
+          el.statInBitrate.textContent = `${inKbps} kbps`;
+          el.statInResFps.textContent = inWidth
+            ? `${inWidth}x${inHeight} @ ${inFps} fps`
+            : 'Ожидание видео';
+
+          el.statPing.textContent = rttMs !== null ? `RTT: ${rttMs} ms` : 'RTT: <1 ms';
+          el.statPacketsLost.textContent = String(packetsLost);
+        } catch (e) {
+          console.warn('WebRTC stats read error:', e);
+        }
+      }, 1000);
+    }
+
+    function stopWebRtcStatsLoop() {
+      if (state.statsInterval) {
+        clearInterval(state.statsInterval);
+        state.statsInterval = null;
+      }
+      el.quickBitrateLabel.textContent = '0 kbps';
+    }
+
+    function bindEvents() {
+      // Copy Invite Link Buttons
+      const handleCopyInvite = () => {
+        if (!state.myPeerId) {
+          showToast('Подождите генерации вашего ID...', 'warn');
+          return;
+        }
+        const inviteUrl = `${window.location.origin}${window.location.pathname}#${state.myPeerId}`;
+        copyTextToClipboard(inviteUrl);
+      };
+
+      el.copyInviteBtn.addEventListener('click', handleCopyInvite);
+      el.heroCopyInviteBtn.addEventListener('click', handleCopyInvite);
+
+      // Manual Connect Buttons
+      el.connectPeerBtn.addEventListener('click', () => {
+        connectToRemotePeer(el.remotePeerInput.value);
+      });
+      el.remotePeerInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') connectToRemotePeer(el.remotePeerInput.value);
+      });
+
+      el.lobbyConnectBtn.addEventListener('click', () => {
+        connectToRemotePeer(el.lobbyRemoteIdInput.value);
+      });
+      el.lobbyRemoteIdInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') connectToRemotePeer(el.lobbyRemoteIdInput.value);
+      });
+
+      // Hash change listener if user pastes new #ID in URL bar
+      window.addEventListener('hashchange', () => {
+        checkUrlHashAndAutoConnect();
+      });
+
+      // Media Control Dock Buttons
+      el.micToggleBtn.addEventListener('click', toggleMicrophone);
+      el.screenShareBtn.addEventListener('click', startScreenShare);
+      el.cameraToggleBtn.addEventListener('click', startCameraShare);
+      el.stopStreamBtn.addEventListener('click', stopVideoBroadcast);
+      el.disconnectBtn.addEventListener('click', disconnectSession);
+
+      // Fullscreen Toggle
+      el.fullscreenBtn.addEventListener('click', () => {
+        if (!document.fullscreenElement) {
+          el.videoStageContainer.requestFullscreen().catch(() => {});
+        } else {
+          document.exitFullscreen().catch(() => {});
+        }
+      });
+
+      // Settings & Audio Mixer Popover
+      el.openSettingsBtn.addEventListener('click', () => {
+        el.settingsPopover.classList.toggle('hidden');
+      });
+      el.closeSettingsBtn.addEventListener('click', () => {
+        el.settingsPopover.classList.add('hidden');
+      });
+
+      // Preset Change
+      el.qualityPresetSelect.addEventListener('change', async (e) => {
+        state.selectedPreset = e.target.value;
+        await applyHighBitrateToSender();
+        if (state.videoMode === 'screen' && state.activeVideoStream) {
+          const preset = QUALITY_PRESETS[state.selectedPreset];
+          const track = state.activeVideoStream.getVideoTracks()[0];
+          if (track && track.applyConstraints) {
+            try {
+              await track.applyConstraints({
+                width: { ideal: preset.width, max: preset.width },
+                height: { ideal: preset.height, max: preset.height },
+                frameRate: { ideal: preset.fps, max: preset.fps }
+              });
+            } catch (err) {}
+          }
+          broadcastMediaState();
+        }
+        showToast(`Выбран пресет: ${state.selectedPreset} (${QUALITY_PRESETS[state.selectedPreset].kbps} kbps)`, 'info');
+      });
+
+      // ContentHint Mode Buttons (Motion vs Detail)
+      el.hintMotionBtn.addEventListener('click', () => {
+        state.contentHintMode = 'motion';
+        el.hintMotionBtn.className = 'py-2 px-3 rounded-xl text-xs font-medium bg-indigo-600/20 border border-indigo-500 text-indigo-300 transition';
+        el.hintDetailBtn.className = 'py-2 px-3 rounded-xl text-xs font-medium bg-bg-900 border border-white/10 text-gray-400 hover:text-white transition';
+        if (state.activeVideoStream) {
+          const track = state.activeVideoStream.getVideoTracks()[0];
+          if (track && 'contentHint' in track) track.contentHint = 'motion';
+        }
+        applyHighBitrateToSender();
+      });
+
+      el.hintDetailBtn.addEventListener('click', () => {
+        state.contentHintMode = 'detail';
+        el.hintDetailBtn.className = 'py-2 px-3 rounded-xl text-xs font-medium bg-indigo-600/20 border border-indigo-500 text-indigo-300 transition';
+        el.hintMotionBtn.className = 'py-2 px-3 rounded-xl text-xs font-medium bg-bg-900 border border-white/10 text-gray-400 hover:text-white transition';
+        if (state.activeVideoStream) {
+          const track = state.activeVideoStream.getVideoTracks()[0];
+          if (track && 'contentHint' in track) track.contentHint = 'detail';
+        }
+        applyHighBitrateToSender();
+      });
+
+      // Web Audio Mixer Gain Sliders
+      el.micGainSlider.addEventListener('input', (e) => {
+        const val = Number(e.target.value);
+        el.micGainLabel.textContent = `${val}%`;
+        if (state.micGainNode) state.micGainNode.gain.value = val / 100;
+      });
+
+      el.sysGainSlider.addEventListener('input', (e) => {
+        const val = Number(e.target.value);
+        el.sysGainLabel.textContent = `${val}%`;
+        if (state.sysGainNode) state.sysGainNode.gain.value = val / 100;
+      });
+
+      el.remoteVolSlider.addEventListener('input', (e) => {
+        const val = Number(e.target.value);
+        el.remoteVolLabel.textContent = `${val}%`;
+        el.remoteVideo.volume = val / 100;
+        el.remoteAudio.volume = val / 100;
+      });
+
+      // Stats HUD Toggle
+      el.toggleStatsBtn.addEventListener('click', () => {
+        state.statsVisible = !state.statsVisible;
+        el.statsHud.classList.toggle('hidden', !state.statsVisible);
+      });
+
+      // Chat Drawer Toggle
+      el.toggleChatBtn.addEventListener('click', () => {
+        state.chatOpen = !state.chatOpen;
+        if (state.chatOpen) {
+          el.chatSidebar.classList.remove('hidden');
+          state.unreadCount = 0;
+          el.unreadBadge.classList.add('hidden');
+        } else {
+          el.chatSidebar.classList.add('hidden');
+        }
+      });
+
+      // Chat Message Submit
+      el.chatForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const text = el.chatInput.value.trim();
+        if (!text) return;
+
+        if (!state.dataConn || !state.dataConn.open) {
+          showToast('Сначала подключитесь к собеседнику', 'warn');
+          return;
+        }
+
+        const timestamp = Date.now();
+        state.dataConn.send({
+          type: 'chat-text',
+          text,
+          timestamp
+        });
+
+        appendChatMessage({
+          sender: 'Вы',
+          text,
+          timestamp,
+          isSelf: true
+        });
+
+        el.chatInput.value = '';
+      });
+
+      // File Attachment & Drag-and-Drop
+      el.attachFileBtn.addEventListener('click', () => el.fileInput.click());
+      el.fileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          sendFileOverDataChannel(file);
+          el.fileInput.value = '';
+        }
+      });
+
+      window.addEventListener('dragover', (e) => e.preventDefault());
+      window.addEventListener('drop', (e) => {
+        e.preventDefault();
+        if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+          sendFileOverDataChannel(e.dataTransfer.files[0]);
+        }
+      });
+
+      // Lightbox Close
+      el.closeModalBtn.addEventListener('click', () => {
+        el.imageModal.classList.add('hidden');
+      });
+      el.imageModal.addEventListener('click', (e) => {
+        if (e.target === el.imageModal) el.imageModal.classList.add('hidden');
+      });
+    }
+
+    // Boot Application on load
+    window.addEventListener('DOMContentLoaded', () => {
+      bindEvents();
+      initPeerNode();
+    });
+  </script>
+</body>
+</html>
+
+```
