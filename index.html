@@ -8,8 +8,8 @@
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- Optional PeerJS fallback (Primary signaling uses built-in Zero-Dependency WSS over Port 443) -->
-  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js" async></script>
+  <!-- PeerJS Stable WebRTC Signaling Library (Synchronous load for instant availability) -->
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 
   <!-- Google Fonts: Street Tag Fonts + Modern Desktop UI & Monospace -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -354,7 +354,6 @@
 
 <body class="flex flex-col antialiased selection:bg-purple-500 selection:text-white">
 
-  <!-- Shared Global SVG Defs for Animated Avatars -->
   <svg width="0" height="0" class="absolute pointer-events-none overflow-hidden" aria-hidden="true">
     <defs>
       <radialGradient id="sauronFireGlobal" cx="50%" cy="50%" r="50%">
@@ -391,7 +390,6 @@
     <img id="modalImageSrc" src="" alt="Preview" class="max-w-[90vw] max-h-[88vh] rounded-2xl shadow-2xl border border-white/10 object-contain" />
   </div>
 
-  <!-- Full Desktop Settings Center Modal (Audio & Krisp AI, Avatar & Profile, Stream 60 FPS, Appearance) -->
   <div id="themeStudioModal" class="fixed inset-0 z-50 hidden bg-black/75 backdrop-blur-md flex items-center justify-center p-6">
     <div class="w-full max-w-4xl h-[82vh] max-h-[720px] theme-surface border border-white/15 rounded-3xl flex overflow-hidden shadow-2xl">
 
@@ -583,21 +581,6 @@
                   <input id="toggleVoiceFilter" type="checkbox" checked class="w-4 h-4 accent-purple-500 rounded cursor-pointer" />
                 </label>
               </div>
-            </div>
-
-            <!-- No-VPN Anti-DPI Network Mode -->
-            <div class="p-4 rounded-2xl bg-black/45 border border-white/10 space-y-2.5">
-              <div class="flex items-center justify-between">
-                <div>
-                  <div class="text-xs font-bold text-white">Режим соединения без VPN (Обход DPI / ТСПУ)</div>
-                  <div class="text-[11px] text-slate-400">Использует встроенный WSS по порту 443 и TURN TCP/TLS ретрансляторы</div>
-                </div>
-                <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 font-mono text-[10px]">NO-VPN READY</span>
-              </div>
-              <select id="networkModeSelect" class="w-full bg-black/70 border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-purple-500">
-                <option value="auto" selected>⚡ Автоматический (Прямой P2P + TURN TCP/TLS 443 при блокировке)</option>
-                <option value="relay">🛡️ Принудительный туннель TURN TLS 443 (Если провайдер режет UDP)</option>
-              </select>
             </div>
 
             <!-- Audio Volume Mixer -->
@@ -1029,7 +1012,7 @@
           <div class="p-3.5 rounded-2xl bg-black/55 border border-white/10 space-y-2">
             <div class="flex items-center justify-between text-[11px]">
               <span class="text-slate-300 font-semibold">1. Пригласить друга к себе (отправь ему эту ссылку):</span>
-              <span id="signalingReadyBadge" class="font-mono text-[10px] text-emerald-400">● Онлайн без VPN</span>
+              <span id="signalingReadyBadge" class="font-mono text-[10px] text-emerald-400">● Готов к звонку</span>
             </div>
             <div class="flex items-center gap-2">
               <input id="inviteUrlInput" type="text" readonly value="" class="flex-1 bg-black/75 border border-white/15 rounded-xl px-3 py-2.5 text-xs font-mono text-purple-200 selectable-text focus:outline-none focus:border-purple-500" />
@@ -1208,7 +1191,7 @@
   <script>
     /*************************************************************************
      * DISSTYA PC — DESKTOP P2P HD 60FPS STREAMING & STREET MESSENGER
-     * Zero-Dependency Native WSS Signaling (Port 443) + Krisp AI AudioWorklet
+     * Classic PeerJS Engine + Krisp AI AudioWorklet Noise Suppression
      *************************************************************************/
 
     const QUALITY_PRESETS = {
@@ -1323,8 +1306,7 @@
       autoGainControl: true,
       voiceFilter: true,
       noiseGateThreshold: 12,
-      deviceId: 'default',
-      networkMode: 'auto'
+      deviceId: 'default'
     };
 
     // Inline AudioWorklet code for real-time Krisp-grade noise & keyboard click suppression
@@ -1427,9 +1409,6 @@
       myPeerId: '',
       peerReady: false,
       peer: null,
-      wssSignalingClients: [],
-      localBroadcastChan: null,
-      seenSigIds: new Set(),
       reconnectTimer: null,
       pendingTargetId: null,
       dataConn: null,
@@ -1561,7 +1540,6 @@
       noiseGateStatusBadge: document.getElementById('noiseGateStatusBadge'),
       toggleKrispAi: document.getElementById('toggleKrispAi'),
       krispActiveBadge: document.getElementById('krispActiveBadge'),
-      networkModeSelect: document.getElementById('networkModeSelect'),
       toggleNoiseSuppression: document.getElementById('toggleNoiseSuppression'),
       toggleEchoCancellation: document.getElementById('toggleEchoCancellation'),
       toggleAutoGain: document.getElementById('toggleAutoGain'),
@@ -1837,7 +1815,6 @@
           ? 'px-2.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 font-mono text-[10px] font-bold'
           : 'px-2.5 py-0.5 rounded-full bg-white/10 border border-white/10 text-slate-400 font-mono text-[10px] font-bold';
       }
-      if (el.networkModeSelect) el.networkModeSelect.value = a.networkMode || 'auto';
       if (el.toggleNoiseSuppression) el.toggleNoiseSuppression.checked = Boolean(a.noiseSuppression);
       if (el.toggleEchoCancellation) el.toggleEchoCancellation.checked = Boolean(a.echoCancellation);
       if (el.toggleAutoGain) el.toggleAutoGain.checked = Boolean(a.autoGainControl);
@@ -2495,504 +2472,108 @@
       requestAnimationFrame(tick);
     }
 
-    /**
-     * Native Browser WebSocket MQTT v3.1.1 Signaling Client.
-     * Works with zero external libraries over standard HTTPS/TLS Port 443!
-     */
-    class NativeWssSignalingClient {
-      constructor(url, topic, onConnect, onMessage) {
-        this.url = url;
-        this.topic = topic;
-        this.onConnect = onConnect;
-        this.onMessage = onMessage;
-        this.ws = null;
-        this.connected = false;
-        this.destroyed = false;
-        this.pingTimer = null;
-        this.reconnectTimer = null;
-        this.clientId = 'ds_' + Math.random().toString(36).slice(2, 10);
-        this.connect();
-      }
-
-      encodeLen(len) {
-        const out = [];
-        do {
-          let d = len % 128;
-          len = Math.floor(len / 128);
-          if (len > 0) d |= 0x80;
-          out.push(d);
-        } while (len > 0);
-        return out;
-      }
-
-      encodeStr(str) {
-        const b = new TextEncoder().encode(str);
-        return [(b.length >> 8) & 0xff, b.length & 0xff, ...b];
-      }
-
-      connect() {
-        if (this.destroyed) return;
-        try {
-          this.ws = new WebSocket(this.url, 'mqtt');
-          this.ws.binaryType = 'arraybuffer';
-        } catch (e) {
-          this.scheduleReconnect();
-          return;
-        }
-
-        this.ws.onopen = () => {
-          const vh = [0x00, 0x04, 0x4d, 0x51, 0x54, 0x54, 0x04, 0x02, 0x00, 0x3c];
-          const pl = this.encodeStr(this.clientId);
-          const body = [...vh, ...pl];
-          const pkt = new Uint8Array([0x10, ...this.encodeLen(body.length), ...body]);
-          try { this.ws.send(pkt); } catch (e) {}
-        };
-
-        this.ws.onmessage = (ev) => {
-          const buf = new Uint8Array(ev.data);
-          let offset = 0;
-          while (offset < buf.length) {
-            const header = buf[offset];
-            const type = header >> 4;
-            let mult = 1;
-            let remLen = 0;
-            let idx = offset + 1;
-            let digit = 0;
-            do {
-              if (idx >= buf.length) return;
-              digit = buf[idx++];
-              remLen += (digit & 127) * mult;
-              mult *= 128;
-            } while ((digit & 128) !== 0);
-
-            const pktEnd = idx + remLen;
-            if (pktEnd > buf.length) break;
-
-            if (type === 2) {
-              // CONNACK -> Subscribe to our signaling topic
-              this.connected = true;
-              const subBody = [0x00, 0x01, ...this.encodeStr(this.topic), 0x00];
-              const subPkt = new Uint8Array([0x82, ...this.encodeLen(subBody.length), ...subBody]);
-              try { this.ws.send(subPkt); } catch (e) {}
-              if (this.pingTimer) clearInterval(this.pingTimer);
-              this.pingTimer = setInterval(() => {
-                if (this.connected && this.ws && this.ws.readyState === 1) {
-                  try { this.ws.send(new Uint8Array([0xc0, 0x00])); } catch (e) {}
-                }
-              }, 22000);
-              if (this.onConnect) this.onConnect();
-            } else if (type === 3) {
-              // PUBLISH
-              const qos = (header >> 1) & 0x03;
-              const tLen = (buf[idx] << 8) | buf[idx + 1];
-              const tBytes = buf.subarray(idx + 2, idx + 2 + tLen);
-              const topicStr = new TextDecoder().decode(tBytes);
-              let pStart = idx + 2 + tLen;
-              if (qos > 0) pStart += 2;
-              const payloadStr = new TextDecoder().decode(buf.subarray(pStart, pktEnd));
-              if (this.onMessage) this.onMessage(topicStr, payloadStr);
-            }
-            offset = pktEnd;
-          }
-        };
-
-        this.ws.onclose = () => {
-          this.connected = false;
-          if (this.pingTimer) clearInterval(this.pingTimer);
-          this.scheduleReconnect();
-        };
-
-        this.ws.onerror = () => {};
-      }
-
-      publish(targetTopic, strPayload) {
-        if (!this.connected || !this.ws || this.ws.readyState !== 1) return false;
-        try {
-          const tBytes = this.encodeStr(targetTopic);
-          const pBytes = new TextEncoder().encode(strPayload);
-          const totalLen = tBytes.length + pBytes.length;
-          const lenBytes = this.encodeLen(totalLen);
-          const pkt = new Uint8Array(1 + lenBytes.length + totalLen);
-          pkt[0] = 0x30;
-          pkt.set(lenBytes, 1);
-          pkt.set(tBytes, 1 + lenBytes.length);
-          pkt.set(pBytes, 1 + lenBytes.length + tBytes.length);
-          this.ws.send(pkt);
-          return true;
-        } catch (e) {
-          return false;
-        }
-      }
-
-      scheduleReconnect() {
-        if (this.destroyed) return;
-        if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
-        this.reconnectTimer = setTimeout(() => this.connect(), 2500);
-      }
-
-      destroy() {
-        this.destroyed = true;
-        this.connected = false;
-        if (this.pingTimer) clearInterval(this.pingTimer);
-        if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
-        if (this.ws) {
-          try { this.ws.close(); } catch (e) {}
-        }
-      }
-    }
-
-    function getAntiDpiIceConfig() {
-      const forceRelay = state.audioSettings && state.audioSettings.networkMode === 'relay';
-      return {
-        iceCandidatePoolSize: 10,
-        iceTransportPolicy: forceRelay ? 'relay' : 'all',
-        bundlePolicy: 'max-bundle',
-        rtcpMuxPolicy: 'require',
-        iceServers: [
-          { urls: 'stun:stun.sipnet.ru:3478' },
-          { urls: 'stun:stun.zadarma.com:3478' },
-          { urls: 'stun:stun.l.google.com:19302' },
-          { urls: 'stun:stun1.l.google.com:19302' },
-          { urls: 'stun:stun.nextcloud.com:443' },
-          {
-            urls: [
-              'turn:openrelay.metered.ca:80',
-              'turn:openrelay.metered.ca:80?transport=tcp',
-              'turn:openrelay.metered.ca:443',
-              'turn:openrelay.metered.ca:443?transport=tcp',
-              'turns:openrelay.metered.ca:443?transport=tcp'
-            ],
-            username: 'openrelayproject',
-            credential: 'openrelayproject'
-          }
-        ]
-      };
-    }
-
-    const activeWssPeers = new Map();
-
-    function sendSignalingPacket(targetPeerId, payload) {
-      if (!targetPeerId) return;
-      const packetObj = {
-        ...payload,
-        from: state.myPeerId,
-        to: targetPeerId,
-        sigId: `${state.myPeerId}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`
-      };
-      const packetStr = JSON.stringify(packetObj);
-      const topic = `disstya/v4/sig/${targetPeerId}`;
-
-      // 1. Send via Local BroadcastChannel (instant 0ms if testing across two tabs on the same PC)
-      if (state.localBroadcastChan) {
-        try { state.localBroadcastChan.postMessage(packetObj); } catch (e) {}
-      }
-
-      // 2. Send via all connected Native WSS Signaling Brokers (Port 443 / 8084 / 8884)
-      state.wssSignalingClients.forEach((client) => {
-        if (client && client.connected) {
-          client.publish(topic, packetStr);
-        }
-      });
-    }
-
-    function createDataChannelAdapter(dc, remotePeerId) {
-      const handlers = { open: [], data: [], close: [] };
-      const adapter = {
-        peer: remotePeerId,
-        open: dc.readyState === 'open',
-        _dc: dc,
-        on(ev, fn) {
-          if (handlers[ev]) handlers[ev].push(fn);
-          if (ev === 'open' && dc.readyState === 'open') setTimeout(fn, 0);
-        },
-        send(data) {
-          if (dc.readyState !== 'open') return;
-          try {
-            if (data && data.type === 'file-chunk' && data.chunk instanceof ArrayBuffer) {
-              const headerBytes = new TextEncoder().encode(JSON.stringify({ type: 'file-chunk', fileId: data.fileId }));
-              const chunkBytes = new Uint8Array(data.chunk);
-              const combined = new Uint8Array(4 + headerBytes.byteLength + chunkBytes.byteLength);
-              new DataView(combined.buffer).setUint32(0, headerBytes.byteLength, false);
-              combined.set(headerBytes, 4);
-              combined.set(chunkBytes, 4 + headerBytes.byteLength);
-              dc.send(combined.buffer);
-            } else {
-              dc.send(JSON.stringify(data));
-            }
-          } catch (e) {}
-        },
-        close() {
-          try { dc.close(); } catch (e) {}
-        }
-      };
-
-      dc.binaryType = 'arraybuffer';
-      dc.onopen = () => {
-        adapter.open = true;
-        handlers.open.forEach(fn => fn());
-      };
-      dc.onclose = () => {
-        adapter.open = false;
-        handlers.close.forEach(fn => fn());
-      };
-      dc.onmessage = async (ev) => {
-        try {
-          if (typeof ev.data === 'string') {
-            const parsed = JSON.parse(ev.data);
-            handlers.data.forEach(fn => fn(parsed));
-          } else {
-            const buf = ev.data instanceof Blob ? await ev.data.arrayBuffer() : ev.data;
-            const headerLen = new DataView(buf).getUint32(0, false);
-            const headerJson = new TextDecoder().decode(new Uint8Array(buf, 4, headerLen));
-            const meta = JSON.parse(headerJson);
-            const chunk = buf.slice(4 + headerLen);
-            handlers.data.forEach(fn => fn({ ...meta, chunk }));
-          }
-        } catch (e) {}
-      };
-      return adapter;
-    }
-
-    function createMediaCallAdapter(pc, remotePeerId) {
-      const handlers = { stream: [], close: [], error: [] };
-      let remoteStreamEmitted = false;
-      const remoteStream = new MediaStream();
-
-      const callAdapter = {
-        peer: remotePeerId,
-        peerConnection: pc,
-        on(ev, fn) {
-          if (handlers[ev]) handlers[ev].push(fn);
-          if (ev === 'stream' && remoteStream.getTracks().length > 0) {
-            setTimeout(() => fn(remoteStream), 0);
-          }
-        },
-        answer() {},
-        close() {
-          try { pc.close(); } catch (e) {}
-          handlers.close.forEach(fn => fn());
-        }
-      };
-
-      pc.ontrack = (ev) => {
-        if (ev.streams && ev.streams[0]) {
-          ev.streams[0].getTracks().forEach(t => {
-            if (!remoteStream.getTracks().includes(t)) remoteStream.addTrack(t);
-          });
-        } else if (ev.track) {
-          if (!remoteStream.getTracks().includes(ev.track)) remoteStream.addTrack(ev.track);
-        }
-        if (!remoteStreamEmitted && remoteStream.getTracks().length > 0) {
-          remoteStreamEmitted = true;
-          handlers.stream.forEach(fn => fn(remoteStream));
-        }
-      };
-
-      pc.onconnectionstatechange = () => {
-        if (pc.connectionState === 'closed') {
-          handlers.close.forEach(fn => fn());
-        }
-      };
-
-      return callAdapter;
-    }
-
-    async function initiateWssPeerCall(targetPeerId) {
-      ensureMasterMediaPipeline();
-      if (activeWssPeers.has(targetPeerId)) {
-        try { activeWssPeers.get(targetPeerId).pc.close(); } catch (e) {}
-      }
-
-      const pc = new RTCPeerConnection(getAntiDpiIceConfig());
-      const dc = pc.createDataChannel('disstya-p2p', { ordered: true });
-      const connAdapter = createDataChannelAdapter(dc, targetPeerId);
-      const callAdapter = createMediaCallAdapter(pc, targetPeerId);
-
-      activeWssPeers.set(targetPeerId, { pc, connAdapter, callAdapter, candidateQueue: [] });
-
-      state.masterOutStream.getTracks().forEach(track => {
-        pc.addTrack(track, state.masterOutStream);
-      });
-
-      pc.onicecandidate = (ev) => {
-        if (ev.candidate) {
-          sendSignalingPacket(targetPeerId, { type: 'ice', candidate: ev.candidate });
-        }
-      };
-
-      setupDataChannel(connAdapter);
-      setupMediaCall(callAdapter, targetPeerId);
-
-      const offer = await pc.createOffer();
-      offer.sdp = mungeSdpForHighQuality(offer.sdp);
-      await pc.setLocalDescription(offer);
-
-      sendSignalingPacket(targetPeerId, { type: 'offer', sdp: pc.localDescription });
-    }
-
-    async function handleIncomingSignalingPacket(msg) {
-      if (!msg || !msg.from || msg.from === state.myPeerId) return;
-      if (msg.to && msg.to !== state.myPeerId) return;
-      if (msg.sigId) {
-        if (state.seenSigIds.has(msg.sigId)) return;
-        state.seenSigIds.add(msg.sigId);
-      }
-
-      const remotePeerId = msg.from;
-
-      if (msg.type === 'offer') {
-        await resumeAudioContextIfNeeded();
-        if (activeWssPeers.has(remotePeerId)) {
-          try { activeWssPeers.get(remotePeerId).pc.close(); } catch (e) {}
-        }
-
-        const pc = new RTCPeerConnection(getAntiDpiIceConfig());
-        const callAdapter = createMediaCallAdapter(pc, remotePeerId);
-        const peerEntry = { pc, connAdapter: null, callAdapter, candidateQueue: [] };
-        activeWssPeers.set(remotePeerId, peerEntry);
-
-        pc.ondatachannel = (ev) => {
-          const connAdapter = createDataChannelAdapter(ev.channel, remotePeerId);
-          peerEntry.connAdapter = connAdapter;
-          setupDataChannel(connAdapter);
-          showToast(`Собеседник ${remotePeerId} вошел в комнату!`, 'success');
-        };
-
-        pc.onicecandidate = (ev) => {
-          if (ev.candidate) {
-            sendSignalingPacket(remotePeerId, { type: 'ice', candidate: ev.candidate });
-          }
-        };
-
-        state.masterOutStream.getTracks().forEach(track => {
-          pc.addTrack(track, state.masterOutStream);
-        });
-
-        setupMediaCall(callAdapter, remotePeerId);
-
-        await pc.setRemoteDescription(new RTCSessionDescription(msg.sdp));
-        for (const c of peerEntry.candidateQueue) {
-          try { await pc.addIceCandidate(new RTCIceCandidate(c)); } catch (e) {}
-        }
-        peerEntry.candidateQueue = [];
-
-        const answer = await pc.createAnswer();
-        answer.sdp = mungeSdpForHighQuality(answer.sdp);
-        await pc.setLocalDescription(answer);
-
-        sendSignalingPacket(remotePeerId, { type: 'answer', sdp: pc.localDescription });
-      } else if (msg.type === 'answer') {
-        const entry = activeWssPeers.get(remotePeerId);
-        if (!entry || !entry.pc) return;
-        if (entry.pc.signalingState === 'have-local-offer') {
-          await entry.pc.setRemoteDescription(new RTCSessionDescription(msg.sdp));
-          for (const c of entry.candidateQueue) {
-            try { await entry.pc.addIceCandidate(new RTCIceCandidate(c)); } catch (e) {}
-          }
-          entry.candidateQueue = [];
-        }
-      } else if (msg.type === 'ice' && msg.candidate) {
-        const entry = activeWssPeers.get(remotePeerId);
-        if (!entry || !entry.pc) return;
-        if (entry.pc.remoteDescription && entry.pc.remoteDescription.type) {
-          try { await entry.pc.addIceCandidate(new RTCIceCandidate(msg.candidate)); } catch (e) {}
-        } else {
-          entry.candidateQueue.push(msg.candidate);
-        }
-      }
-    }
-
-    function markSignalingNodeOnline() {
-      state.peerReady = true;
-      updateInviteLinkUI();
-      if (!state.dataConn || !state.dataConn.open) {
-        setConnectionStatus('ready', `Онлайн (${state.myPeerId})`);
-      }
-      if (el.signalingReadyBadge) {
-        el.signalingReadyBadge.textContent = '● Онлайн без VPN (Готов к звонку)';
-        el.signalingReadyBadge.className = 'font-mono text-[10px] text-emerald-400';
-      }
-      if (state.pendingTargetId) {
-        const target = state.pendingTargetId;
-        state.pendingTargetId = null;
-        connectToRemotePeer(target);
-      } else {
-        checkUrlHashAndAutoConnect();
-      }
-    }
-
     function initPeerNode() {
       if (!state.myPeerId) {
         state.myPeerId = generateShortPeerId();
       }
       updateInviteLinkUI();
-      setConnectionStatus('ready', `Онлайн (${state.myPeerId})`);
 
-      // 1. Local BroadcastChannel for instant 0ms same-browser multi-tab testing
-      if (typeof BroadcastChannel !== 'undefined') {
-        if (state.localBroadcastChan) {
-          try { state.localBroadcastChan.close(); } catch (e) {}
-        }
-        state.localBroadcastChan = new BroadcastChannel('disstya_local_sig_v4');
-        state.localBroadcastChan.onmessage = (ev) => {
-          if (ev.data && ev.data.to === state.myPeerId) {
-            handleIncomingSignalingPacket(ev.data);
-          }
-        };
+      if (typeof Peer === 'undefined') {
+        const fallbackScript = document.createElement('script');
+        fallbackScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js';
+        fallbackScript.onload = () => initPeerNode();
+        document.head.appendChild(fallbackScript);
+        return;
       }
 
-      // 2. Multi-Route Native WSS Signaling (Includes Port 443 HTTPS port — works without VPN in RF)
-      state.wssSignalingClients.forEach(c => c.destroy());
-      state.wssSignalingClients = [];
+      if (state.peer) {
+        try { state.peer.destroy(); } catch (e) {}
+      }
 
-      const wssBrokers = [
-        'wss://mqtt.eclipseprojects.io:443/mqtt',
-        'wss://broker.emqx.io:8084/mqtt',
-        'wss://broker.hivemq.com:8884/mqtt',
-        'wss://test.mosquitto.org:8081/mqtt'
-      ];
-      const myTopic = `disstya/v4/sig/${state.myPeerId}`;
-
-      wssBrokers.forEach((brokerUrl) => {
-        const client = new NativeWssSignalingClient(
-          brokerUrl,
-          myTopic,
-          () => markSignalingNodeOnline(),
-          (topic, payloadStr) => {
-            if (topic === myTopic) {
-              try {
-                handleIncomingSignalingPacket(JSON.parse(payloadStr));
-              } catch (e) {}
+      const peer = new Peer(state.myPeerId, {
+        debug: 1,
+        pingInterval: 5000,
+        config: {
+          iceServers: [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:stun1.l.google.com:19302' },
+            { urls: 'stun:stun2.l.google.com:19302' },
+            { urls: 'stun:stun.cloudflare.com:3478' },
+            {
+              urls: [
+                'turn:openrelay.metered.ca:80',
+                'turn:openrelay.metered.ca:443',
+                'turn:openrelay.metered.ca:443?transport=tcp'
+              ],
+              username: 'openrelayproject',
+              credential: 'openrelayproject'
             }
-          }
-        );
-        state.wssSignalingClients.push(client);
+          ]
+        }
       });
 
-      // 3. Secondary PeerJS fallback if loaded
-      if (typeof Peer !== 'undefined') {
-        try {
-          if (state.peer) {
-            try { state.peer.destroy(); } catch (e) {}
-          }
-          const peer = new Peer(state.myPeerId, {
-            debug: 0,
-            pingInterval: 5000,
-            config: getAntiDpiIceConfig()
-          });
-          state.peer = peer;
-          peer.on('open', () => markSignalingNodeOnline());
-          peer.on('connection', (conn) => {
-            setupDataChannel(conn);
-            showToast(`Собеседник ${conn.peer} вошел в комнату!`, 'success');
-          });
-          peer.on('call', (call) => answerIncomingCall(call));
-          peer.on('error', () => {});
-        } catch (e) {}
-      }
+      state.peer = peer;
 
-      // Check URL hash immediately if someone opened an invite link
-      setTimeout(() => checkUrlHashAndAutoConnect(), 350);
+      peer.on('open', (id) => {
+        state.myPeerId = id;
+        state.peerReady = true;
+        updateInviteLinkUI();
+        setConnectionStatus('ready', `Онлайн (${id})`);
+        if (el.signalingReadyBadge) {
+          el.signalingReadyBadge.textContent = '● Готов к звонку';
+          el.signalingReadyBadge.className = 'font-mono text-[10px] text-emerald-400';
+        }
+
+        if (state.pendingTargetId) {
+          const target = state.pendingTargetId;
+          state.pendingTargetId = null;
+          connectToRemotePeer(target);
+        } else {
+          checkUrlHashAndAutoConnect();
+        }
+      });
+
+      peer.on('connection', (conn) => {
+        setupDataChannel(conn);
+        showToast(`Собеседник ${conn.peer} вошел в комнату!`, 'success');
+      });
+
+      peer.on('call', (call) => {
+        answerIncomingCall(call);
+      });
+
+      peer.on('disconnected', () => {
+        state.peerReady = false;
+        if (!state.dataConn || !state.dataConn.open) {
+          setConnectionStatus('connecting', 'Переподключение...');
+        }
+        if (state.reconnectTimer) clearTimeout(state.reconnectTimer);
+        state.reconnectTimer = setTimeout(() => {
+          if (state.peer && !state.peer.destroyed && state.peer.disconnected) {
+            try { state.peer.reconnect(); } catch (e) {}
+          }
+        }, 1500);
+      });
+
+      peer.on('error', (err) => {
+        if (err.type === 'unavailable-id') {
+          state.myPeerId = generateShortPeerId();
+          updateInviteLinkUI();
+          initPeerNode();
+          return;
+        }
+        if (err.type === 'peer-unavailable') {
+          setConnectionStatus('ready', `Онлайн (${state.myPeerId})`);
+          showToast('Друг с таким ID сейчас не в сети или закрыл вкладку', 'warn');
+          return;
+        }
+        if (err.type === 'network' || err.type === 'server-error' || err.type === 'socket-error') {
+          if (state.peer && !state.peer.destroyed && state.peer.disconnected) {
+            try { state.peer.reconnect(); } catch (e) {}
+          }
+          return;
+        }
+      });
     }
 
     function mungeSdpForHighQuality(sdp) {
@@ -3270,26 +2851,37 @@
       }
 
       await resumeAudioContextIfNeeded();
+
+      if (!state.peer || !state.peerReady || state.peer.disconnected) {
+        state.pendingTargetId = cleanId;
+        setConnectionStatus('connecting', `Ожидание сети для входа к ${cleanId}...`);
+        if (state.peer && state.peer.disconnected) {
+          try { state.peer.reconnect(); } catch (e) {}
+        }
+        return;
+      }
+
       setConnectionStatus('connecting', `Вход к ${cleanId}...`);
       showToast(`Подключение к ${cleanId}...`, 'info');
 
-      // 1. Initiate Native WSS / BroadcastChannel WebRTC Call
-      await initiateWssPeerCall(cleanId);
+      try {
+        const conn = state.peer.connect(cleanId, { reliable: true });
+        setupDataChannel(conn);
 
-      // 2. Also initiate PeerJS fallback if available
-      if (state.peer && !state.peer.destroyed && !state.peer.disconnected) {
-        try {
-          const conn = state.peer.connect(cleanId, { reliable: true });
-          setupDataChannel(conn);
-          const call = state.peer.call(cleanId, state.masterOutStream, { sdpTransform: mungeSdpForHighQuality });
-          setupMediaCall(call, cleanId);
-        } catch (e) {}
+        const call = state.peer.call(cleanId, state.masterOutStream, {
+          sdpTransform: mungeSdpForHighQuality
+        });
+        setupMediaCall(call, cleanId);
+      } catch (err) {
+        showToast('Ошибка вызова собеседника', 'error');
       }
     }
 
     async function answerIncomingCall(call) {
       await resumeAudioContextIfNeeded();
-      call.answer(state.masterOutStream, { sdpTransform: mungeSdpForHighQuality });
+      call.answer(state.masterOutStream, {
+        sdpTransform: mungeSdpForHighQuality
+      });
       setupMediaCall(call, call.peer);
     }
 
@@ -3351,10 +2943,6 @@
     }
 
     function disconnectSession() {
-      activeWssPeers.forEach((entry) => {
-        try { entry.pc.close(); } catch (e) {}
-      });
-      activeWssPeers.clear();
       if (state.mediaCall) {
         try { state.mediaCall.close(); } catch (e) {}
         state.mediaCall = null;
@@ -3778,20 +3366,6 @@
           saveAudioSettings();
           await applyAudioConstraintsToActiveMic();
           showToast(state.audioSettings.krispEnabled ? 'Нейро-шумоподавление Krisp AI включено' : 'Krisp AI выключен', 'info');
-        });
-      }
-
-      // No-VPN Network Mode Selector
-      if (el.networkModeSelect) {
-        el.networkModeSelect.addEventListener('change', (e) => {
-          state.audioSettings.networkMode = e.target.value;
-          saveAudioSettings();
-          showToast(
-            state.audioSettings.networkMode === 'relay'
-              ? 'Включен принудительный туннель TURN TLS 443 (Обход без VPN)'
-              : 'Включен автоматический режим P2P + TURN 443',
-            'success'
-          );
         });
       }
 
