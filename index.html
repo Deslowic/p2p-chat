@@ -8,9 +8,8 @@
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- PeerJS with Primary + Fallback CDN for maximum network reliability -->
-  <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"
-          onerror="var s=document.createElement('script');s.src='https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js';document.head.appendChild(s);"></script>
+  <!-- Optional PeerJS fallback (Primary signaling uses built-in Zero-Dependency WSS over Port 443) -->
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js" async></script>
 
   <!-- Google Fonts: Street Tag Fonts + Modern Desktop UI & Monospace -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -392,7 +391,7 @@
     <img id="modalImageSrc" src="" alt="Preview" class="max-w-[90vw] max-h-[88vh] rounded-2xl shadow-2xl border border-white/10 object-contain" />
   </div>
 
-  <!-- Full Desktop Settings Center Modal (Audio & Noise Suppression, Avatar & Profile, Stream 60 FPS, Appearance) -->
+  <!-- Full Desktop Settings Center Modal (Audio & Krisp AI, Avatar & Profile, Stream 60 FPS, Appearance) -->
   <div id="themeStudioModal" class="fixed inset-0 z-50 hidden bg-black/75 backdrop-blur-md flex items-center justify-center p-6">
     <div class="w-full max-w-4xl h-[82vh] max-h-[720px] theme-surface border border-white/15 rounded-3xl flex overflow-hidden shadow-2xl">
 
@@ -410,8 +409,8 @@
             <button type="button" data-settings-tab="audio" class="settings-nav-btn w-full px-3.5 py-2.5 rounded-xl theme-btn theme-btn-active flex items-center gap-3 text-left font-bold text-white">
               <span class="text-base">🎙️</span>
               <div>
-                <div>Голос и Шумодав</div>
-                <div class="text-[10px] text-slate-400 font-normal">Фильтры, Noise Gate, Микшер</div>
+                <div>Голос и Krisp AI</div>
+                <div class="text-[10px] text-slate-400 font-normal">Шумодав, Noise Gate, Микшер</div>
               </div>
             </button>
 
@@ -452,10 +451,10 @@
         <!-- Modal Header -->
         <div class="h-14 px-6 border-b border-white/10 flex items-center justify-between shrink-0">
           <div>
-            <h2 id="settingsModalTitle" class="text-sm font-bold text-white">Голос, Микрофон и Шумоподавление</h2>
+            <h2 id="settingsModalTitle" class="text-sm font-bold text-white">Голос, Микрофон и Шумоподавление Krisp AI</h2>
             <p id="settingsModalSubtitle" class="text-[11px] text-slate-400">Настройка чистоты голоса, отсечения клавиатуры и микшера</p>
           </div>
-          <button id="closeThemeStudioBtn" type="button" class="w-8 h-8 rounded-xl theme-btn flex items-center justify-center text-slate-300 hover:text-white" title="Закрыть (Esc)">
+          <button id="closeThemeStudioBtn" type="button" class="w-8 h-8 rounded-xl theme-btn flex items-center justify-center text-slate-300 hover:text-white" title="Закрыть">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
           </button>
         </div>
@@ -463,14 +462,14 @@
         <!-- Scrollable Panels Container -->
         <div class="flex-1 overflow-y-auto p-6 space-y-6 text-xs">
 
-          <!-- TAB 1: AUDIO & NOISE SUPPRESSION -->
+          <!-- TAB 1: AUDIO & KRISP NOISE SUPPRESSION -->
           <div id="settingsTab-audio" class="settings-tab-pane space-y-5">
             <!-- Device Selection & Live Mic Test -->
             <div class="p-4 rounded-2xl bg-black/45 border border-white/10 space-y-4">
               <div class="flex items-center justify-between">
                 <div>
                   <div class="text-xs font-bold text-white">Устройство ввода и проверка звука</div>
-                  <div class="text-[11px] text-slate-400">Проверьте, как звучит ваш голос с активным шумоподавлением</div>
+                  <div class="text-[11px] text-slate-400">Проверьте, как звучит ваш голос с активным шумоподавлением Krisp AI</div>
                 </div>
                 <button id="micLoopbackTestBtn" type="button" class="px-3.5 py-2 rounded-xl theme-btn text-xs font-bold text-white flex items-center gap-2 border border-purple-500/40">
                   <span id="micLoopbackIcon">🎧</span>
@@ -491,7 +490,7 @@
               <div class="space-y-1.5 pt-1">
                 <div class="flex items-center justify-between text-[11px]">
                   <span class="text-slate-300">Уровень сигнала микрофона и порог отсечения шума (Noise Gate)</span>
-                  <span id="noiseGateStatusBadge" class="font-mono text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300">Голос проходит</span>
+                  <span id="noiseGateStatusBadge" class="font-mono text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300">Готов</span>
                 </div>
                 <div class="relative w-full h-3 bg-black/80 rounded-full overflow-hidden border border-white/10">
                   <div id="micLiveLevelBar" class="h-full w-0 transition-all duration-75 rounded-full" style="background: linear-gradient(90deg, #10b981 0%, var(--accent) 70%, #f43f5e 100%);"></div>
@@ -505,23 +504,32 @@
               </div>
             </div>
 
-            <!-- Noise Suppression Mode Profiles -->
+            <!-- Krisp AI Noise Suppression Mode Profiles -->
             <div class="p-4 rounded-2xl bg-black/45 border border-white/10 space-y-3.5">
               <div class="flex items-center justify-between">
-                <div>
-                  <div class="text-xs font-bold text-white">Алгоритм шумоподавления</div>
-                  <div class="text-[11px] text-slate-400">Выберите профиль очистки голоса в реальном времени</div>
+                <div class="flex items-center gap-2.5">
+                  <span class="px-2.5 py-1 rounded-lg bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 font-bold text-xs flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span>krisp AI</span>
+                  </span>
+                  <div>
+                    <div class="text-xs font-bold text-white">Нейро-шумоподавление Krisp AI AudioWorklet</div>
+                    <div class="text-[11px] text-slate-400">Вырезает стук механической клавиатуры, клики мыши, кулеры и эхо</div>
+                  </div>
                 </div>
-                <span class="px-2.5 py-0.5 rounded-full accent-badge font-mono text-[10px]">WebAudio DSP + WebRTC</span>
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <span id="krispActiveBadge" class="px-2.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 font-mono text-[10px] font-bold">KRISP ВКЛ</span>
+                  <input id="toggleKrispAi" type="checkbox" checked class="w-4 h-4 accent-emerald-500 rounded cursor-pointer" />
+                </label>
               </div>
 
               <div class="grid grid-cols-3 gap-2.5">
                 <button type="button" data-nr-mode="studio" class="nr-mode-btn p-3 rounded-xl theme-btn theme-btn-active text-left space-y-1">
                   <div class="flex items-center justify-between">
-                    <span class="font-bold text-white text-xs">🛡️ Студийный AI/DSP</span>
-                    <span class="text-[10px] font-mono text-emerald-400">MAX</span>
+                    <span class="font-bold text-white text-xs">🧠 Krisp AI Ultra</span>
+                    <span class="text-[10px] font-mono text-emerald-400">KRISP</span>
                   </div>
-                  <p class="text-[10px] text-slate-400 leading-relaxed">WebRTC шумодав + срез гула 85 Гц + фильтр писка + компрессор</p>
+                  <p class="text-[10px] text-slate-400 leading-relaxed">Нейро-фильтр Krisp Worklet + подавление кликов клавиатуры + срез гула</p>
                 </button>
 
                 <button type="button" data-nr-mode="standard" class="nr-mode-btn p-3 rounded-xl theme-btn text-left space-y-1">
@@ -529,7 +537,7 @@
                     <span class="font-bold text-white text-xs">⚡ Стандартный</span>
                     <span class="text-[10px] font-mono text-sky-400">MED</span>
                   </div>
-                  <p class="text-[10px] text-slate-400 leading-relaxed">Базовое браузерное подавление шума и эха без фильтрации частот</p>
+                  <p class="text-[10px] text-slate-400 leading-relaxed">Мягкое подавление фонового шума и эха без агрессивной фильтрации</p>
                 </button>
 
                 <button type="button" data-nr-mode="raw" class="nr-mode-btn p-3 rounded-xl theme-btn text-left space-y-1">
@@ -537,7 +545,7 @@
                     <span class="font-bold text-white text-xs">🎵 Чистый эфир</span>
                     <span class="text-[10px] font-mono text-amber-400">RAW</span>
                   </div>
-                  <p class="text-[10px] text-slate-400 leading-relaxed">Отключает все фильтры. Идеально для внешних аудиокарт и музыки</p>
+                  <p class="text-[10px] text-slate-400 leading-relaxed">Отключает Krisp и все фильтры. Для внешних студийных карт и музыки</p>
                 </button>
               </div>
 
@@ -545,8 +553,8 @@
               <div class="grid grid-cols-2 gap-2.5 pt-2">
                 <label class="flex items-center justify-between p-3 rounded-xl bg-black/50 border border-white/10 cursor-pointer hover:border-purple-500/40">
                   <div>
-                    <div class="text-xs font-semibold text-white">Подавление шума (Noise Suppression)</div>
-                    <div class="text-[10px] text-slate-400">Убирает фоновый гул ПК и вентиляторов</div>
+                    <div class="text-xs font-semibold text-white">Krisp Анти-Клавиатура (Transient Killer)</div>
+                    <div class="text-[10px] text-slate-400">Подавляет резкие щелчки свичей, мыши и удары по столу</div>
                   </div>
                   <input id="toggleNoiseSuppression" type="checkbox" checked class="w-4 h-4 accent-purple-500 rounded cursor-pointer" />
                 </label>
@@ -569,12 +577,27 @@
 
                 <label class="flex items-center justify-between p-3 rounded-xl bg-black/50 border border-white/10 cursor-pointer hover:border-purple-500/40">
                   <div>
-                    <div class="text-xs font-semibold text-white">Срез гула 85 Гц + Компрессор</div>
-                    <div class="text-[10px] text-slate-400">Делает голос плотным как на радио</div>
+                    <div class="text-xs font-semibold text-white">Изоляция голоса + Компрессор</div>
+                    <div class="text-[10px] text-slate-400">Выделяет спектр речи (90 Гц – 14 кГц) как на радио</div>
                   </div>
                   <input id="toggleVoiceFilter" type="checkbox" checked class="w-4 h-4 accent-purple-500 rounded cursor-pointer" />
                 </label>
               </div>
+            </div>
+
+            <!-- No-VPN Anti-DPI Network Mode -->
+            <div class="p-4 rounded-2xl bg-black/45 border border-white/10 space-y-2.5">
+              <div class="flex items-center justify-between">
+                <div>
+                  <div class="text-xs font-bold text-white">Режим соединения без VPN (Обход DPI / ТСПУ)</div>
+                  <div class="text-[11px] text-slate-400">Использует встроенный WSS по порту 443 и TURN TCP/TLS ретрансляторы</div>
+                </div>
+                <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 font-mono text-[10px]">NO-VPN READY</span>
+              </div>
+              <select id="networkModeSelect" class="w-full bg-black/70 border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-purple-500">
+                <option value="auto" selected>⚡ Автоматический (Прямой P2P + TURN TCP/TLS 443 при блокировке)</option>
+                <option value="relay">🛡️ Принудительный туннель TURN TLS 443 (Если провайдер режет UDP)</option>
+              </select>
             </div>
 
             <!-- Audio Volume Mixer -->
@@ -852,7 +875,7 @@
   <header class="h-16 px-5 theme-surface border-b border-white/10 flex items-center justify-between gap-3 shrink-0 z-30">
     <!-- Left: Brand + Avatar + Status -->
     <div class="flex items-center gap-3.5 min-w-0">
-      <button id="headerAvatarBtn" title="Профиль и выбор анимированной аватарки" class="relative w-10 h-10 rounded-2xl overflow-hidden bg-black flex items-center justify-center shadow-lg shrink-0 avatar-frame-mordor speaking-target cursor-pointer">
+      <button id="headerAvatarBtn" type="button" title="Профиль и выбор анимированной аватарки" class="relative w-10 h-10 rounded-2xl overflow-hidden bg-black flex items-center justify-center shadow-lg shrink-0 avatar-frame-mordor speaking-target cursor-pointer">
       </button>
 
       <div class="flex items-center gap-2 shrink-0">
@@ -862,8 +885,8 @@
 
       <!-- Connection Status Pill -->
       <div id="connStatusPill" class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/50 border border-white/10 text-xs speaking-target shrink-0">
-        <span id="connStatusDot" class="w-2.5 h-2.5 rounded-full bg-amber-400 relative"></span>
-        <span id="connStatusText" class="text-slate-200 font-medium">Подключение...</span>
+        <span id="connStatusDot" class="w-2.5 h-2.5 rounded-full bg-emerald-400 relative"></span>
+        <span id="connStatusText" class="text-slate-200 font-medium">Онлайн</span>
       </div>
     </div>
 
@@ -890,17 +913,17 @@
 
     <!-- Right: Telemetry, Full Settings Button, Chat Toggle -->
     <div class="flex items-center gap-2 shrink-0">
-      <button id="toggleStatsBtn" title="Статистика WebRTC (Битрейт / FPS / Пинг)" class="px-3 py-2 theme-btn text-slate-200 flex items-center gap-2 text-xs font-mono">
+      <button id="toggleStatsBtn" type="button" title="Статистика WebRTC (Битрейт / FPS / Пинг)" class="px-3 py-2 theme-btn text-slate-200 flex items-center gap-2 text-xs font-mono">
         <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
         <span id="quickBitrateLabel">0 kbps</span>
       </button>
 
-      <button id="openThemeStudioBtn" title="Открыть настройки (Звук, Шумоподавление, Аватар, Тема)" class="px-3.5 py-2 theme-btn text-white flex items-center gap-2 text-xs font-bold border border-purple-500/40">
+      <button id="openThemeStudioBtn" type="button" title="Открыть настройки (Krisp AI, Звук, Аватар, Тема)" class="px-3.5 py-2 theme-btn text-white flex items-center gap-2 text-xs font-bold border border-purple-500/40">
         <svg class="w-4 h-4 accent-text" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
         <span>Настройки</span>
       </button>
 
-      <button id="toggleChatBtn" title="Скрыть / Показать чат" class="relative p-2.5 theme-btn text-slate-200">
+      <button id="toggleChatBtn" type="button" title="Скрыть / Показать чат" class="relative p-2.5 theme-btn text-slate-200">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
         </svg>
@@ -918,11 +941,11 @@
       <!-- Ambilight Glow -->
       <div id="ambilightGlow" class="pointer-events-none absolute inset-12 rounded-3xl opacity-0 transition-opacity duration-700 blur-3xl" style="background: radial-gradient(circle, rgba(var(--accent-rgb), 0.4) 0%, rgba(var(--accent-2-rgb), 0.24) 50%, transparent 80%);"></div>
 
-      <!-- Remote Video Stream (muted on video element because remoteAudio handles sound without autoplay blocks) -->
+      <!-- Remote Video Stream -->
       <video id="remoteVideo" autoplay muted playsinline class="relative z-10 w-full h-full object-contain hidden transition-shadow duration-150"></video>
       <audio id="remoteAudio" autoplay playsinline></audio>
 
-      <!-- Autoplay Unmute Prompt (appears only if browser blocks incoming audio before first click) -->
+      <!-- Autoplay Unmute Prompt -->
       <button id="unmuteAutoplayBtn" type="button" class="hidden absolute top-5 left-1/2 -translate-x-1/2 z-40 px-5 py-2.5 rounded-2xl theme-btn-primary text-xs font-bold items-center gap-2 shadow-2xl animate-bounce">
         <span>🔊 Нажмите здесь, чтобы включить звук собеседника</span>
       </button>
@@ -970,7 +993,7 @@
             <span>•</span>
             <span>1080P/1440P 60 FPS</span>
             <span>•</span>
-            <span>NO SERVERS</span>
+            <span>KRISP AI</span>
           </div>
           <div>
             <h1 class="street-tag-hero text-5xl select-none py-1">disstya</h1>
@@ -1006,10 +1029,10 @@
           <div class="p-3.5 rounded-2xl bg-black/55 border border-white/10 space-y-2">
             <div class="flex items-center justify-between text-[11px]">
               <span class="text-slate-300 font-semibold">1. Пригласить друга к себе (отправь ему эту ссылку):</span>
-              <span id="signalingReadyBadge" class="font-mono text-[10px] text-amber-400">Подключение к пиру...</span>
+              <span id="signalingReadyBadge" class="font-mono text-[10px] text-emerald-400">● Онлайн без VPN</span>
             </div>
             <div class="flex items-center gap-2">
-              <input id="inviteUrlInput" type="text" readonly value="Генерация ссылки..." class="flex-1 bg-black/75 border border-white/15 rounded-xl px-3 py-2.5 text-xs font-mono text-purple-200 selectable-text focus:outline-none focus:border-purple-500" />
+              <input id="inviteUrlInput" type="text" readonly value="" class="flex-1 bg-black/75 border border-white/15 rounded-xl px-3 py-2.5 text-xs font-mono text-purple-200 selectable-text focus:outline-none focus:border-purple-500" />
               <button id="heroCopyInviteBtn" type="button" class="px-4 py-2.5 theme-btn-primary font-bold text-xs flex items-center gap-2 shrink-0">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
@@ -1029,22 +1052,6 @@
               <input id="lobbyRemoteIdInput" type="text" placeholder="Вставь ID или ссылку друга (например ds-a1b2c3)..." class="flex-1 bg-black/65 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs font-mono text-white placeholder-slate-500 focus:outline-none focus:border-purple-500" />
               <button id="lobbyConnectBtn" type="button" class="px-5 py-2.5 theme-btn text-xs font-bold text-white shrink-0">Войти к другу</button>
             </div>
-          </div>
-
-          <!-- Quick Settings Shortcuts in Lobby -->
-          <div class="grid grid-cols-3 gap-2.5 pt-0.5">
-            <button id="heroOpenAudioSettingsBtn" type="button" class="py-2.5 px-3 rounded-xl theme-btn text-xs font-bold text-white flex items-center justify-center gap-2 border border-emerald-500/40">
-              <span>🎙️</span>
-              <span>Шумодав и Звук</span>
-            </button>
-            <button id="heroOpenAvatarBtn" type="button" class="py-2.5 px-3 rounded-xl theme-btn text-xs font-bold text-white flex items-center justify-center gap-2 border border-amber-500/40">
-              <span>👁️</span>
-              <span>Аватарки LotR / HP</span>
-            </button>
-            <button id="heroOpenAppearanceBtn" type="button" class="py-2.5 px-3 rounded-xl theme-btn text-xs font-bold text-white flex items-center justify-center gap-2 border border-purple-500/40">
-              <span>🎨</span>
-              <span>Оформление</span>
-            </button>
           </div>
         </div>
       </div>
@@ -1131,7 +1138,7 @@
         </button>
 
         <!-- Audio & Noise Suppression Settings Button -->
-        <button id="openSettingsBtn" type="button" title="Настройки шумоподавления, звука и качества стрима" class="w-11 h-11 theme-btn text-slate-200 flex items-center justify-center">
+        <button id="openSettingsBtn" type="button" title="Настройки шумоподавления Krisp AI, звука и качества стрима" class="w-11 h-11 theme-btn text-slate-200 flex items-center justify-center">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" /></svg>
         </button>
 
@@ -1201,6 +1208,7 @@
   <script>
     /*************************************************************************
      * DISSTYA PC — DESKTOP P2P HD 60FPS STREAMING & STREET MESSENGER
+     * Zero-Dependency Native WSS Signaling (Port 443) + Krisp AI AudioWorklet
      *************************************************************************/
 
     const QUALITY_PRESETS = {
@@ -1305,22 +1313,123 @@
       { id: 'synth-siren',  name: 'Рейд Сирена',   emoji: '🚨', builtIn: true }
     ];
 
-    const CHUNK_SIZE = 64 * 1024;
+    const CHUNK_SIZE = 32 * 1024;
 
     const DEFAULT_AUDIO_SETTINGS = {
       mode: 'studio', // 'studio' | 'standard' | 'raw'
+      krispEnabled: true,
       noiseSuppression: true,
       echoCancellation: true,
       autoGainControl: true,
-      voiceFilter: true, // High-pass 85Hz + Low-pass 14kHz + Compressor
-      noiseGateThreshold: 12, // 0..60
-      deviceId: 'default'
+      voiceFilter: true,
+      noiseGateThreshold: 12,
+      deviceId: 'default',
+      networkMode: 'auto'
     };
+
+    // Inline AudioWorklet code for real-time Krisp-grade noise & keyboard click suppression
+    const KRISP_WORKLET_CODE = `
+      class KrispNoiseSuppressorProcessor extends AudioWorkletProcessor {
+        constructor() {
+          super();
+          this.enabled = true;
+          this.transientSuppression = true;
+          this.noiseFloor = 0.0015;
+          this.smoothEnv = 0.0;
+          this.fastEnv = 0.0;
+          this.voiceGain = 1.0;
+          this.holdFrames = 0;
+          this.port.onmessage = (e) => {
+            if (e.data) {
+              if (typeof e.data.enabled === 'boolean') this.enabled = e.data.enabled;
+              if (typeof e.data.transientSuppression === 'boolean') this.transientSuppression = e.data.transientSuppression;
+            }
+          };
+        }
+
+        process(inputs, outputs) {
+          const input = inputs[0];
+          const output = outputs[0];
+          if (!input || !input.length) return true;
+
+          for (let ch = 0; ch < input.length; ch++) {
+            const inChan = input[ch];
+            const outChan = output[ch];
+            if (!this.enabled) {
+              outChan.set(inChan);
+              continue;
+            }
+
+            let sumSq = 0;
+            let zeroCrossings = 0;
+            let peak = 0;
+            for (let i = 0; i < inChan.length; i++) {
+              const s = inChan[i];
+              const abs = Math.abs(s);
+              sumSq += s * s;
+              if (abs > peak) peak = abs;
+              if (i > 0 && ((s >= 0 && inChan[i - 1] < 0) || (s < 0 && inChan[i - 1] >= 0))) {
+                zeroCrossings++;
+              }
+            }
+            const rms = Math.sqrt(sumSq / inChan.length);
+            const zcrRatio = zeroCrossings / inChan.length;
+
+            this.fastEnv = 0.6 * this.fastEnv + 0.4 * rms;
+            this.smoothEnv = 0.92 * this.smoothEnv + 0.08 * rms;
+
+            if (rms < this.noiseFloor * 1.8) {
+              this.noiseFloor = 0.995 * this.noiseFloor + 0.005 * Math.max(0.0003, rms);
+            } else {
+              this.noiseFloor = Math.min(0.025, this.noiseFloor * 1.0002);
+            }
+
+            const crest = peak / (rms + 0.0001);
+            const isClickTransient = this.transientSuppression && (
+              (this.fastEnv > this.smoothEnv * 2.9 && zcrRatio > 0.22) ||
+              (crest > 4.2 && zcrRatio > 0.26)
+            );
+
+            const snr = rms / (this.noiseFloor + 0.0001);
+            const isVocalFrame = snr > 2.4 && zcrRatio < 0.34 && !isClickTransient;
+
+            if (isVocalFrame) {
+              this.holdFrames = 28;
+            } else if (this.holdFrames > 0) {
+              this.holdFrames--;
+            }
+
+            let targetGain = 1.0;
+            if (isClickTransient && this.holdFrames === 0) {
+              targetGain = 0.03;
+            } else if (this.holdFrames > 0) {
+              targetGain = Math.min(1.0, Math.max(0.18, (rms - this.noiseFloor * 0.85) / (rms + 0.0001)));
+            } else {
+              targetGain = 0.015;
+            }
+
+            for (let i = 0; i < inChan.length; i++) {
+              this.voiceGain = 0.985 * this.voiceGain + 0.015 * targetGain;
+              let sample = inChan[i] * this.voiceGain;
+              if (isClickTransient && Math.abs(sample) > this.smoothEnv * 1.8) {
+                sample *= 0.25;
+              }
+              outChan[i] = sample;
+            }
+          }
+          return true;
+        }
+      }
+      registerProcessor('krisp-noise-suppressor', KrispNoiseSuppressorProcessor);
+    `;
 
     const state = {
       myPeerId: '',
       peerReady: false,
       peer: null,
+      wssSignalingClients: [],
+      localBroadcastChan: null,
+      seenSigIds: new Set(),
       reconnectTimer: null,
       pendingTargetId: null,
       dataConn: null,
@@ -1350,6 +1459,7 @@
       audioCtx: null,
       audioDest: null,
       micSourceNode: null,
+      krispWorkletNode: null,
       micHighPassNode: null,
       micLowPassNode: null,
       micCompressorNode: null,
@@ -1449,6 +1559,9 @@
       noiseGateSlider: document.getElementById('noiseGateSlider'),
       noiseGateValLabel: document.getElementById('noiseGateValLabel'),
       noiseGateStatusBadge: document.getElementById('noiseGateStatusBadge'),
+      toggleKrispAi: document.getElementById('toggleKrispAi'),
+      krispActiveBadge: document.getElementById('krispActiveBadge'),
+      networkModeSelect: document.getElementById('networkModeSelect'),
       toggleNoiseSuppression: document.getElementById('toggleNoiseSuppression'),
       toggleEchoCancellation: document.getElementById('toggleEchoCancellation'),
       toggleAutoGain: document.getElementById('toggleAutoGain'),
@@ -1533,32 +1646,17 @@
       return code;
     }
 
-    /**
-     * Safely extracts a clean PeerJS ID whether the user pastes:
-     * - "https://deslowic.github.io/p2p-chat/#ds-5a8qb"
-     * - "http://localhost:8000/#ds-5a8qb"
-     * - "#ds-5a8qb"
-     * - "ds-5a8qb"
-     */
     function extractCleanPeerId(rawInput) {
       if (!rawInput) return '';
       const str = String(rawInput).trim();
-
-      // 1. Prefer matching explicit ds-xxxxxx pattern anywhere in the string
       const dsMatch = str.match(/(ds-[a-z0-9]+)/i);
       if (dsMatch && dsMatch[1]) {
         return dsMatch[1].toLowerCase();
       }
-
-      // 2. If there is a '#' hash in a URL, take everything after the last '#'
       let candidate = str.includes('#') ? str.split('#').pop().trim() : str;
-
-      // 3. If someone pasted a URL without '#', strip protocol/domain/slashes
       if (candidate.includes('/')) {
         candidate = candidate.split('/').filter(Boolean).pop() || '';
       }
-
-      // 4. Strip any query params and disallowed PeerJS characters
       candidate = candidate.split('?')[0].replace(/[^a-zA-Z0-9_-]/g, '');
       return candidate;
     }
@@ -1588,7 +1686,6 @@
       }
 
       let copied = false;
-
       if (navigator.clipboard && window.isSecureContext) {
         try {
           await navigator.clipboard.writeText(inviteUrl);
@@ -1616,7 +1713,7 @@
       }
 
       if (copied) {
-        showToast(`Ссылка скопирована! Отправьте её другу`, 'success');
+        showToast('Ссылка скопирована! Отправьте её другу', 'success');
         if (el.copyInviteBtnLabel) el.copyInviteBtnLabel.textContent = 'Скопировано!';
         if (el.heroCopyBtnText) el.heroCopyBtnText.textContent = 'Скопировано!';
         setTimeout(() => {
@@ -1633,6 +1730,32 @@
       const num = parseInt(clean, 16);
       if (isNaN(num)) return '168, 85, 247';
       return `${(num >> 16) & 255}, ${(num >> 8) & 255}, ${num & 255}`;
+    }
+
+    function setConnectionStatus(status, labelText) {
+      el.connStatusText.textContent = labelText;
+      el.connStatusDot.className = 'w-2.5 h-2.5 rounded-full relative ';
+
+      const isConnected = status === 'connected';
+      state.inCall = isConnected;
+
+      if (el.callControlDock) {
+        el.callControlDock.classList.toggle('hidden', !isConnected);
+        el.callControlDock.classList.toggle('flex', isConnected);
+      }
+      if (!isConnected && el.soundpadPopover) {
+        el.soundpadPopover.classList.add('hidden');
+      }
+
+      if (status === 'ready') {
+        el.connStatusDot.classList.add('bg-emerald-400');
+      } else if (status === 'connecting') {
+        el.connStatusDot.classList.add('bg-amber-400', 'pulse-indicator');
+      } else if (status === 'connected') {
+        el.connStatusDot.classList.add('bg-emerald-400', 'pulse-indicator');
+      } else {
+        el.connStatusDot.classList.add('bg-rose-500');
+      }
     }
 
     function loadSavedTheme() {
@@ -1660,7 +1783,7 @@
 
     const SETTINGS_TAB_META = {
       audio: {
-        title: 'Голос, Микрофон и Шумоподавление',
+        title: 'Голос, Микрофон и Шумоподавление Krisp AI',
         subtitle: 'Настройка чистоты голоса, отсечения шума клавиатуры и микшера каналов'
       },
       profile: {
@@ -1707,6 +1830,14 @@
 
     function syncAudioSettingsUI() {
       const a = state.audioSettings;
+      if (el.toggleKrispAi) el.toggleKrispAi.checked = Boolean(a.krispEnabled);
+      if (el.krispActiveBadge) {
+        el.krispActiveBadge.textContent = a.krispEnabled ? 'KRISP ВКЛ' : 'ВЫКЛ';
+        el.krispActiveBadge.className = a.krispEnabled
+          ? 'px-2.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 font-mono text-[10px] font-bold'
+          : 'px-2.5 py-0.5 rounded-full bg-white/10 border border-white/10 text-slate-400 font-mono text-[10px] font-bold';
+      }
+      if (el.networkModeSelect) el.networkModeSelect.value = a.networkMode || 'auto';
       if (el.toggleNoiseSuppression) el.toggleNoiseSuppression.checked = Boolean(a.noiseSuppression);
       if (el.toggleEchoCancellation) el.toggleEchoCancellation.checked = Boolean(a.echoCancellation);
       if (el.toggleAutoGain) el.toggleAutoGain.checked = Boolean(a.autoGainControl);
@@ -1768,17 +1899,17 @@
         root.style.setProperty('--custom-wallpaper', `url("${t.customWallpaper}")`);
       }
 
-      el.colorAccent1.value = t.accent;
-      el.colorAccent1Hex.textContent = t.accent;
-      el.colorAccent2.value = t.accent2;
-      el.colorAccent2Hex.textContent = t.accent2;
-      el.colorBgBase.value = t.bgBase;
-      el.colorBgBaseHex.textContent = t.bgBase;
-      el.blurSlider.value = t.blur;
-      el.blurValLabel.textContent = `${t.blur}px`;
-      el.glowSlider.value = t.glow;
-      el.glowValLabel.textContent = `${t.glow}%`;
-      el.ambilightToggle.checked = Boolean(t.ambilight);
+      if (el.colorAccent1) el.colorAccent1.value = t.accent;
+      if (el.colorAccent1Hex) el.colorAccent1Hex.textContent = t.accent;
+      if (el.colorAccent2) el.colorAccent2.value = t.accent2;
+      if (el.colorAccent2Hex) el.colorAccent2Hex.textContent = t.accent2;
+      if (el.colorBgBase) el.colorBgBase.value = t.bgBase;
+      if (el.colorBgBaseHex) el.colorBgBaseHex.textContent = t.bgBase;
+      if (el.blurSlider) el.blurSlider.value = t.blur;
+      if (el.blurValLabel) el.blurValLabel.textContent = `${t.blur}px`;
+      if (el.glowSlider) el.glowSlider.value = t.glow;
+      if (el.glowValLabel) el.glowValLabel.textContent = `${t.glow}%`;
+      if (el.ambilightToggle) el.ambilightToggle.checked = Boolean(t.ambilight);
 
       el.videoStageContainer.classList.remove('stage-bg-aurora', 'stage-bg-grid', 'stage-bg-dots', 'stage-bg-minimal', 'stage-bg-custom');
       el.videoStageContainer.classList.add(`stage-bg-${t.bgMode || 'aurora'}`);
@@ -1803,13 +1934,13 @@
       renderAvatarIntoElement(el.headerAvatarBtn, t.avatarId, t.customAvatarUrl, t.avatarFrame);
       renderAvatarIntoElement(el.studioAvatarPreview, t.avatarId, t.customAvatarUrl, t.avatarFrame);
       renderAvatarIntoElement(el.stageMyAvatar, t.avatarId, t.customAvatarUrl, t.avatarFrame);
-      el.stageMyName.textContent = getMyDisplayName();
+      if (el.stageMyName) el.stageMyName.textContent = getMyDisplayName();
 
       renderAvatarIntoElement(el.stageRemoteAvatar, state.remoteAvatarId, state.remoteCustomAvatarUrl, state.remoteAvatarFrame);
       renderAvatarIntoElement(el.remoteFloatingAvatar, state.remoteAvatarId, state.remoteCustomAvatarUrl, state.remoteAvatarFrame);
       const remName = state.remoteNickname || state.remotePeerId || 'Собеседник';
-      el.stageRemoteName.textContent = remName;
-      el.remoteFloatingName.textContent = remName;
+      if (el.stageRemoteName) el.stageRemoteName.textContent = remName;
+      if (el.remoteFloatingName) el.remoteFloatingName.textContent = remName;
     }
 
     function initAvatarThumbnails() {
@@ -1852,6 +1983,239 @@
       return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
 
+    function openSoundpadDB() {
+      return new Promise((resolve, reject) => {
+        if (!window.indexedDB) {
+          reject(new Error('IndexedDB unavailable'));
+          return;
+        }
+        try {
+          const req = indexedDB.open('disstya_pc_soundpad_v1', 1);
+          req.onupgradeneeded = (e) => {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains('sounds')) {
+              db.createObjectStore('sounds', { keyPath: 'id' });
+            }
+          };
+          req.onsuccess = () => resolve(req.result);
+          req.onerror = () => reject(req.error);
+        } catch (err) {
+          reject(err);
+        }
+      });
+    }
+
+    async function loadCustomSoundsFromDB() {
+      try {
+        const db = await openSoundpadDB();
+        const tx = db.transaction('sounds', 'readonly');
+        const store = tx.objectStore('sounds');
+        const req = store.getAll();
+        req.onsuccess = () => {
+          state.customSounds = req.result || [];
+          renderSoundpadGrid();
+        };
+      } catch (e) {
+        renderSoundpadGrid();
+      }
+    }
+
+    async function saveCustomSoundToDB(soundObj) {
+      try {
+        const db = await openSoundpadDB();
+        const tx = db.transaction('sounds', 'readwrite');
+        tx.objectStore('sounds').put(soundObj);
+      } catch (e) {}
+    }
+
+    async function deleteCustomSoundFromDB(id) {
+      try {
+        const db = await openSoundpadDB();
+        const tx = db.transaction('sounds', 'readwrite');
+        tx.objectStore('sounds').delete(id);
+      } catch (e) {}
+      state.customSounds = state.customSounds.filter(s => s.id !== id);
+      renderSoundpadGrid();
+    }
+
+    function renderSoundpadGrid() {
+      if (!el.soundpadGrid) return;
+      el.soundpadGrid.innerHTML = '';
+      const allSounds = [...BUILTIN_SOUNDS, ...state.customSounds];
+
+      allSounds.forEach(snd => {
+        const btn = document.createElement('div');
+        btn.className = 'relative group p-2.5 rounded-xl theme-btn flex flex-col items-center justify-center gap-1 text-center select-none';
+        btn.dataset.soundId = snd.id;
+        btn.innerHTML = `
+          <span class="text-xl leading-none">${snd.emoji || '🎵'}</span>
+          <span class="text-[11px] font-bold text-white truncate w-full px-1">${escapeHtml(snd.name)}</span>
+          ${!snd.builtIn ? `
+            <button type="button" data-del="${snd.id}" title="Удалить звук" class="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/80 text-rose-400 text-[10px] hidden group-hover:flex items-center justify-center hover:bg-rose-600 hover:text-white">✕</button>
+          ` : ''}
+        `;
+
+        btn.addEventListener('click', (e) => {
+          if (e.target.closest('[data-del]')) {
+            e.stopPropagation();
+            deleteCustomSoundFromDB(snd.id);
+            return;
+          }
+          triggerSoundpadItem(snd, btn);
+        });
+
+        el.soundpadGrid.appendChild(btn);
+      });
+    }
+
+    function stopAllSoundpadAudio() {
+      state.activeSoundNodes.forEach(node => {
+        try { node.stop(); } catch (e) {}
+        try { node.disconnect(); } catch (e) {}
+      });
+      state.activeSoundNodes = [];
+      document.querySelectorAll('.pad-active').forEach(b => b.classList.remove('pad-active'));
+    }
+
+    async function triggerSoundpadItem(snd, btnEl) {
+      await resumeAudioContextIfNeeded();
+      if (!state.audioCtx || !state.soundpadGainNode) return;
+
+      btnEl.classList.add('pad-active');
+
+      if (state.dataConn && state.dataConn.open) {
+        state.dataConn.send({
+          type: 'soundpad-alert',
+          soundName: snd.name,
+          emoji: snd.emoji || '🔊',
+          senderName: getMyDisplayName()
+        });
+      }
+
+      if (snd.builtIn) {
+        playSynthesizedSound(snd.id, () => btnEl.classList.remove('pad-active'));
+      } else if (snd.buffer) {
+        try {
+          const copyBuf = snd.buffer.slice(0);
+          const audioBuffer = await state.audioCtx.decodeAudioData(copyBuf);
+          const source = state.audioCtx.createBufferSource();
+          source.buffer = audioBuffer;
+          source.connect(state.soundpadGainNode);
+          state.activeSoundNodes.push(source);
+          source.onended = () => {
+            btnEl.classList.remove('pad-active');
+            state.activeSoundNodes = state.activeSoundNodes.filter(n => n !== source);
+          };
+          source.start(0);
+        } catch (err) {
+          btnEl.classList.remove('pad-active');
+          showToast('Ошибка декодирования аудиофайла', 'error');
+        }
+      }
+    }
+
+    function playSynthesizedSound(id, onComplete) {
+      const ctx = state.audioCtx;
+      const now = ctx.currentTime;
+      const out = state.soundpadGainNode;
+      let duration = 1.2;
+
+      if (id === 'synth-horn') {
+        duration = 1.1;
+        [392, 493.88, 587.33].forEach(freq => {
+          const osc = ctx.createOscillator();
+          const g = ctx.createGain();
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(freq * 0.96, now);
+          osc.frequency.exponentialRampToValueAtTime(freq, now + 0.08);
+          g.gain.setValueAtTime(0.28, now);
+          g.gain.exponentialRampToValueAtTime(0.001, now + duration);
+          osc.connect(g);
+          g.connect(out);
+          osc.start(now);
+          osc.stop(now + duration);
+          state.activeSoundNodes.push(osc);
+        });
+      } else if (id === 'synth-drop') {
+        duration = 1.5;
+        const osc = ctx.createOscillator();
+        const g = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(160, now);
+        osc.frequency.exponentialRampToValueAtTime(28, now + duration);
+        g.gain.setValueAtTime(0.85, now);
+        g.gain.exponentialRampToValueAtTime(0.001, now + duration);
+        osc.connect(g);
+        g.connect(out);
+        osc.start(now);
+        osc.stop(now + duration);
+        state.activeSoundNodes.push(osc);
+      } else if (id === 'synth-magic') {
+        duration = 1.3;
+        [523.25, 659.25, 783.99, 1046.5, 1318.5].forEach((freq, idx) => {
+          const osc = ctx.createOscillator();
+          const g = ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, now + idx * 0.1);
+          g.gain.setValueAtTime(0.32, now + idx * 0.1);
+          g.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.1 + 0.7);
+          osc.connect(g);
+          g.connect(out);
+          osc.start(now + idx * 0.1);
+          osc.stop(now + idx * 0.1 + 0.7);
+          state.activeSoundNodes.push(osc);
+        });
+      } else if (id === 'synth-sauron') {
+        duration = 1.8;
+        [65, 98, 130].forEach(freq => {
+          const osc = ctx.createOscillator();
+          const g = ctx.createGain();
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(freq, now);
+          osc.frequency.linearRampToValueAtTime(freq * 0.88, now + duration);
+          g.gain.setValueAtTime(0.01, now);
+          g.gain.linearRampToValueAtTime(0.3, now + 0.4);
+          g.gain.exponentialRampToValueAtTime(0.001, now + duration);
+          osc.connect(g);
+          g.connect(out);
+          osc.start(now);
+          osc.stop(now + duration);
+          state.activeSoundNodes.push(osc);
+        });
+      } else if (id === 'synth-coin') {
+        duration = 0.7;
+        const osc = ctx.createOscillator();
+        const g = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(987.77, now);
+        osc.frequency.setValueAtTime(1318.51, now + 0.12);
+        g.gain.setValueAtTime(0.4, now);
+        g.gain.exponentialRampToValueAtTime(0.001, now + duration);
+        osc.connect(g);
+        g.connect(out);
+        osc.start(now);
+        osc.stop(now + duration);
+        state.activeSoundNodes.push(osc);
+      } else {
+        duration = 1.4;
+        const osc = ctx.createOscillator();
+        const g = ctx.createGain();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(420, now);
+        osc.frequency.linearRampToValueAtTime(860, now + 0.65);
+        osc.frequency.linearRampToValueAtTime(420, now + 1.35);
+        g.gain.setValueAtTime(0.26, now);
+        g.gain.exponentialRampToValueAtTime(0.001, now + duration);
+        osc.connect(g);
+        g.connect(out);
+        osc.start(now);
+        osc.stop(now + duration);
+        state.activeSoundNodes.push(osc);
+      }
+
+      setTimeout(() => { if (onComplete) onComplete(); }, duration * 1000);
+    }
+
     function ensureMasterMediaPipeline() {
       if (state.masterOutStream) return state.masterOutStream;
 
@@ -1866,7 +2230,6 @@
         if (!state.standbyCtx || state.videoMode !== 'none') return;
         state.standbyCtx.fillStyle = '#07070c';
         state.standbyCtx.fillRect(0, 0, canvas.width, canvas.height);
-        // Subtle 1px heartbeat so WebRTC RTP encoder continuously sends packets and triggers remote stream event immediately
         state.standbyCtx.fillStyle = (Date.now() % 1000 < 500) ? '#08080e' : '#07070c';
         state.standbyCtx.fillRect(0, 0, 2, 2);
       };
@@ -1888,25 +2251,23 @@
           state.audioDest = state.audioCtx.createMediaStreamDestination();
           state.audioDest.channelCount = 2;
 
-          // Studio Voice DSP Filter Chain:
-          // micSource -> rawMicAnalyser -> highPass (85Hz) -> lowPass (14kHz) -> compressor -> noiseGate -> micGain -> audioDest
           state.rawMicAnalyser = state.audioCtx.createAnalyser();
           state.rawMicAnalyser.fftSize = 256;
 
           state.micHighPassNode = state.audioCtx.createBiquadFilter();
           state.micHighPassNode.type = 'highpass';
-          state.micHighPassNode.frequency.value = state.audioSettings.voiceFilter ? 85 : 10;
+          state.micHighPassNode.frequency.value = state.audioSettings.voiceFilter ? 90 : 15;
 
           state.micLowPassNode = state.audioCtx.createBiquadFilter();
           state.micLowPassNode.type = 'lowpass';
-          state.micLowPassNode.frequency.value = state.audioSettings.voiceFilter ? 14500 : 22000;
+          state.micLowPassNode.frequency.value = state.audioSettings.voiceFilter ? 14200 : 21000;
 
           state.micCompressorNode = state.audioCtx.createDynamicsCompressor();
           state.micCompressorNode.threshold.value = -24;
           state.micCompressorNode.knee.value = 18;
-          state.micCompressorNode.ratio.value = state.audioSettings.voiceFilter ? 4 : 1;
-          state.micCompressorNode.attack.value = 0.003;
-          state.micCompressorNode.release.value = 0.15;
+          state.micCompressorNode.ratio.value = state.audioSettings.voiceFilter ? 4.5 : 1;
+          state.micCompressorNode.attack.value = 0.002;
+          state.micCompressorNode.release.value = 0.14;
 
           state.micNoiseGateNode = state.audioCtx.createGain();
           state.micNoiseGateNode.gain.value = 1.0;
@@ -1915,7 +2276,7 @@
           state.micGainNode.gain.value = 1.0;
 
           state.micMonitorGainNode = state.audioCtx.createGain();
-          state.micMonitorGainNode.gain.value = 0; // Only active when testing mic in settings
+          state.micMonitorGainNode.gain.value = 0;
 
           state.micHighPassNode.connect(state.micLowPassNode);
           state.micLowPassNode.connect(state.micCompressorNode);
@@ -1924,6 +2285,24 @@
           state.micGainNode.connect(state.audioDest);
           state.micGainNode.connect(state.micMonitorGainNode);
           state.micMonitorGainNode.connect(state.audioCtx.destination);
+
+          if (state.audioCtx.audioWorklet) {
+            const blob = new Blob([KRISP_WORKLET_CODE], { type: 'application/javascript' });
+            const workletUrl = URL.createObjectURL(blob);
+            state.audioCtx.audioWorklet.addModule(workletUrl).then(() => {
+              URL.revokeObjectURL(workletUrl);
+              state.krispWorkletNode = new AudioWorkletNode(state.audioCtx, 'krisp-noise-suppressor');
+              state.krispWorkletNode.port.postMessage({
+                enabled: Boolean(state.audioSettings.krispEnabled),
+                transientSuppression: Boolean(state.audioSettings.noiseSuppression)
+              });
+              try {
+                state.micHighPassNode.disconnect();
+                state.micHighPassNode.connect(state.krispWorkletNode);
+                state.krispWorkletNode.connect(state.micLowPassNode);
+              } catch (e) {}
+            }).catch(() => {});
+          }
 
           state.sysGainNode = state.audioCtx.createGain();
           state.sysGainNode.connect(state.audioDest);
@@ -1969,13 +2348,19 @@
       const now = state.audioCtx.currentTime;
       const useFilter = Boolean(state.audioSettings.voiceFilter);
       if (state.micHighPassNode) {
-        state.micHighPassNode.frequency.setTargetAtTime(useFilter ? 85 : 10, now, 0.02);
+        state.micHighPassNode.frequency.setTargetAtTime(useFilter ? 90 : 15, now, 0.02);
       }
       if (state.micLowPassNode) {
-        state.micLowPassNode.frequency.setTargetAtTime(useFilter ? 14500 : 22000, now, 0.02);
+        state.micLowPassNode.frequency.setTargetAtTime(useFilter ? 14200 : 21000, now, 0.02);
       }
       if (state.micCompressorNode) {
-        state.micCompressorNode.ratio.setTargetAtTime(useFilter ? 4 : 1, now, 0.02);
+        state.micCompressorNode.ratio.setTargetAtTime(useFilter ? 4.5 : 1, now, 0.02);
+      }
+      if (state.krispWorkletNode) {
+        state.krispWorkletNode.port.postMessage({
+          enabled: Boolean(state.audioSettings.krispEnabled),
+          transientSuppression: Boolean(state.audioSettings.noiseSuppression)
+        });
       }
     }
 
@@ -1986,9 +2371,10 @@
       if (!track || !track.applyConstraints) return;
       try {
         await track.applyConstraints({
-          noiseSuppression: Boolean(state.audioSettings.noiseSuppression),
+          noiseSuppression: Boolean(state.audioSettings.noiseSuppression || state.audioSettings.krispEnabled),
           echoCancellation: Boolean(state.audioSettings.echoCancellation),
-          autoGainControl: Boolean(state.audioSettings.autoGainControl)
+          autoGainControl: Boolean(state.audioSettings.autoGainControl),
+          voiceIsolation: Boolean(state.audioSettings.krispEnabled)
         });
       } catch (e) {}
     }
@@ -1997,7 +2383,12 @@
       await resumeAudioContextIfNeeded();
       const target = forceState !== undefined ? forceState : !state.micLoopbackTest;
       if (target && !state.micStream) {
-        await acquireMicrophoneStream();
+        try {
+          await acquireMicrophoneStream();
+        } catch (err) {
+          showToast('Разрешите доступ к микрофону в браузере', 'warn');
+          return;
+        }
       }
       state.micLoopbackTest = Boolean(target && state.micStream);
       if (state.micMonitorGainNode && state.audioCtx) {
@@ -2053,7 +2444,6 @@
     function startVoiceActivityDetectionLoop() {
       const SPEAK_THRESHOLD = 13;
       const tick = () => {
-        // 1. Raw Microphone level for Noise Gate & Settings VU Meter
         const rawMicVol = (state.micStream && (state.micEnabled || state.micLoopbackTest))
           ? computeAnalyserVolume(state.rawMicAnalyser)
           : 0;
@@ -2082,267 +2472,452 @@
           }
         }
 
-        // 2. Post-Gate Local Speaking Ring
-        const localVol = (state.micEnabled || state.activeSoundNodes.length > 0)
+        const localVol = (state.micEnabled || state.micLoopbackTest || state.activeSoundNodes.length > 0)
           ? computeAnalyserVolume(state.localAnalyser)
           : 0;
-        const isLocalSpeaking = localVol > SPEAK_THRESHOLD;
+        const localSpeaking = localVol > SPEAK_THRESHOLD;
 
-        el.headerAvatarBtn.classList.toggle('is-speaking', isLocalSpeaking);
-        el.stageMyAvatar.classList.toggle('is-speaking', isLocalSpeaking);
-        el.localPipCard.classList.toggle('is-speaking', isLocalSpeaking);
+        el.headerAvatarBtn.classList.toggle('is-speaking', localSpeaking);
+        el.studioAvatarPreview.classList.toggle('is-speaking', localSpeaking);
+        el.stageMyAvatar.classList.toggle('is-speaking', localSpeaking);
+        el.localPipCard.classList.toggle('is-speaking', localSpeaking);
 
-        // 3. Remote Speaking Ring
         const remoteVol = state.remoteAnalyser ? computeAnalyserVolume(state.remoteAnalyser) : 0;
-        const isRemoteSpeaking = remoteVol > SPEAK_THRESHOLD;
+        const remoteSpeaking = remoteVol > SPEAK_THRESHOLD;
 
-        el.stageRemoteAvatar.classList.toggle('is-speaking', isRemoteSpeaking);
-        el.remoteFloatingAvatar.classList.toggle('is-speaking', isRemoteSpeaking);
-        el.connStatusPill.classList.toggle('is-speaking', isRemoteSpeaking);
-        el.remoteVideo.classList.toggle('is-speaking-stage', isRemoteSpeaking);
+        el.stageRemoteAvatar.classList.toggle('is-speaking', remoteSpeaking);
+        el.remoteFloatingAvatar.classList.toggle('is-speaking', remoteSpeaking);
+        el.connStatusPill.classList.toggle('is-speaking', remoteSpeaking);
+        el.remoteVideo.classList.toggle('is-speaking-stage', remoteSpeaking);
 
         requestAnimationFrame(tick);
       };
       requestAnimationFrame(tick);
     }
 
-    function openSoundpadDB() {
-      return new Promise((resolve, reject) => {
+    /**
+     * Native Browser WebSocket MQTT v3.1.1 Signaling Client.
+     * Works with zero external libraries over standard HTTPS/TLS Port 443!
+     */
+    class NativeWssSignalingClient {
+      constructor(url, topic, onConnect, onMessage) {
+        this.url = url;
+        this.topic = topic;
+        this.onConnect = onConnect;
+        this.onMessage = onMessage;
+        this.ws = null;
+        this.connected = false;
+        this.destroyed = false;
+        this.pingTimer = null;
+        this.reconnectTimer = null;
+        this.clientId = 'ds_' + Math.random().toString(36).slice(2, 10);
+        this.connect();
+      }
+
+      encodeLen(len) {
+        const out = [];
+        do {
+          let d = len % 128;
+          len = Math.floor(len / 128);
+          if (len > 0) d |= 0x80;
+          out.push(d);
+        } while (len > 0);
+        return out;
+      }
+
+      encodeStr(str) {
+        const b = new TextEncoder().encode(str);
+        return [(b.length >> 8) & 0xff, b.length & 0xff, ...b];
+      }
+
+      connect() {
+        if (this.destroyed) return;
         try {
-          if (!window.indexedDB) {
-            reject(new Error('IndexedDB not supported'));
-            return;
-          }
-          const req = window.indexedDB.open('disstya_pc_soundpad_db', 1);
-          req.onupgradeneeded = (e) => {
-            const db = e.target.result;
-            if (!db.objectStoreNames.contains('sounds')) {
-              db.createObjectStore('sounds', { keyPath: 'id' });
-            }
-          };
-          req.onsuccess = () => resolve(req.result);
-          req.onerror = () => reject(req.error);
-        } catch (err) {
-          reject(err);
+          this.ws = new WebSocket(this.url, 'mqtt');
+          this.ws.binaryType = 'arraybuffer';
+        } catch (e) {
+          this.scheduleReconnect();
+          return;
         }
-      });
-    }
 
-    async function loadCustomSoundsFromDB() {
-      try {
-        const db = await openSoundpadDB();
-        const tx = db.transaction('sounds', 'readonly');
-        const store = tx.objectStore('sounds');
-        const req = store.getAll();
-        req.onsuccess = () => {
-          state.customSounds = req.result || [];
-          renderSoundpadGrid();
+        this.ws.onopen = () => {
+          const vh = [0x00, 0x04, 0x4d, 0x51, 0x54, 0x54, 0x04, 0x02, 0x00, 0x3c];
+          const pl = this.encodeStr(this.clientId);
+          const body = [...vh, ...pl];
+          const pkt = new Uint8Array([0x10, ...this.encodeLen(body.length), ...body]);
+          try { this.ws.send(pkt); } catch (e) {}
         };
-        req.onerror = () => renderSoundpadGrid();
-      } catch (e) {
-        renderSoundpadGrid();
+
+        this.ws.onmessage = (ev) => {
+          const buf = new Uint8Array(ev.data);
+          let offset = 0;
+          while (offset < buf.length) {
+            const header = buf[offset];
+            const type = header >> 4;
+            let mult = 1;
+            let remLen = 0;
+            let idx = offset + 1;
+            let digit = 0;
+            do {
+              if (idx >= buf.length) return;
+              digit = buf[idx++];
+              remLen += (digit & 127) * mult;
+              mult *= 128;
+            } while ((digit & 128) !== 0);
+
+            const pktEnd = idx + remLen;
+            if (pktEnd > buf.length) break;
+
+            if (type === 2) {
+              // CONNACK -> Subscribe to our signaling topic
+              this.connected = true;
+              const subBody = [0x00, 0x01, ...this.encodeStr(this.topic), 0x00];
+              const subPkt = new Uint8Array([0x82, ...this.encodeLen(subBody.length), ...subBody]);
+              try { this.ws.send(subPkt); } catch (e) {}
+              if (this.pingTimer) clearInterval(this.pingTimer);
+              this.pingTimer = setInterval(() => {
+                if (this.connected && this.ws && this.ws.readyState === 1) {
+                  try { this.ws.send(new Uint8Array([0xc0, 0x00])); } catch (e) {}
+                }
+              }, 22000);
+              if (this.onConnect) this.onConnect();
+            } else if (type === 3) {
+              // PUBLISH
+              const qos = (header >> 1) & 0x03;
+              const tLen = (buf[idx] << 8) | buf[idx + 1];
+              const tBytes = buf.subarray(idx + 2, idx + 2 + tLen);
+              const topicStr = new TextDecoder().decode(tBytes);
+              let pStart = idx + 2 + tLen;
+              if (qos > 0) pStart += 2;
+              const payloadStr = new TextDecoder().decode(buf.subarray(pStart, pktEnd));
+              if (this.onMessage) this.onMessage(topicStr, payloadStr);
+            }
+            offset = pktEnd;
+          }
+        };
+
+        this.ws.onclose = () => {
+          this.connected = false;
+          if (this.pingTimer) clearInterval(this.pingTimer);
+          this.scheduleReconnect();
+        };
+
+        this.ws.onerror = () => {};
+      }
+
+      publish(targetTopic, strPayload) {
+        if (!this.connected || !this.ws || this.ws.readyState !== 1) return false;
+        try {
+          const tBytes = this.encodeStr(targetTopic);
+          const pBytes = new TextEncoder().encode(strPayload);
+          const totalLen = tBytes.length + pBytes.length;
+          const lenBytes = this.encodeLen(totalLen);
+          const pkt = new Uint8Array(1 + lenBytes.length + totalLen);
+          pkt[0] = 0x30;
+          pkt.set(lenBytes, 1);
+          pkt.set(tBytes, 1 + lenBytes.length);
+          pkt.set(pBytes, 1 + lenBytes.length + tBytes.length);
+          this.ws.send(pkt);
+          return true;
+        } catch (e) {
+          return false;
+        }
+      }
+
+      scheduleReconnect() {
+        if (this.destroyed) return;
+        if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
+        this.reconnectTimer = setTimeout(() => this.connect(), 2500);
+      }
+
+      destroy() {
+        this.destroyed = true;
+        this.connected = false;
+        if (this.pingTimer) clearInterval(this.pingTimer);
+        if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
+        if (this.ws) {
+          try { this.ws.close(); } catch (e) {}
+        }
       }
     }
 
-    async function saveCustomSoundToDB(soundObj) {
-      try {
-        const db = await openSoundpadDB();
-        const tx = db.transaction('sounds', 'readwrite');
-        tx.objectStore('sounds').put(soundObj);
-      } catch (e) {}
-    }
-
-    async function deleteCustomSoundFromDB(id) {
-      try {
-        const db = await openSoundpadDB();
-        const tx = db.transaction('sounds', 'readwrite');
-        tx.objectStore('sounds').delete(id);
-      } catch (e) {}
-      state.customSounds = state.customSounds.filter(s => s.id !== id);
-      renderSoundpadGrid();
-    }
-
-    function stopAllSoundpadAudio() {
-      state.activeSoundNodes.forEach(node => {
-        try { node.stop(); } catch (e) {}
-        try { node.disconnect(); } catch (e) {}
-      });
-      state.activeSoundNodes = [];
-      document.querySelectorAll('.soundpad-pad-btn').forEach(b => b.classList.remove('pad-active'));
-    }
-
-    async function playBuiltinSynthSound(id, btnEl) {
-      await resumeAudioContextIfNeeded();
-      const ctx = state.audioCtx;
-      if (!ctx || !state.soundpadGainNode) return;
-      const now = ctx.currentTime;
-
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain);
-      gain.connect(state.soundpadGainNode);
-
-      let duration = 0.9;
-      if (id === 'synth-horn') {
-        osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(380, now);
-        osc.frequency.exponentialRampToValueAtTime(420, now + 0.12);
-        osc.frequency.setValueAtTime(420, now + 0.15);
-        gain.gain.setValueAtTime(0.6, now);
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.85);
-        duration = 0.85;
-      } else if (id === 'synth-drop') {
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(160, now);
-        osc.frequency.exponentialRampToValueAtTime(28, now + 1.1);
-        gain.gain.setValueAtTime(0.9, now);
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 1.1);
-        duration = 1.1;
-      } else if (id === 'synth-magic') {
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(523.25, now);
-        osc.frequency.setValueAtTime(659.25, now + 0.12);
-        osc.frequency.setValueAtTime(783.99, now + 0.24);
-        osc.frequency.setValueAtTime(1046.5, now + 0.36);
-        gain.gain.setValueAtTime(0.5, now);
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.8);
-        duration = 0.8;
-      } else if (id === 'synth-sauron') {
-        osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(75, now);
-        osc.frequency.linearRampToValueAtTime(52, now + 1.2);
-        gain.gain.setValueAtTime(0.65, now);
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 1.25);
-        duration = 1.25;
-      } else if (id === 'synth-coin') {
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(987.77, now);
-        osc.frequency.setValueAtTime(1318.51, now + 0.09);
-        gain.gain.setValueAtTime(0.5, now);
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.55);
-        duration = 0.55;
-      } else {
-        osc.type = 'square';
-        osc.frequency.setValueAtTime(440, now);
-        osc.frequency.linearRampToValueAtTime(880, now + 0.45);
-        osc.frequency.linearRampToValueAtTime(440, now + 0.9);
-        gain.gain.setValueAtTime(0.4, now);
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.95);
-        duration = 0.95;
-      }
-
-      if (btnEl) btnEl.classList.add('pad-active');
-      state.activeSoundNodes.push(osc);
-      osc.start(now);
-      osc.stop(now + duration);
-      osc.onended = () => {
-        if (btnEl) btnEl.classList.remove('pad-active');
-        state.activeSoundNodes = state.activeSoundNodes.filter(n => n !== osc);
+    function getAntiDpiIceConfig() {
+      const forceRelay = state.audioSettings && state.audioSettings.networkMode === 'relay';
+      return {
+        iceCandidatePoolSize: 10,
+        iceTransportPolicy: forceRelay ? 'relay' : 'all',
+        bundlePolicy: 'max-bundle',
+        rtcpMuxPolicy: 'require',
+        iceServers: [
+          { urls: 'stun:stun.sipnet.ru:3478' },
+          { urls: 'stun:stun.zadarma.com:3478' },
+          { urls: 'stun:stun.l.google.com:19302' },
+          { urls: 'stun:stun1.l.google.com:19302' },
+          { urls: 'stun:stun.nextcloud.com:443' },
+          {
+            urls: [
+              'turn:openrelay.metered.ca:80',
+              'turn:openrelay.metered.ca:80?transport=tcp',
+              'turn:openrelay.metered.ca:443',
+              'turn:openrelay.metered.ca:443?transport=tcp',
+              'turns:openrelay.metered.ca:443?transport=tcp'
+            ],
+            username: 'openrelayproject',
+            credential: 'openrelayproject'
+          }
+        ]
       };
     }
 
-    async function playCustomUploadedSound(soundItem, btnEl) {
-      await resumeAudioContextIfNeeded();
-      if (!state.audioCtx || !state.soundpadGainNode) return;
-      try {
-        const bufferCopy = soundItem.buffer.slice(0);
-        const audioBuffer = await state.audioCtx.decodeAudioData(bufferCopy);
-        const source = state.audioCtx.createBufferSource();
-        source.buffer = audioBuffer;
-        source.connect(state.soundpadGainNode);
+    const activeWssPeers = new Map();
 
-        if (btnEl) btnEl.classList.add('pad-active');
-        state.activeSoundNodes.push(source);
-        source.start(0);
-        source.onended = () => {
-          if (btnEl) btnEl.classList.remove('pad-active');
-          state.activeSoundNodes = state.activeSoundNodes.filter(n => n !== source);
-        };
-      } catch (err) {
-        showToast('Ошибка декодирования аудиофайла', 'error');
+    function sendSignalingPacket(targetPeerId, payload) {
+      if (!targetPeerId) return;
+      const packetObj = {
+        ...payload,
+        from: state.myPeerId,
+        to: targetPeerId,
+        sigId: `${state.myPeerId}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`
+      };
+      const packetStr = JSON.stringify(packetObj);
+      const topic = `disstya/v4/sig/${targetPeerId}`;
+
+      // 1. Send via Local BroadcastChannel (instant 0ms if testing across two tabs on the same PC)
+      if (state.localBroadcastChan) {
+        try { state.localBroadcastChan.postMessage(packetObj); } catch (e) {}
       }
-    }
 
-    function triggerSoundpadItem(item, btnEl) {
-      if (item.builtIn) {
-        playBuiltinSynthSound(item.id, btnEl);
-      } else {
-        playCustomUploadedSound(item, btnEl);
-      }
-      if (state.dataConn && state.dataConn.open) {
-        state.dataConn.send({
-          type: 'soundpad-alert',
-          soundName: item.name,
-          emoji: item.emoji || '🔊',
-          senderName: getMyDisplayName()
-        });
-      }
-    }
-
-    function renderSoundpadGrid() {
-      if (!el.soundpadGrid) return;
-      el.soundpadGrid.innerHTML = '';
-      const allSounds = [...BUILTIN_SOUNDS, ...state.customSounds];
-
-      allSounds.forEach((item) => {
-        const wrapper = document.createElement('div');
-        wrapper.className = 'relative group';
-
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'soundpad-pad-btn w-full p-2.5 rounded-xl theme-btn flex flex-col items-center justify-center gap-1 text-center h-20';
-        btn.innerHTML = `
-          <span class="text-xl leading-none">${escapeHtml(item.emoji || '🎵')}</span>
-          <span class="text-[11px] font-semibold text-white line-clamp-2 leading-tight">${escapeHtml(item.name)}</span>
-        `;
-        btn.addEventListener('click', () => triggerSoundpadItem(item, btn));
-        wrapper.appendChild(btn);
-
-        if (!item.builtIn) {
-          const delBtn = document.createElement('button');
-          delBtn.type = 'button';
-          delBtn.title = 'Удалить звук';
-          delBtn.className = 'absolute top-1 right-1 w-5 h-5 rounded-full bg-black/80 text-rose-400 hover:bg-rose-600 hover:text-white flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity';
-          delBtn.innerHTML = '×';
-          delBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            deleteCustomSoundFromDB(item.id);
-          });
-          wrapper.appendChild(delBtn);
+      // 2. Send via all connected Native WSS Signaling Brokers (Port 443 / 8084 / 8884)
+      state.wssSignalingClients.forEach((client) => {
+        if (client && client.connected) {
+          client.publish(topic, packetStr);
         }
-
-        el.soundpadGrid.appendChild(wrapper);
       });
     }
 
-    function updateCallDockVisibility(inCall) {
-      state.inCall = Boolean(inCall);
-      if (!el.callControlDock) return;
-      if (state.inCall) {
-        el.callControlDock.classList.remove('hidden');
-        el.callControlDock.classList.add('flex');
-      } else {
-        el.callControlDock.classList.add('hidden');
-        el.callControlDock.classList.remove('flex');
-        el.soundpadPopover.classList.add('hidden');
+    function createDataChannelAdapter(dc, remotePeerId) {
+      const handlers = { open: [], data: [], close: [] };
+      const adapter = {
+        peer: remotePeerId,
+        open: dc.readyState === 'open',
+        _dc: dc,
+        on(ev, fn) {
+          if (handlers[ev]) handlers[ev].push(fn);
+          if (ev === 'open' && dc.readyState === 'open') setTimeout(fn, 0);
+        },
+        send(data) {
+          if (dc.readyState !== 'open') return;
+          try {
+            if (data && data.type === 'file-chunk' && data.chunk instanceof ArrayBuffer) {
+              const headerBytes = new TextEncoder().encode(JSON.stringify({ type: 'file-chunk', fileId: data.fileId }));
+              const chunkBytes = new Uint8Array(data.chunk);
+              const combined = new Uint8Array(4 + headerBytes.byteLength + chunkBytes.byteLength);
+              new DataView(combined.buffer).setUint32(0, headerBytes.byteLength, false);
+              combined.set(headerBytes, 4);
+              combined.set(chunkBytes, 4 + headerBytes.byteLength);
+              dc.send(combined.buffer);
+            } else {
+              dc.send(JSON.stringify(data));
+            }
+          } catch (e) {}
+        },
+        close() {
+          try { dc.close(); } catch (e) {}
+        }
+      };
+
+      dc.binaryType = 'arraybuffer';
+      dc.onopen = () => {
+        adapter.open = true;
+        handlers.open.forEach(fn => fn());
+      };
+      dc.onclose = () => {
+        adapter.open = false;
+        handlers.close.forEach(fn => fn());
+      };
+      dc.onmessage = async (ev) => {
+        try {
+          if (typeof ev.data === 'string') {
+            const parsed = JSON.parse(ev.data);
+            handlers.data.forEach(fn => fn(parsed));
+          } else {
+            const buf = ev.data instanceof Blob ? await ev.data.arrayBuffer() : ev.data;
+            const headerLen = new DataView(buf).getUint32(0, false);
+            const headerJson = new TextDecoder().decode(new Uint8Array(buf, 4, headerLen));
+            const meta = JSON.parse(headerJson);
+            const chunk = buf.slice(4 + headerLen);
+            handlers.data.forEach(fn => fn({ ...meta, chunk }));
+          }
+        } catch (e) {}
+      };
+      return adapter;
+    }
+
+    function createMediaCallAdapter(pc, remotePeerId) {
+      const handlers = { stream: [], close: [], error: [] };
+      let remoteStreamEmitted = false;
+      const remoteStream = new MediaStream();
+
+      const callAdapter = {
+        peer: remotePeerId,
+        peerConnection: pc,
+        on(ev, fn) {
+          if (handlers[ev]) handlers[ev].push(fn);
+          if (ev === 'stream' && remoteStream.getTracks().length > 0) {
+            setTimeout(() => fn(remoteStream), 0);
+          }
+        },
+        answer() {},
+        close() {
+          try { pc.close(); } catch (e) {}
+          handlers.close.forEach(fn => fn());
+        }
+      };
+
+      pc.ontrack = (ev) => {
+        if (ev.streams && ev.streams[0]) {
+          ev.streams[0].getTracks().forEach(t => {
+            if (!remoteStream.getTracks().includes(t)) remoteStream.addTrack(t);
+          });
+        } else if (ev.track) {
+          if (!remoteStream.getTracks().includes(ev.track)) remoteStream.addTrack(ev.track);
+        }
+        if (!remoteStreamEmitted && remoteStream.getTracks().length > 0) {
+          remoteStreamEmitted = true;
+          handlers.stream.forEach(fn => fn(remoteStream));
+        }
+      };
+
+      pc.onconnectionstatechange = () => {
+        if (pc.connectionState === 'closed') {
+          handlers.close.forEach(fn => fn());
+        }
+      };
+
+      return callAdapter;
+    }
+
+    async function initiateWssPeerCall(targetPeerId) {
+      ensureMasterMediaPipeline();
+      if (activeWssPeers.has(targetPeerId)) {
+        try { activeWssPeers.get(targetPeerId).pc.close(); } catch (e) {}
+      }
+
+      const pc = new RTCPeerConnection(getAntiDpiIceConfig());
+      const dc = pc.createDataChannel('disstya-p2p', { ordered: true });
+      const connAdapter = createDataChannelAdapter(dc, targetPeerId);
+      const callAdapter = createMediaCallAdapter(pc, targetPeerId);
+
+      activeWssPeers.set(targetPeerId, { pc, connAdapter, callAdapter, candidateQueue: [] });
+
+      state.masterOutStream.getTracks().forEach(track => {
+        pc.addTrack(track, state.masterOutStream);
+      });
+
+      pc.onicecandidate = (ev) => {
+        if (ev.candidate) {
+          sendSignalingPacket(targetPeerId, { type: 'ice', candidate: ev.candidate });
+        }
+      };
+
+      setupDataChannel(connAdapter);
+      setupMediaCall(callAdapter, targetPeerId);
+
+      const offer = await pc.createOffer();
+      offer.sdp = mungeSdpForHighQuality(offer.sdp);
+      await pc.setLocalDescription(offer);
+
+      sendSignalingPacket(targetPeerId, { type: 'offer', sdp: pc.localDescription });
+    }
+
+    async function handleIncomingSignalingPacket(msg) {
+      if (!msg || !msg.from || msg.from === state.myPeerId) return;
+      if (msg.to && msg.to !== state.myPeerId) return;
+      if (msg.sigId) {
+        if (state.seenSigIds.has(msg.sigId)) return;
+        state.seenSigIds.add(msg.sigId);
+      }
+
+      const remotePeerId = msg.from;
+
+      if (msg.type === 'offer') {
+        await resumeAudioContextIfNeeded();
+        if (activeWssPeers.has(remotePeerId)) {
+          try { activeWssPeers.get(remotePeerId).pc.close(); } catch (e) {}
+        }
+
+        const pc = new RTCPeerConnection(getAntiDpiIceConfig());
+        const callAdapter = createMediaCallAdapter(pc, remotePeerId);
+        const peerEntry = { pc, connAdapter: null, callAdapter, candidateQueue: [] };
+        activeWssPeers.set(remotePeerId, peerEntry);
+
+        pc.ondatachannel = (ev) => {
+          const connAdapter = createDataChannelAdapter(ev.channel, remotePeerId);
+          peerEntry.connAdapter = connAdapter;
+          setupDataChannel(connAdapter);
+          showToast(`Собеседник ${remotePeerId} вошел в комнату!`, 'success');
+        };
+
+        pc.onicecandidate = (ev) => {
+          if (ev.candidate) {
+            sendSignalingPacket(remotePeerId, { type: 'ice', candidate: ev.candidate });
+          }
+        };
+
+        state.masterOutStream.getTracks().forEach(track => {
+          pc.addTrack(track, state.masterOutStream);
+        });
+
+        setupMediaCall(callAdapter, remotePeerId);
+
+        await pc.setRemoteDescription(new RTCSessionDescription(msg.sdp));
+        for (const c of peerEntry.candidateQueue) {
+          try { await pc.addIceCandidate(new RTCIceCandidate(c)); } catch (e) {}
+        }
+        peerEntry.candidateQueue = [];
+
+        const answer = await pc.createAnswer();
+        answer.sdp = mungeSdpForHighQuality(answer.sdp);
+        await pc.setLocalDescription(answer);
+
+        sendSignalingPacket(remotePeerId, { type: 'answer', sdp: pc.localDescription });
+      } else if (msg.type === 'answer') {
+        const entry = activeWssPeers.get(remotePeerId);
+        if (!entry || !entry.pc) return;
+        if (entry.pc.signalingState === 'have-local-offer') {
+          await entry.pc.setRemoteDescription(new RTCSessionDescription(msg.sdp));
+          for (const c of entry.candidateQueue) {
+            try { await entry.pc.addIceCandidate(new RTCIceCandidate(c)); } catch (e) {}
+          }
+          entry.candidateQueue = [];
+        }
+      } else if (msg.type === 'ice' && msg.candidate) {
+        const entry = activeWssPeers.get(remotePeerId);
+        if (!entry || !entry.pc) return;
+        if (entry.pc.remoteDescription && entry.pc.remoteDescription.type) {
+          try { await entry.pc.addIceCandidate(new RTCIceCandidate(msg.candidate)); } catch (e) {}
+        } else {
+          entry.candidateQueue.push(msg.candidate);
+        }
       }
     }
 
-    function setConnectionStatus(mode, labelText) {
-      el.connStatusText.textContent = labelText || '';
-      el.connStatusDot.className = 'w-2.5 h-2.5 rounded-full relative ';
-      if (mode === 'connected') {
-        el.connStatusDot.classList.add('bg-emerald-400', 'pulse-indicator');
-        updateCallDockVisibility(true);
-      } else if (mode === 'connecting') {
-        el.connStatusDot.classList.add('bg-amber-400', 'animate-ping');
-        updateCallDockVisibility(false);
-      } else if (mode === 'error') {
-        el.connStatusDot.classList.add('bg-rose-500');
-        updateCallDockVisibility(false);
+    function markSignalingNodeOnline() {
+      state.peerReady = true;
+      updateInviteLinkUI();
+      if (!state.dataConn || !state.dataConn.open) {
+        setConnectionStatus('ready', `Онлайн (${state.myPeerId})`);
+      }
+      if (el.signalingReadyBadge) {
+        el.signalingReadyBadge.textContent = '● Онлайн без VPN (Готов к звонку)';
+        el.signalingReadyBadge.className = 'font-mono text-[10px] text-emerald-400';
+      }
+      if (state.pendingTargetId) {
+        const target = state.pendingTargetId;
+        state.pendingTargetId = null;
+        connectToRemotePeer(target);
       } else {
-        el.connStatusDot.classList.add('bg-purple-400');
-        updateCallDockVisibility(false);
+        checkUrlHashAndAutoConnect();
       }
     }
 
@@ -2351,108 +2926,73 @@
         state.myPeerId = generateShortPeerId();
       }
       updateInviteLinkUI();
+      setConnectionStatus('ready', `Онлайн (${state.myPeerId})`);
 
-      if (typeof Peer === 'undefined') {
-        if (el.signalingReadyBadge) {
-          el.signalingReadyBadge.textContent = 'Загрузка P2P модуля...';
+      // 1. Local BroadcastChannel for instant 0ms same-browser multi-tab testing
+      if (typeof BroadcastChannel !== 'undefined') {
+        if (state.localBroadcastChan) {
+          try { state.localBroadcastChan.close(); } catch (e) {}
         }
-        setTimeout(initPeerNode, 600);
-        return;
+        state.localBroadcastChan = new BroadcastChannel('disstya_local_sig_v4');
+        state.localBroadcastChan.onmessage = (ev) => {
+          if (ev.data && ev.data.to === state.myPeerId) {
+            handleIncomingSignalingPacket(ev.data);
+          }
+        };
       }
 
-      if (state.peer) {
-        try { state.peer.destroy(); } catch (e) {}
+      // 2. Multi-Route Native WSS Signaling (Includes Port 443 HTTPS port — works without VPN in RF)
+      state.wssSignalingClients.forEach(c => c.destroy());
+      state.wssSignalingClients = [];
+
+      const wssBrokers = [
+        'wss://mqtt.eclipseprojects.io:443/mqtt',
+        'wss://broker.emqx.io:8084/mqtt',
+        'wss://broker.hivemq.com:8884/mqtt',
+        'wss://test.mosquitto.org:8081/mqtt'
+      ];
+      const myTopic = `disstya/v4/sig/${state.myPeerId}`;
+
+      wssBrokers.forEach((brokerUrl) => {
+        const client = new NativeWssSignalingClient(
+          brokerUrl,
+          myTopic,
+          () => markSignalingNodeOnline(),
+          (topic, payloadStr) => {
+            if (topic === myTopic) {
+              try {
+                handleIncomingSignalingPacket(JSON.parse(payloadStr));
+              } catch (e) {}
+            }
+          }
+        );
+        state.wssSignalingClients.push(client);
+      });
+
+      // 3. Secondary PeerJS fallback if loaded
+      if (typeof Peer !== 'undefined') {
+        try {
+          if (state.peer) {
+            try { state.peer.destroy(); } catch (e) {}
+          }
+          const peer = new Peer(state.myPeerId, {
+            debug: 0,
+            pingInterval: 5000,
+            config: getAntiDpiIceConfig()
+          });
+          state.peer = peer;
+          peer.on('open', () => markSignalingNodeOnline());
+          peer.on('connection', (conn) => {
+            setupDataChannel(conn);
+            showToast(`Собеседник ${conn.peer} вошел в комнату!`, 'success');
+          });
+          peer.on('call', (call) => answerIncomingCall(call));
+          peer.on('error', () => {});
+        } catch (e) {}
       }
 
-      const peer = new Peer(state.myPeerId, {
-        debug: 1,
-        pingInterval: 5000,
-        config: {
-          iceCandidatePoolSize: 10,
-          iceServers: [
-            { urls: 'stun:stun.cloudflare.com:3478' },
-            { urls: 'stun:stun.l.google.com:19302' },
-            { urls: 'stun:stun1.l.google.com:19302' },
-            { urls: 'stun:stun2.l.google.com:19302' },
-            { urls: 'stun:global.stun.twilio.com:3478' }
-          ]
-        }
-      });
-
-      state.peer = peer;
-
-      peer.on('open', (id) => {
-        state.myPeerId = id;
-        state.peerReady = true;
-        updateInviteLinkUI();
-        if (!state.dataConn || !state.dataConn.open) {
-          setConnectionStatus('ready', `Онлайн (${id})`);
-        }
-        if (el.signalingReadyBadge) {
-          el.signalingReadyBadge.textContent = '● Комната активна (Готов к звонку)';
-          el.signalingReadyBadge.className = 'font-mono text-[10px] text-emerald-400';
-        }
-
-        if (state.pendingTargetId) {
-          const target = state.pendingTargetId;
-          state.pendingTargetId = null;
-          connectToRemotePeer(target);
-        } else {
-          checkUrlHashAndAutoConnect();
-        }
-      });
-
-      peer.on('connection', (conn) => {
-        setupDataChannel(conn);
-        showToast(`Собеседник ${conn.peer} вошел в комнату!`, 'success');
-      });
-
-      peer.on('call', (call) => {
-        answerIncomingCall(call);
-      });
-
-      // Automatically recover signaling socket if idle or dropped without showing scary network error toasts
-      peer.on('disconnected', () => {
-        state.peerReady = false;
-        if (el.signalingReadyBadge) {
-          el.signalingReadyBadge.textContent = '● Переподключение к сигналингу...';
-          el.signalingReadyBadge.className = 'font-mono text-[10px] text-amber-400';
-        }
-        if (state.reconnectTimer) clearTimeout(state.reconnectTimer);
-        state.reconnectTimer = setTimeout(() => {
-          if (state.peer && !state.peer.destroyed && state.peer.disconnected) {
-            try { state.peer.reconnect(); } catch (e) {}
-          }
-        }, 1200);
-      });
-
-      peer.on('error', (err) => {
-        const errType = (err && err.type) || '';
-
-        if (errType === 'unavailable-id') {
-          state.myPeerId = generateShortPeerId();
-          updateInviteLinkUI();
-          initPeerNode();
-          return;
-        }
-
-        if (errType === 'peer-unavailable') {
-          showToast('Собеседник с таким ID сейчас не в сети (или закрыл вкладку)', 'warn');
-          setConnectionStatus('ready', `Онлайн (${state.myPeerId})`);
-          return;
-        }
-
-        if (errType === 'network' || errType === 'disconnected' || errType === 'server-error' || errType === 'socket-error' || errType === 'socket-closed') {
-          // Silently auto-reconnect signaling socket
-          if (state.peer && !state.peer.destroyed && state.peer.disconnected) {
-            try { state.peer.reconnect(); } catch (e) {}
-          }
-          return;
-        }
-
-        showToast(`Статус подключения: ${errType || 'проверьте ID друга'}`, 'warn');
-        setConnectionStatus('ready', `Онлайн (${state.myPeerId})`);
-      });
+      // Check URL hash immediately if someone opened an invite link
+      setTimeout(() => checkUrlHashAndAutoConnect(), 350);
     }
 
     function mungeSdpForHighQuality(sdp) {
@@ -2527,8 +3067,9 @@
       const a = state.audioSettings;
       const audioConstraints = {
         echoCancellation: Boolean(a.echoCancellation),
-        noiseSuppression: Boolean(a.noiseSuppression),
+        noiseSuppression: Boolean(a.noiseSuppression || a.krispEnabled),
         autoGainControl: Boolean(a.autoGainControl),
+        voiceIsolation: Boolean(a.krispEnabled),
         channelCount: 2,
         sampleRate: 48000
       };
@@ -2571,7 +3112,7 @@
       el.micToggleBtn.classList.toggle('theme-btn-active', state.micEnabled);
       el.micBtnLabel.textContent = state.micEnabled ? 'Микро вкл' : 'Микрофон';
       broadcastMediaState();
-      showToast(state.micEnabled ? 'Микрофон включен (Шумодав активен)' : 'Микрофон выключен', 'info');
+      showToast(state.micEnabled ? 'Микрофон включен (Krisp AI активен)' : 'Микрофон выключен', 'info');
     }
 
     async function startScreenShare() {
@@ -2709,7 +3250,6 @@
     async function connectToRemotePeer(rawTargetInput) {
       const cleanId = extractCleanPeerId(rawTargetInput);
 
-      // Update input boxes with the clean extracted ID so user sees it parsed cleanly
       if (cleanId) {
         if (el.lobbyRemoteIdInput && el.lobbyRemoteIdInput.value.trim() !== '') {
           el.lobbyRemoteIdInput.value = cleanId;
@@ -2729,27 +3269,22 @@
         return;
       }
 
-      if (!state.peer || state.peer.destroyed) {
-        state.pendingTargetId = cleanId;
-        initPeerNode();
-        return;
-      }
-
-      if (state.peer.disconnected || !state.peerReady) {
-        state.pendingTargetId = cleanId;
-        setConnectionStatus('connecting', `Подключение к ${cleanId}...`);
-        try { state.peer.reconnect(); } catch (e) {}
-        return;
-      }
-
       await resumeAudioContextIfNeeded();
       setConnectionStatus('connecting', `Вход к ${cleanId}...`);
+      showToast(`Подключение к ${cleanId}...`, 'info');
 
-      const conn = state.peer.connect(cleanId, { reliable: true });
-      setupDataChannel(conn);
+      // 1. Initiate Native WSS / BroadcastChannel WebRTC Call
+      await initiateWssPeerCall(cleanId);
 
-      const call = state.peer.call(cleanId, state.masterOutStream, { sdpTransform: mungeSdpForHighQuality });
-      setupMediaCall(call, cleanId);
+      // 2. Also initiate PeerJS fallback if available
+      if (state.peer && !state.peer.destroyed && !state.peer.disconnected) {
+        try {
+          const conn = state.peer.connect(cleanId, { reliable: true });
+          setupDataChannel(conn);
+          const call = state.peer.call(cleanId, state.masterOutStream, { sdpTransform: mungeSdpForHighQuality });
+          setupMediaCall(call, cleanId);
+        } catch (e) {}
+      }
     }
 
     async function answerIncomingCall(call) {
@@ -2776,7 +3311,6 @@
           el.unmuteAutoplayBtn.classList.add('hidden');
           el.unmuteAutoplayBtn.classList.remove('flex');
         }).catch(() => {
-          // Browser blocked audio autoplay before user gesture; show one-click unmute button
           el.unmuteAutoplayBtn.classList.remove('hidden');
           el.unmuteAutoplayBtn.classList.add('flex');
         });
@@ -2817,6 +3351,10 @@
     }
 
     function disconnectSession() {
+      activeWssPeers.forEach((entry) => {
+        try { entry.pc.close(); } catch (e) {}
+      });
+      activeWssPeers.clear();
       if (state.mediaCall) {
         try { state.mediaCall.close(); } catch (e) {}
         state.mediaCall = null;
@@ -3175,7 +3713,6 @@
     }
 
     function bindEvents() {
-      // Unlock AudioContext on first user interaction anywhere in the window
       window.addEventListener('pointerdown', () => {
         resumeAudioContextIfNeeded();
       }, { passive: true });
@@ -3201,8 +3738,11 @@
         if (e.key === 'Enter') connectToRemotePeer(el.headerRemoteIdInput.value);
       });
 
-      window.addEventListener('hashchange', checkUrlHashAndAutoConnect);
+      window.addEventListener('hashchange', () => {
+        checkUrlHashAndAutoConnect();
+      });
 
+      // Call Dock Buttons
       el.micToggleBtn.addEventListener('click', toggleMicrophone);
       el.screenShareBtn.addEventListener('click', startScreenShare);
       el.cameraToggleBtn.addEventListener('click', startCameraShare);
@@ -3217,20 +3757,11 @@
         }
       });
 
-      // Open unified Settings Modal on Audio/Noise Suppression tab from bottom dock or lobby
+      // Open unified Settings Modal on Audio/Noise Suppression tab from bottom dock
       el.openSettingsBtn.addEventListener('click', () => {
         el.soundpadPopover.classList.add('hidden');
         openSettingsModal('audio');
       });
-
-      const heroOpenAudioSettingsBtn = document.getElementById('heroOpenAudioSettingsBtn');
-      if (heroOpenAudioSettingsBtn) {
-        heroOpenAudioSettingsBtn.addEventListener('click', () => openSettingsModal('audio'));
-      }
-      const heroOpenAppearanceBtn = document.getElementById('heroOpenAppearanceBtn');
-      if (heroOpenAppearanceBtn) {
-        heroOpenAppearanceBtn.addEventListener('click', () => openSettingsModal('appearance'));
-      }
 
       // Settings Modal Sidebar Navigation
       document.querySelectorAll('.settings-nav-btn').forEach(btn => {
@@ -3239,23 +3770,51 @@
         });
       });
 
+      // Krisp AI Master Toggle
+      if (el.toggleKrispAi) {
+        el.toggleKrispAi.addEventListener('change', async (e) => {
+          state.audioSettings.krispEnabled = e.target.checked;
+          syncAudioSettingsUI();
+          saveAudioSettings();
+          await applyAudioConstraintsToActiveMic();
+          showToast(state.audioSettings.krispEnabled ? 'Нейро-шумоподавление Krisp AI включено' : 'Krisp AI выключен', 'info');
+        });
+      }
+
+      // No-VPN Network Mode Selector
+      if (el.networkModeSelect) {
+        el.networkModeSelect.addEventListener('change', (e) => {
+          state.audioSettings.networkMode = e.target.value;
+          saveAudioSettings();
+          showToast(
+            state.audioSettings.networkMode === 'relay'
+              ? 'Включен принудительный туннель TURN TLS 443 (Обход без VPN)'
+              : 'Включен автоматический режим P2P + TURN 443',
+            'success'
+          );
+        });
+      }
+
       // Noise Suppression Mode Presets
       document.querySelectorAll('.nr-mode-btn').forEach(btn => {
         btn.addEventListener('click', async () => {
           const mode = btn.dataset.nrMode;
           state.audioSettings.mode = mode;
           if (mode === 'studio') {
+            state.audioSettings.krispEnabled = true;
             state.audioSettings.noiseSuppression = true;
             state.audioSettings.echoCancellation = true;
             state.audioSettings.autoGainControl = true;
             state.audioSettings.voiceFilter = true;
             if (state.audioSettings.noiseGateThreshold === 0) state.audioSettings.noiseGateThreshold = 12;
           } else if (mode === 'standard') {
+            state.audioSettings.krispEnabled = false;
             state.audioSettings.noiseSuppression = true;
             state.audioSettings.echoCancellation = true;
             state.audioSettings.autoGainControl = true;
             state.audioSettings.voiceFilter = false;
           } else if (mode === 'raw') {
+            state.audioSettings.krispEnabled = false;
             state.audioSettings.noiseSuppression = false;
             state.audioSettings.echoCancellation = false;
             state.audioSettings.autoGainControl = false;
@@ -3265,7 +3824,7 @@
           syncAudioSettingsUI();
           saveAudioSettings();
           await applyAudioConstraintsToActiveMic();
-          showToast(`Режим обработки голоса: ${mode === 'studio' ? 'Студийный AI/DSP' : mode === 'standard' ? 'Стандартный' : 'Чистый эфир'}`, 'success');
+          showToast(`Режим обработки голоса: ${mode === 'studio' ? 'Krisp AI Ultra' : mode === 'standard' ? 'Стандартный' : 'Чистый эфир'}`, 'success');
         });
       });
 
@@ -3450,8 +4009,6 @@
       el.openThemeStudioBtn.addEventListener('click', () => openSettingsModal('audio'));
       el.headerAvatarBtn.addEventListener('click', () => openSettingsModal('profile'));
       el.stageMyAvatar.addEventListener('click', () => openSettingsModal('profile'));
-      const heroOpenAvatarBtn = document.getElementById('heroOpenAvatarBtn');
-      if (heroOpenAvatarBtn) heroOpenAvatarBtn.addEventListener('click', () => openSettingsModal('profile'));
       el.closeThemeStudioBtn.addEventListener('click', closeSettingsModal);
       el.doneThemeBtn.addEventListener('click', closeSettingsModal);
       el.themeStudioModal.addEventListener('click', (e) => {
@@ -3585,8 +4142,9 @@
       });
     }
 
-    // Boot Desktop Application
-    window.addEventListener('DOMContentLoaded', () => {
+    // Boot Desktop Application Immediately
+    function bootApp() {
+      if (state.myPeerId) return;
       state.myPeerId = generateShortPeerId();
       updateInviteLinkUI();
       initAvatarThumbnails();
@@ -3595,7 +4153,13 @@
       bindEvents();
       ensureMasterMediaPipeline();
       initPeerNode();
-    });
+    }
+
+    if (document.readyState === 'loading') {
+      window.addEventListener('DOMContentLoaded', bootApp);
+    } else {
+      bootApp();
+    }
   </script>
 </body>
 </html>
