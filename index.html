@@ -392,214 +392,458 @@
     <img id="modalImageSrc" src="" alt="Preview" class="max-w-[90vw] max-h-[88vh] rounded-2xl shadow-2xl border border-white/10 object-contain" />
   </div>
 
-  <!-- Style & Avatar Studio Drawer -->
-  <div id="themeStudioModal" class="fixed inset-0 z-50 hidden bg-black/65 backdrop-blur-sm flex justify-end">
-    <div class="w-[440px] h-full theme-surface border-l border-white/10 flex flex-col shadow-2xl overflow-hidden">
-      <div class="px-6 py-4 border-b border-white/10 flex items-center justify-between shrink-0">
-        <div class="flex items-center gap-3">
-          <div class="w-8 h-8 rounded-xl theme-btn-primary flex items-center justify-center text-sm">🎨</div>
+  <!-- Full Desktop Settings Center Modal (Audio & Noise Suppression, Avatar & Profile, Stream 60 FPS, Appearance) -->
+  <div id="themeStudioModal" class="fixed inset-0 z-50 hidden bg-black/75 backdrop-blur-md flex items-center justify-center p-6">
+    <div class="w-full max-w-4xl h-[82vh] max-h-[720px] theme-surface border border-white/15 rounded-3xl flex overflow-hidden shadow-2xl">
+
+      <!-- Left Navigation Sidebar -->
+      <aside class="w-64 bg-black/45 border-r border-white/10 flex flex-col justify-between p-4 shrink-0">
+        <div class="space-y-5">
+          <div class="px-2 pt-1 flex items-center justify-between">
+            <div>
+              <span class="street-tag text-2xl">disstya</span>
+              <div class="text-[10px] font-mono text-slate-400 uppercase tracking-wider mt-0.5">Настройки клиента</div>
+            </div>
+          </div>
+
+          <nav class="space-y-1.5 text-xs">
+            <button type="button" data-settings-tab="audio" class="settings-nav-btn w-full px-3.5 py-2.5 rounded-xl theme-btn theme-btn-active flex items-center gap-3 text-left font-bold text-white">
+              <span class="text-base">🎙️</span>
+              <div>
+                <div>Голос и Шумодав</div>
+                <div class="text-[10px] text-slate-400 font-normal">Фильтры, Noise Gate, Микшер</div>
+              </div>
+            </button>
+
+            <button type="button" data-settings-tab="profile" class="settings-nav-btn w-full px-3.5 py-2.5 rounded-xl theme-btn flex items-center gap-3 text-left font-bold text-slate-200">
+              <span class="text-base">👁️</span>
+              <div>
+                <div>Профиль и Аватар</div>
+                <div class="text-[10px] text-slate-400 font-normal">Никнейм, LotR / HP, GIF</div>
+              </div>
+            </button>
+
+            <button type="button" data-settings-tab="stream" class="settings-nav-btn w-full px-3.5 py-2.5 rounded-xl theme-btn flex items-center gap-3 text-left font-bold text-slate-200">
+              <span class="text-base">🖥️</span>
+              <div>
+                <div>Стрим 60 FPS</div>
+                <div class="text-[10px] text-slate-400 font-normal">Разрешение, Битрейт, Кодек</div>
+              </div>
+            </button>
+
+            <button type="button" data-settings-tab="appearance" class="settings-nav-btn w-full px-3.5 py-2.5 rounded-xl theme-btn flex items-center gap-3 text-left font-bold text-slate-200">
+              <span class="text-base">🎨</span>
+              <div>
+                <div>Оформление и Тема</div>
+                <div class="text-[10px] text-slate-400 font-normal">Цвета, Неон, Тег, Обои</div>
+              </div>
+            </button>
+          </nav>
+        </div>
+
+        <div class="space-y-2 pt-3 border-t border-white/10">
+          <button id="resetThemeBtn" type="button" class="w-full py-2 px-3 rounded-xl theme-btn text-xs text-slate-300 hover:text-white">Сбросить настройки</button>
+          <button id="doneThemeBtn" type="button" class="w-full py-2.5 px-4 rounded-xl theme-btn-primary text-xs font-bold">Сохранить и закрыть</button>
+        </div>
+      </aside>
+
+      <!-- Right Tab Content Area -->
+      <div class="flex-1 flex flex-col min-w-0 bg-black/20">
+        <!-- Modal Header -->
+        <div class="h-14 px-6 border-b border-white/10 flex items-center justify-between shrink-0">
           <div>
-            <h2 class="text-sm font-bold text-white">Студия стиля & Аватарок <span class="street-tag text-base ml-1">disstya</span></h2>
-            <p class="text-[11px] text-slate-400">Персонализация ПК-клиента, темы и тега</p>
+            <h2 id="settingsModalTitle" class="text-sm font-bold text-white">Голос, Микрофон и Шумоподавление</h2>
+            <p id="settingsModalSubtitle" class="text-[11px] text-slate-400">Настройка чистоты голоса, отсечения клавиатуры и микшера</p>
           </div>
+          <button id="closeThemeStudioBtn" type="button" class="w-8 h-8 rounded-xl theme-btn flex items-center justify-center text-slate-300 hover:text-white" title="Закрыть (Esc)">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
         </div>
-        <button id="closeThemeStudioBtn" class="w-8 h-8 rounded-lg theme-btn flex items-center justify-center text-slate-300">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-        </button>
-      </div>
 
-      <div class="flex-1 overflow-y-auto p-5 space-y-5 text-xs">
-        <!-- Profile & Animated Avatar Editor -->
-        <div class="space-y-3.5 p-4 rounded-2xl bg-black/45 border border-white/10">
-          <div class="flex items-center gap-3.5">
-            <div id="studioAvatarPreview" class="w-16 h-16 rounded-2xl shrink-0 overflow-hidden bg-black flex items-center justify-center avatar-frame-mordor speaking-target"></div>
-            <div class="flex-1 min-w-0 space-y-1.5">
-              <label class="text-[10px] font-semibold uppercase tracking-wider text-slate-400 flex items-center justify-between">
-                <span>Уличный никнейм (Тег)</span>
-                <span class="text-[10px] font-mono accent-text">Синхронизация P2P</span>
+        <!-- Scrollable Panels Container -->
+        <div class="flex-1 overflow-y-auto p-6 space-y-6 text-xs">
+
+          <!-- TAB 1: AUDIO & NOISE SUPPRESSION -->
+          <div id="settingsTab-audio" class="settings-tab-pane space-y-5">
+            <!-- Device Selection & Live Mic Test -->
+            <div class="p-4 rounded-2xl bg-black/45 border border-white/10 space-y-4">
+              <div class="flex items-center justify-between">
+                <div>
+                  <div class="text-xs font-bold text-white">Устройство ввода и проверка звука</div>
+                  <div class="text-[11px] text-slate-400">Проверьте, как звучит ваш голос с активным шумоподавлением</div>
+                </div>
+                <button id="micLoopbackTestBtn" type="button" class="px-3.5 py-2 rounded-xl theme-btn text-xs font-bold text-white flex items-center gap-2 border border-purple-500/40">
+                  <span id="micLoopbackIcon">🎧</span>
+                  <span id="micLoopbackLabel">Прослушать себя</span>
+                </button>
+              </div>
+
+              <div class="grid grid-cols-1 gap-3">
+                <div>
+                  <label class="text-[11px] text-slate-300 font-semibold block mb-1.5">Микрофон (Устройство записи)</label>
+                  <select id="audioInputSelect" class="w-full bg-black/70 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-purple-500">
+                    <option value="default">Системный микрофон по умолчанию</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Live Input VU Meter + Noise Gate Threshold Visualizer -->
+              <div class="space-y-1.5 pt-1">
+                <div class="flex items-center justify-between text-[11px]">
+                  <span class="text-slate-300">Уровень сигнала микрофона и порог отсечения шума (Noise Gate)</span>
+                  <span id="noiseGateStatusBadge" class="font-mono text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300">Голос проходит</span>
+                </div>
+                <div class="relative w-full h-3 bg-black/80 rounded-full overflow-hidden border border-white/10">
+                  <div id="micLiveLevelBar" class="h-full w-0 transition-all duration-75 rounded-full" style="background: linear-gradient(90deg, #10b981 0%, var(--accent) 70%, #f43f5e 100%);"></div>
+                  <div id="noiseGateMarker" class="absolute top-0 bottom-0 w-0.5 bg-amber-400 shadow-[0_0_8px_#fbbf24]" style="left: 12%;"></div>
+                </div>
+                <div class="flex items-center justify-between text-[10px] text-slate-400 pt-1">
+                  <span>Порог чувствительности (отсекает шум клавиатуры, мыши и кулеров):</span>
+                  <span id="noiseGateValLabel" class="font-mono text-amber-300 font-bold">12%</span>
+                </div>
+                <input id="noiseGateSlider" type="range" min="0" max="60" value="12" class="w-full" />
+              </div>
+            </div>
+
+            <!-- Noise Suppression Mode Profiles -->
+            <div class="p-4 rounded-2xl bg-black/45 border border-white/10 space-y-3.5">
+              <div class="flex items-center justify-between">
+                <div>
+                  <div class="text-xs font-bold text-white">Алгоритм шумоподавления</div>
+                  <div class="text-[11px] text-slate-400">Выберите профиль очистки голоса в реальном времени</div>
+                </div>
+                <span class="px-2.5 py-0.5 rounded-full accent-badge font-mono text-[10px]">WebAudio DSP + WebRTC</span>
+              </div>
+
+              <div class="grid grid-cols-3 gap-2.5">
+                <button type="button" data-nr-mode="studio" class="nr-mode-btn p-3 rounded-xl theme-btn theme-btn-active text-left space-y-1">
+                  <div class="flex items-center justify-between">
+                    <span class="font-bold text-white text-xs">🛡️ Студийный AI/DSP</span>
+                    <span class="text-[10px] font-mono text-emerald-400">MAX</span>
+                  </div>
+                  <p class="text-[10px] text-slate-400 leading-relaxed">WebRTC шумодав + срез гула 85 Гц + фильтр писка + компрессор</p>
+                </button>
+
+                <button type="button" data-nr-mode="standard" class="nr-mode-btn p-3 rounded-xl theme-btn text-left space-y-1">
+                  <div class="flex items-center justify-between">
+                    <span class="font-bold text-white text-xs">⚡ Стандартный</span>
+                    <span class="text-[10px] font-mono text-sky-400">MED</span>
+                  </div>
+                  <p class="text-[10px] text-slate-400 leading-relaxed">Базовое браузерное подавление шума и эха без фильтрации частот</p>
+                </button>
+
+                <button type="button" data-nr-mode="raw" class="nr-mode-btn p-3 rounded-xl theme-btn text-left space-y-1">
+                  <div class="flex items-center justify-between">
+                    <span class="font-bold text-white text-xs">🎵 Чистый эфир</span>
+                    <span class="text-[10px] font-mono text-amber-400">RAW</span>
+                  </div>
+                  <p class="text-[10px] text-slate-400 leading-relaxed">Отключает все фильтры. Идеально для внешних аудиокарт и музыки</p>
+                </button>
+              </div>
+
+              <!-- Granular DSP Toggles -->
+              <div class="grid grid-cols-2 gap-2.5 pt-2">
+                <label class="flex items-center justify-between p-3 rounded-xl bg-black/50 border border-white/10 cursor-pointer hover:border-purple-500/40">
+                  <div>
+                    <div class="text-xs font-semibold text-white">Подавление шума (Noise Suppression)</div>
+                    <div class="text-[10px] text-slate-400">Убирает фоновый гул ПК и вентиляторов</div>
+                  </div>
+                  <input id="toggleNoiseSuppression" type="checkbox" checked class="w-4 h-4 accent-purple-500 rounded cursor-pointer" />
+                </label>
+
+                <label class="flex items-center justify-between p-3 rounded-xl bg-black/50 border border-white/10 cursor-pointer hover:border-purple-500/40">
+                  <div>
+                    <div class="text-xs font-semibold text-white">Эхоподавление (Echo Cancellation)</div>
+                    <div class="text-[10px] text-slate-400">Защита от возврата звука из колонок</div>
+                  </div>
+                  <input id="toggleEchoCancellation" type="checkbox" checked class="w-4 h-4 accent-purple-500 rounded cursor-pointer" />
+                </label>
+
+                <label class="flex items-center justify-between p-3 rounded-xl bg-black/50 border border-white/10 cursor-pointer hover:border-purple-500/40">
+                  <div>
+                    <div class="text-xs font-semibold text-white">Автоусиление (Auto Gain Control)</div>
+                    <div class="text-[10px] text-slate-400">Автоматически выравнивает тихий голос</div>
+                  </div>
+                  <input id="toggleAutoGain" type="checkbox" checked class="w-4 h-4 accent-purple-500 rounded cursor-pointer" />
+                </label>
+
+                <label class="flex items-center justify-between p-3 rounded-xl bg-black/50 border border-white/10 cursor-pointer hover:border-purple-500/40">
+                  <div>
+                    <div class="text-xs font-semibold text-white">Срез гула 85 Гц + Компрессор</div>
+                    <div class="text-[10px] text-slate-400">Делает голос плотным как на радио</div>
+                  </div>
+                  <input id="toggleVoiceFilter" type="checkbox" checked class="w-4 h-4 accent-purple-500 rounded cursor-pointer" />
+                </label>
+              </div>
+            </div>
+
+            <!-- Audio Volume Mixer -->
+            <div class="p-4 rounded-2xl bg-black/45 border border-white/10 space-y-3.5">
+              <div class="text-xs font-bold text-white">Микшер громкости каналов</div>
+
+              <div class="grid grid-cols-2 gap-4">
+                <div class="space-y-1">
+                  <div class="flex justify-between text-[11px]">
+                    <span class="text-slate-300">Усиление вашего микрофона</span>
+                    <span id="micGainLabel" class="font-mono accent-text">100%</span>
+                  </div>
+                  <input id="micGainSlider" type="range" min="0" max="200" value="100" class="w-full" />
+                </div>
+
+                <div class="space-y-1">
+                  <div class="flex justify-between text-[11px]">
+                    <span class="text-slate-300">Громкость собеседника</span>
+                    <span id="remoteVolLabel" class="font-mono text-emerald-400">100%</span>
+                  </div>
+                  <input id="remoteVolSlider" type="range" min="0" max="100" value="100" class="w-full" />
+                </div>
+
+                <div class="space-y-1">
+                  <div class="flex justify-between text-[11px]">
+                    <span class="text-slate-300">Системный звук вашего экрана</span>
+                    <span id="sysGainLabel" class="font-mono accent-text">100%</span>
+                  </div>
+                  <input id="sysGainSlider" type="range" min="0" max="200" value="100" class="w-full" />
+                </div>
+
+                <div class="space-y-1">
+                  <div class="flex justify-between text-[11px]">
+                    <span class="text-slate-300">Громкость Саундпада в эфире</span>
+                    <span id="settingsSoundpadVolLabel" class="font-mono accent-text">90%</span>
+                  </div>
+                  <input id="settingsSoundpadVolSlider" type="range" min="0" max="150" value="90" class="w-full" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 2: PROFILE & ANIMATED AVATARS -->
+          <div id="settingsTab-profile" class="settings-tab-pane hidden space-y-5">
+            <div class="p-4 rounded-2xl bg-black/45 border border-white/10 space-y-4">
+              <div class="flex items-center gap-4">
+                <div id="studioAvatarPreview" class="w-20 h-20 rounded-2xl shrink-0 overflow-hidden bg-black flex items-center justify-center avatar-frame-mordor speaking-target"></div>
+                <div class="flex-1 min-w-0 space-y-2">
+                  <label class="text-[11px] font-semibold uppercase tracking-wider text-slate-300 flex items-center justify-between">
+                    <span>Ваш уличный никнейм (Тег)</span>
+                    <span class="text-[10px] font-mono accent-text">Мгновенная синхронизация P2P</span>
+                  </label>
+                  <input id="customNicknameInput" type="text" maxlength="24" placeholder="Введи свой никнейм..." class="w-full bg-black/65 border border-white/15 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-purple-500" />
+                </div>
+              </div>
+
+              <!-- LotR Animated Avatars -->
+              <div class="space-y-2 pt-2 border-t border-white/10">
+                <span class="text-[11px] font-bold uppercase tracking-wider text-amber-400 block">🔥 Властелин Колец (Анимированные SVG)</span>
+                <div class="grid grid-cols-3 gap-2.5">
+                  <button type="button" data-avatar="lotr-sauron" class="avatar-preset-btn p-3 rounded-xl theme-btn flex flex-col items-center gap-2 text-center">
+                    <div class="w-14 h-14 rounded-xl overflow-hidden bg-black flex items-center justify-center" data-avatar-render="lotr-sauron"></div>
+                    <span class="text-xs text-white font-semibold">Око Саурона</span>
+                  </button>
+                  <button type="button" data-avatar="lotr-ring" class="avatar-preset-btn p-3 rounded-xl theme-btn flex flex-col items-center gap-2 text-center">
+                    <div class="w-14 h-14 rounded-xl overflow-hidden bg-black flex items-center justify-center" data-avatar-render="lotr-ring"></div>
+                    <span class="text-xs text-white font-semibold">Кольцо Всевластья</span>
+                  </button>
+                  <button type="button" data-avatar="lotr-gondor" class="avatar-preset-btn p-3 rounded-xl theme-btn flex flex-col items-center gap-2 text-center">
+                    <div class="w-14 h-14 rounded-xl overflow-hidden bg-black flex items-center justify-center" data-avatar-render="lotr-gondor"></div>
+                    <span class="text-xs text-white font-semibold">Древо Гондора</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Harry Potter Animated Avatars -->
+              <div class="space-y-2 pt-2 border-t border-white/10">
+                <span class="text-[11px] font-bold uppercase tracking-wider text-sky-400 block">⚡ Гарри Поттер (Анимированные SVG)</span>
+                <div class="grid grid-cols-3 gap-2.5">
+                  <button type="button" data-avatar="hp-hallows" class="avatar-preset-btn p-3 rounded-xl theme-btn flex flex-col items-center gap-2 text-center">
+                    <div class="w-14 h-14 rounded-xl overflow-hidden bg-black flex items-center justify-center" data-avatar-render="hp-hallows"></div>
+                    <span class="text-xs text-white font-semibold">Дары Смерти</span>
+                  </button>
+                  <button type="button" data-avatar="hp-snitch" class="avatar-preset-btn p-3 rounded-xl theme-btn flex flex-col items-center gap-2 text-center">
+                    <div class="w-14 h-14 rounded-xl overflow-hidden bg-black flex items-center justify-center" data-avatar-render="hp-snitch"></div>
+                    <span class="text-xs text-white font-semibold">Золотой Снитч</span>
+                  </button>
+                  <button type="button" data-avatar="hp-patronus" class="avatar-preset-btn p-3 rounded-xl theme-btn flex flex-col items-center gap-2 text-center">
+                    <div class="w-14 h-14 rounded-xl overflow-hidden bg-black flex items-center justify-center" data-avatar-render="hp-patronus"></div>
+                    <span class="text-xs text-white font-semibold">Патронус</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Custom GIF / Photo Upload + Frames -->
+              <div class="pt-2 border-t border-white/10 space-y-3">
+                <input id="avatarFileInput" type="file" accept="image/*,.gif" class="hidden" />
+                <button type="button" id="uploadCustomAvatarBtn" class="w-full py-2.5 px-4 rounded-xl theme-btn text-xs font-bold text-white flex items-center justify-center gap-2">
+                  <svg class="w-4 h-4 accent-text" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                  <span>Загрузить свою GIF / Картинку с ПК (до 2.5 МБ)</span>
+                </button>
+
+                <div>
+                  <span class="text-[11px] text-slate-400 block mb-1.5">Стиль свечения рамки аватара:</span>
+                  <div class="grid grid-cols-4 gap-2">
+                    <button type="button" data-frame="neon" class="avatar-frame-btn py-2 px-3 rounded-xl theme-btn text-xs font-semibold text-white">Неон</button>
+                    <button type="button" data-frame="mordor" class="avatar-frame-btn py-2 px-3 rounded-xl theme-btn text-xs font-semibold text-orange-400">Мордор</button>
+                    <button type="button" data-frame="ring" class="avatar-frame-btn py-2 px-3 rounded-xl theme-btn text-xs font-semibold text-yellow-300">Кольцо</button>
+                    <button type="button" data-frame="patronus" class="avatar-frame-btn py-2 px-3 rounded-xl theme-btn text-xs font-semibold text-sky-300">Патронус</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 3: STREAM 60 FPS & VIDEO -->
+          <div id="settingsTab-stream" class="settings-tab-pane hidden space-y-5">
+            <div class="p-4 rounded-2xl bg-black/45 border border-white/10 space-y-4">
+              <div>
+                <div class="text-xs font-bold text-white">Параметры демонстрации экрана (WebRTC High-Bitrate)</div>
+                <div class="text-[11px] text-slate-400">Настройки применяются на лету даже во время активной трансляции</div>
+              </div>
+
+              <div class="space-y-1.5">
+                <label class="text-[11px] text-slate-300 font-semibold block">Разрешение, частота кадров и целевой битрейт</label>
+                <select id="qualityPresetSelect" class="w-full bg-black/70 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-purple-500">
+                  <option value="1440p60">QHD 1440p (2560×1440) @ 60 FPS — 12 000 kbps (Ультра)</option>
+                  <option value="1080p60" selected>Full HD 1080p (1920×1080) @ 60 FPS — 8 500 kbps (Оптимально)</option>
+                  <option value="720p60">HD 720p (1280×720) @ 60 FPS — 4 500 kbps (Быстрый отклик)</option>
+                </select>
+              </div>
+
+              <div class="space-y-1.5">
+                <label class="text-[11px] text-slate-300 font-semibold block">Профиль кодирования видеопотока (Content Hint)</label>
+                <select id="contentHintSelect" class="w-full bg-black/70 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-purple-500">
+                  <option value="motion" selected>🎮 Игры и Видео — Приоритет плавности 60 кадров/сек (maintain-framerate)</option>
+                  <option value="detail">💻 Код и Текст — Максимальная попиксельная резкость (maintain-resolution)</option>
+                </select>
+              </div>
+
+              <label class="flex items-center justify-between p-3 rounded-xl bg-black/50 border border-white/10 cursor-pointer">
+                <div>
+                  <div class="text-xs font-semibold text-white">Ambilight-подсветка вокруг видеоплеера</div>
+                  <div class="text-[10px] text-slate-400">Мягкое атмосферное свечение позади стрима собеседника</div>
+                </div>
+                <input id="ambilightToggle" type="checkbox" checked class="w-4 h-4 accent-purple-500 rounded cursor-pointer" />
               </label>
-              <input id="customNicknameInput" type="text" maxlength="24" placeholder="Введи свой никнейм..." class="w-full bg-black/60 border border-white/10 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-purple-500" />
             </div>
           </div>
 
-          <!-- LotR Animated Avatars -->
-          <div class="space-y-1.5 pt-1">
-            <span class="text-[10px] font-bold uppercase tracking-wider text-amber-400 block">🔥 Властелин Колец (Анимированные)</span>
-            <div class="grid grid-cols-3 gap-2">
-              <button type="button" data-avatar="lotr-sauron" class="avatar-preset-btn p-2 rounded-xl theme-btn flex flex-col items-center gap-1.5 text-center">
-                <div class="w-11 h-11 rounded-xl overflow-hidden bg-black flex items-center justify-center" data-avatar-render="lotr-sauron"></div>
-                <span class="text-[10px] text-white font-medium leading-tight">Око Саурона</span>
-              </button>
-              <button type="button" data-avatar="lotr-ring" class="avatar-preset-btn p-2 rounded-xl theme-btn flex flex-col items-center gap-1.5 text-center">
-                <div class="w-11 h-11 rounded-xl overflow-hidden bg-black flex items-center justify-center" data-avatar-render="lotr-ring"></div>
-                <span class="text-[10px] text-white font-medium leading-tight">Кольцо Всевластья</span>
-              </button>
-              <button type="button" data-avatar="lotr-gondor" class="avatar-preset-btn p-2 rounded-xl theme-btn flex flex-col items-center gap-1.5 text-center">
-                <div class="w-11 h-11 rounded-xl overflow-hidden bg-black flex items-center justify-center" data-avatar-render="lotr-gondor"></div>
-                <span class="text-[10px] text-white font-medium leading-tight">Древо Гондора</span>
-              </button>
-            </div>
-          </div>
-
-          <!-- Harry Potter Animated Avatars -->
-          <div class="space-y-1.5 pt-1">
-            <span class="text-[10px] font-bold uppercase tracking-wider text-sky-400 block">⚡ Гарри Поттер (Анимированные)</span>
-            <div class="grid grid-cols-3 gap-2">
-              <button type="button" data-avatar="hp-hallows" class="avatar-preset-btn p-2 rounded-xl theme-btn flex flex-col items-center gap-1.5 text-center">
-                <div class="w-11 h-11 rounded-xl overflow-hidden bg-black flex items-center justify-center" data-avatar-render="hp-hallows"></div>
-                <span class="text-[10px] text-white font-medium leading-tight">Дары Смерти</span>
-              </button>
-              <button type="button" data-avatar="hp-snitch" class="avatar-preset-btn p-2 rounded-xl theme-btn flex flex-col items-center gap-1.5 text-center">
-                <div class="w-11 h-11 rounded-xl overflow-hidden bg-black flex items-center justify-center" data-avatar-render="hp-snitch"></div>
-                <span class="text-[10px] text-white font-medium leading-tight">Золотой Снитч</span>
-              </button>
-              <button type="button" data-avatar="hp-patronus" class="avatar-preset-btn p-2 rounded-xl theme-btn flex flex-col items-center gap-1.5 text-center">
-                <div class="w-11 h-11 rounded-xl overflow-hidden bg-black flex items-center justify-center" data-avatar-render="hp-patronus"></div>
-                <span class="text-[10px] text-white font-medium leading-tight">Патронус</span>
-              </button>
-            </div>
-          </div>
-
-          <!-- Custom GIF / Photo Upload + Frames -->
-          <div class="pt-1 space-y-2">
-            <input id="avatarFileInput" type="file" accept="image/*,.gif" class="hidden" />
-            <button type="button" id="uploadCustomAvatarBtn" class="w-full py-2 px-3 rounded-xl theme-btn text-xs font-semibold text-white flex items-center justify-center gap-2">
-              <svg class="w-4 h-4 accent-text" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-              <span>Загрузить свою GIF / Картинку с ПК</span>
-            </button>
-
-            <div class="grid grid-cols-4 gap-1.5">
-              <button type="button" data-frame="neon" class="avatar-frame-btn py-1.5 px-2 rounded-lg theme-btn text-[10px] text-white">Рамка Неон</button>
-              <button type="button" data-frame="mordor" class="avatar-frame-btn py-1.5 px-2 rounded-lg theme-btn text-[10px] text-orange-400">Мордор</button>
-              <button type="button" data-frame="ring" class="avatar-frame-btn py-1.5 px-2 rounded-lg theme-btn text-[10px] text-yellow-300">Кольцо</button>
-              <button type="button" data-frame="patronus" class="avatar-frame-btn py-1.5 px-2 rounded-lg theme-btn text-[10px] text-sky-300">Патронус</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Theme Presets -->
-        <div class="space-y-2">
-          <label class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block">Готовые пресеты темы</label>
-          <div class="grid grid-cols-2 gap-2">
-            <button data-preset="tokyo" class="theme-preset-btn p-2.5 rounded-xl border border-white/10 bg-black/40 flex items-center gap-2.5 text-left hover:border-purple-500/50">
-              <span class="w-5 h-5 rounded-lg shrink-0" style="background: linear-gradient(135deg, #a855f7, #ec4899)"></span>
-              <span class="font-semibold text-white text-xs">Tokyo Tag</span>
-            </button>
-            <button data-preset="acid" class="theme-preset-btn p-2.5 rounded-xl border border-white/10 bg-black/40 flex items-center gap-2.5 text-left hover:border-lime-500/50">
-              <span class="w-5 h-5 rounded-lg shrink-0" style="background: linear-gradient(135deg, #84cc16, #10b981)"></span>
-              <span class="font-semibold text-white text-xs">Acid Graffiti</span>
-            </button>
-            <button data-preset="bloodline" class="theme-preset-btn p-2.5 rounded-xl border border-white/10 bg-black/40 flex items-center gap-2.5 text-left hover:border-red-500/50">
-              <span class="w-5 h-5 rounded-lg shrink-0" style="background: linear-gradient(135deg, #ef4444, #f97316)"></span>
-              <span class="font-semibold text-white text-xs">Bloodline</span>
-            </button>
-            <button data-preset="cyberice" class="theme-preset-btn p-2.5 rounded-xl border border-white/10 bg-black/40 flex items-center gap-2.5 text-left hover:border-cyan-500/50">
-              <span class="w-5 h-5 rounded-lg shrink-0" style="background: linear-gradient(135deg, #06b6d4, #3b82f6)"></span>
-              <span class="font-semibold text-white text-xs">Cyber Ice</span>
-            </button>
-            <button data-preset="goldchrome" class="theme-preset-btn p-2.5 rounded-xl border border-white/10 bg-black/40 flex items-center gap-2.5 text-left hover:border-amber-500/50">
-              <span class="w-5 h-5 rounded-lg shrink-0" style="background: linear-gradient(135deg, #f59e0b, #eab308)"></span>
-              <span class="font-semibold text-white text-xs">Street Gold</span>
-            </button>
-            <button data-preset="oled" class="theme-preset-btn p-2.5 rounded-xl border border-white/10 bg-black/40 flex items-center gap-2.5 text-left hover:border-white/50">
-              <span class="w-5 h-5 rounded-lg shrink-0 border border-white/20" style="background: linear-gradient(135deg, #ffffff, #64748b)"></span>
-              <span class="font-semibold text-white text-xs">OLED Black</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- Graffiti Fonts -->
-        <div class="space-y-2">
-          <label class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block">Шрифт уличного тега disstya</label>
-          <div class="grid grid-cols-2 gap-2">
-            <button data-tagfont="'Sedgwick Ave Display', cursive" class="tag-font-btn p-2 rounded-xl theme-btn text-center">
-              <span style="font-family: 'Sedgwick Ave Display', cursive;" class="text-lg text-white block">disstya</span>
-              <span class="text-[10px] text-slate-400">Handstyle Tag</span>
-            </button>
-            <button data-tagfont="'Permanent Marker', cursive" class="tag-font-btn p-2 rounded-xl theme-btn text-center">
-              <span style="font-family: 'Permanent Marker', cursive;" class="text-lg text-white block">disstya</span>
-              <span class="text-[10px] text-slate-400">Fat Marker</span>
-            </button>
-            <button data-tagfont="'Rubik Wet Paint', system-ui" class="tag-font-btn p-2 rounded-xl theme-btn text-center">
-              <span style="font-family: 'Rubik Wet Paint', system-ui;" class="text-lg text-white block">disstya</span>
-              <span class="text-[10px] text-slate-400">Spray Drip</span>
-            </button>
-            <button data-tagfont="'Rock Salt', cursive" class="tag-font-btn p-2 rounded-xl theme-btn text-center">
-              <span style="font-family: 'Rock Salt', cursive;" class="text-sm text-white block py-1">disstya</span>
-              <span class="text-[10px] text-slate-400">Street Scratch</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- Custom Colors -->
-        <div class="space-y-2.5 pt-2 border-t border-white/10">
-          <label class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block">Своя палитра</label>
-          <div class="grid grid-cols-3 gap-2">
-            <div class="p-2 rounded-xl bg-black/40 border border-white/10 flex items-center gap-2">
-              <input type="color" id="colorAccent1" value="#a855f7" />
-              <div class="truncate">
-                <div class="text-[10px] text-white">Акцент 1</div>
-                <div id="colorAccent1Hex" class="text-[9px] font-mono text-slate-400">#a855f7</div>
+          <!-- TAB 4: APPEARANCE & THEME -->
+          <div id="settingsTab-appearance" class="settings-tab-pane hidden space-y-5">
+            <!-- Theme Presets -->
+            <div class="p-4 rounded-2xl bg-black/45 border border-white/10 space-y-3">
+              <label class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block">Готовые пресеты темы</label>
+              <div class="grid grid-cols-3 gap-2.5">
+                <button type="button" data-preset="tokyo" class="theme-preset-btn p-2.5 rounded-xl border border-white/10 bg-black/40 flex items-center gap-2.5 text-left hover:border-purple-500/50">
+                  <span class="w-5 h-5 rounded-lg shrink-0" style="background: linear-gradient(135deg, #a855f7, #ec4899)"></span>
+                  <span class="font-semibold text-white text-xs">Tokyo Tag</span>
+                </button>
+                <button type="button" data-preset="acid" class="theme-preset-btn p-2.5 rounded-xl border border-white/10 bg-black/40 flex items-center gap-2.5 text-left hover:border-lime-500/50">
+                  <span class="w-5 h-5 rounded-lg shrink-0" style="background: linear-gradient(135deg, #84cc16, #10b981)"></span>
+                  <span class="font-semibold text-white text-xs">Acid Graffiti</span>
+                </button>
+                <button type="button" data-preset="bloodline" class="theme-preset-btn p-2.5 rounded-xl border border-white/10 bg-black/40 flex items-center gap-2.5 text-left hover:border-red-500/50">
+                  <span class="w-5 h-5 rounded-lg shrink-0" style="background: linear-gradient(135deg, #ef4444, #f97316)"></span>
+                  <span class="font-semibold text-white text-xs">Bloodline</span>
+                </button>
+                <button type="button" data-preset="cyberice" class="theme-preset-btn p-2.5 rounded-xl border border-white/10 bg-black/40 flex items-center gap-2.5 text-left hover:border-cyan-500/50">
+                  <span class="w-5 h-5 rounded-lg shrink-0" style="background: linear-gradient(135deg, #06b6d4, #3b82f6)"></span>
+                  <span class="font-semibold text-white text-xs">Cyber Ice</span>
+                </button>
+                <button type="button" data-preset="goldchrome" class="theme-preset-btn p-2.5 rounded-xl border border-white/10 bg-black/40 flex items-center gap-2.5 text-left hover:border-amber-500/50">
+                  <span class="w-5 h-5 rounded-lg shrink-0" style="background: linear-gradient(135deg, #f59e0b, #eab308)"></span>
+                  <span class="font-semibold text-white text-xs">Street Gold</span>
+                </button>
+                <button type="button" data-preset="oled" class="theme-preset-btn p-2.5 rounded-xl border border-white/10 bg-black/40 flex items-center gap-2.5 text-left hover:border-white/50">
+                  <span class="w-5 h-5 rounded-lg shrink-0 border border-white/20" style="background: linear-gradient(135deg, #ffffff, #64748b)"></span>
+                  <span class="font-semibold text-white text-xs">OLED Black</span>
+                </button>
               </div>
             </div>
-            <div class="p-2 rounded-xl bg-black/40 border border-white/10 flex items-center gap-2">
-              <input type="color" id="colorAccent2" value="#ec4899" />
-              <div class="truncate">
-                <div class="text-[10px] text-white">Акцент 2</div>
-                <div id="colorAccent2Hex" class="text-[9px] font-mono text-slate-400">#ec4899</div>
+
+            <!-- Graffiti Fonts & Custom Palette -->
+            <div class="p-4 rounded-2xl bg-black/45 border border-white/10 space-y-4">
+              <div class="space-y-2">
+                <label class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block">Шрифт уличного тега disstya</label>
+                <div class="grid grid-cols-4 gap-2">
+                  <button type="button" data-tagfont="'Sedgwick Ave Display', cursive" class="tag-font-btn p-2 rounded-xl theme-btn text-center">
+                    <span style="font-family: 'Sedgwick Ave Display', cursive;" class="text-lg text-white block">disstya</span>
+                    <span class="text-[10px] text-slate-400">Handstyle Tag</span>
+                  </button>
+                  <button type="button" data-tagfont="'Permanent Marker', cursive" class="tag-font-btn p-2 rounded-xl theme-btn text-center">
+                    <span style="font-family: 'Permanent Marker', cursive;" class="text-lg text-white block">disstya</span>
+                    <span class="text-[10px] text-slate-400">Fat Marker</span>
+                  </button>
+                  <button type="button" data-tagfont="'Rubik Wet Paint', system-ui" class="tag-font-btn p-2 rounded-xl theme-btn text-center">
+                    <span style="font-family: 'Rubik Wet Paint', system-ui;" class="text-lg text-white block">disstya</span>
+                    <span class="text-[10px] text-slate-400">Spray Drip</span>
+                  </button>
+                  <button type="button" data-tagfont="'Rock Salt', cursive" class="tag-font-btn p-2 rounded-xl theme-btn text-center">
+                    <span style="font-family: 'Rock Salt', cursive;" class="text-sm text-white block py-1">disstya</span>
+                    <span class="text-[10px] text-slate-400">Street Scratch</span>
+                  </button>
+                </div>
               </div>
-            </div>
-            <div class="p-2 rounded-xl bg-black/40 border border-white/10 flex items-center gap-2">
-              <input type="color" id="colorBgBase" value="#07070c" />
-              <div class="truncate">
-                <div class="text-[10px] text-white">Фон</div>
-                <div id="colorBgBaseHex" class="text-[9px] font-mono text-slate-400">#07070c</div>
+
+              <div class="space-y-2 pt-2 border-t border-white/10">
+                <label class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block">Своя палитра цветов</label>
+                <div class="grid grid-cols-3 gap-2.5">
+                  <div class="p-2.5 rounded-xl bg-black/40 border border-white/10 flex items-center gap-2.5">
+                    <input type="color" id="colorAccent1" value="#a855f7" />
+                    <div class="truncate">
+                      <div class="text-[10px] text-white">Акцент 1</div>
+                      <div id="colorAccent1Hex" class="text-[10px] font-mono text-slate-400">#a855f7</div>
+                    </div>
+                  </div>
+                  <div class="p-2.5 rounded-xl bg-black/40 border border-white/10 flex items-center gap-2.5">
+                    <input type="color" id="colorAccent2" value="#ec4899" />
+                    <div class="truncate">
+                      <div class="text-[10px] text-white">Акцент 2</div>
+                      <div id="colorAccent2Hex" class="text-[10px] font-mono text-slate-400">#ec4899</div>
+                    </div>
+                  </div>
+                  <div class="p-2.5 rounded-xl bg-black/40 border border-white/10 flex items-center gap-2.5">
+                    <input type="color" id="colorBgBase" value="#07070c" />
+                    <div class="truncate">
+                      <div class="text-[10px] text-white">Фон</div>
+                      <div id="colorBgBaseHex" class="text-[10px] font-mono text-slate-400">#07070c</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Stage Background & Sliders -->
+              <div class="space-y-2.5 pt-2 border-t border-white/10">
+                <label class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block">Атмосфера сцены и обои</label>
+                <div class="grid grid-cols-4 gap-2">
+                  <button type="button" data-bgmode="aurora" class="bg-mode-btn py-2 px-2 rounded-xl theme-btn text-xs text-white font-medium">Аврора</button>
+                  <button type="button" data-bgmode="grid" class="bg-mode-btn py-2 px-2 rounded-xl theme-btn text-xs text-slate-300 font-medium">Сетка</button>
+                  <button type="button" data-bgmode="dots" class="bg-mode-btn py-2 px-2 rounded-xl theme-btn text-xs text-slate-300 font-medium">Точки</button>
+                  <button type="button" data-bgmode="minimal" class="bg-mode-btn py-2 px-2 rounded-xl theme-btn text-xs text-slate-300 font-medium">Мрак</button>
+                </div>
+                <div class="flex gap-2">
+                  <input id="customWallpaperInput" type="text" placeholder="Вставьте URL своих обоев (jpg/png/gif)..." class="flex-1 bg-black/50 border border-white/10 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none" />
+                  <button id="applyWallpaperBtn" type="button" class="px-4 py-2 theme-btn text-xs text-white font-semibold">Применить</button>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-4 pt-2 border-t border-white/10">
+                <div class="space-y-1">
+                  <div class="flex justify-between text-[11px]">
+                    <span class="text-slate-300">Размытие стекла (Blur)</span>
+                    <span id="blurValLabel" class="font-mono accent-text">20px</span>
+                  </div>
+                  <input id="blurSlider" type="range" min="0" max="40" value="20" class="w-full" />
+                </div>
+                <div class="space-y-1">
+                  <div class="flex justify-between text-[11px]">
+                    <span class="text-slate-300">Интенсивность неона (Glow)</span>
+                    <span id="glowValLabel" class="font-mono accent-text">48%</span>
+                  </div>
+                  <input id="glowSlider" type="range" min="0" max="100" value="48" class="w-full" />
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <!-- Stage Background -->
-        <div class="space-y-2.5 pt-2 border-t border-white/10">
-          <label class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block">Атмосфера сцены</label>
-          <div class="grid grid-cols-4 gap-1.5">
-            <button data-bgmode="aurora" class="bg-mode-btn py-2 px-2 rounded-xl theme-btn text-[11px] text-white font-medium">Аврора</button>
-            <button data-bgmode="grid" class="bg-mode-btn py-2 px-2 rounded-xl theme-btn text-[11px] text-slate-300 font-medium">Сетка</button>
-            <button data-bgmode="dots" class="bg-mode-btn py-2 px-2 rounded-xl theme-btn text-[11px] text-slate-300 font-medium">Точки</button>
-            <button data-bgmode="minimal" class="bg-mode-btn py-2 px-2 rounded-xl theme-btn text-[11px] text-slate-300 font-medium">Мрак</button>
-          </div>
-          <div class="flex gap-1.5">
-            <input id="customWallpaperInput" type="text" placeholder="URL своих обоев (jpg/png/gif)..." class="flex-1 bg-black/50 border border-white/10 rounded-xl px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none" />
-            <button id="applyWallpaperBtn" type="button" class="px-3 py-1.5 theme-btn text-xs text-white font-semibold">Ок</button>
-          </div>
-          <label class="flex items-center justify-between p-2.5 rounded-xl bg-black/40 border border-white/10 cursor-pointer">
-            <span class="text-xs text-white">Ambilight-свечение вокруг стрима</span>
-            <input id="ambilightToggle" type="checkbox" checked class="w-4 h-4 accent-purple-500 rounded cursor-pointer" />
-          </label>
         </div>
-
-        <!-- Sliders -->
-        <div class="space-y-3 pt-2 border-t border-white/10">
-          <div class="space-y-1">
-            <div class="flex justify-between text-[11px]">
-              <span class="text-slate-300">Размытие стекла (Blur)</span>
-              <span id="blurValLabel" class="font-mono accent-text">20px</span>
-            </div>
-            <input id="blurSlider" type="range" min="0" max="40" value="20" class="w-full" />
-          </div>
-          <div class="space-y-1">
-            <div class="flex justify-between text-[11px]">
-              <span class="text-slate-300">Интенсивность неона (Glow)</span>
-              <span id="glowValLabel" class="font-mono accent-text">48%</span>
-            </div>
-            <input id="glowSlider" type="range" min="0" max="100" value="48" class="w-full" />
-          </div>
-        </div>
-      </div>
-
-      <div class="p-4 border-t border-white/10 flex items-center justify-between bg-black/40 shrink-0">
-        <button id="resetThemeBtn" class="px-3.5 py-2 rounded-xl theme-btn text-xs text-slate-300">Сбросить стиль</button>
-        <button id="doneThemeBtn" class="px-6 py-2 rounded-xl theme-btn-primary text-xs font-semibold">Готово</button>
       </div>
     </div>
   </div>
@@ -608,7 +852,7 @@
   <header class="h-16 px-5 theme-surface border-b border-white/10 flex items-center justify-between gap-3 shrink-0 z-30">
     <!-- Left: Brand + Avatar + Status -->
     <div class="flex items-center gap-3.5 min-w-0">
-      <button id="headerAvatarBtn" title="Изменить аватарку (Властелин Колец / Гарри Поттер / GIF)" class="relative w-10 h-10 rounded-2xl overflow-hidden bg-black flex items-center justify-center shadow-lg shrink-0 avatar-frame-mordor speaking-target cursor-pointer">
+      <button id="headerAvatarBtn" title="Профиль и выбор анимированной аватарки" class="relative w-10 h-10 rounded-2xl overflow-hidden bg-black flex items-center justify-center shadow-lg shrink-0 avatar-frame-mordor speaking-target cursor-pointer">
       </button>
 
       <div class="flex items-center gap-2 shrink-0">
@@ -644,16 +888,16 @@
       </div>
     </div>
 
-    <!-- Right: Telemetry, Style Studio, Chat Toggle -->
+    <!-- Right: Telemetry, Full Settings Button, Chat Toggle -->
     <div class="flex items-center gap-2 shrink-0">
       <button id="toggleStatsBtn" title="Статистика WebRTC (Битрейт / FPS / Пинг)" class="px-3 py-2 theme-btn text-slate-200 flex items-center gap-2 text-xs font-mono">
         <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
         <span id="quickBitrateLabel">0 kbps</span>
       </button>
 
-      <button id="openThemeStudioBtn" title="Студия стиля и Аватарок" class="px-3 py-2 theme-btn text-white flex items-center gap-1.5 text-xs font-semibold">
-        <span>🎨</span>
-        <span>Стиль & Аватар</span>
+      <button id="openThemeStudioBtn" title="Открыть настройки (Звук, Шумоподавление, Аватар, Тема)" class="px-3.5 py-2 theme-btn text-white flex items-center gap-2 text-xs font-bold border border-purple-500/40">
+        <svg class="w-4 h-4 accent-text" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        <span>Настройки</span>
       </button>
 
       <button id="toggleChatBtn" title="Скрыть / Показать чат" class="relative p-2.5 theme-btn text-slate-200">
@@ -787,15 +1031,19 @@
             </div>
           </div>
 
-          <!-- Quick Studio & Soundpad Buttons -->
-          <div class="grid grid-cols-2 gap-2.5 pt-0.5">
-            <button id="heroOpenSoundpadBtn" type="button" class="py-2.5 px-4 rounded-xl theme-btn text-xs font-bold text-white flex items-center justify-center gap-2 border border-purple-500/40">
-              <span>🔊</span>
-              <span>Открыть Саундпад</span>
+          <!-- Quick Settings Shortcuts in Lobby -->
+          <div class="grid grid-cols-3 gap-2.5 pt-0.5">
+            <button id="heroOpenAudioSettingsBtn" type="button" class="py-2.5 px-3 rounded-xl theme-btn text-xs font-bold text-white flex items-center justify-center gap-2 border border-emerald-500/40">
+              <span>🎙️</span>
+              <span>Шумодав и Звук</span>
             </button>
-            <button id="heroOpenAvatarBtn" type="button" class="py-2.5 px-4 rounded-xl theme-btn text-xs font-bold text-white flex items-center justify-center gap-2 border border-amber-500/40">
+            <button id="heroOpenAvatarBtn" type="button" class="py-2.5 px-3 rounded-xl theme-btn text-xs font-bold text-white flex items-center justify-center gap-2 border border-amber-500/40">
               <span>👁️</span>
               <span>Аватарки LotR / HP</span>
+            </button>
+            <button id="heroOpenAppearanceBtn" type="button" class="py-2.5 px-3 rounded-xl theme-btn text-xs font-bold text-white flex items-center justify-center gap-2 border border-purple-500/40">
+              <span>🎨</span>
+              <span>Оформление</span>
             </button>
           </div>
         </div>
@@ -848,62 +1096,8 @@
         </div>
       </div>
 
-      <!-- Desktop Quality & Web Audio Mixer Popover -->
-      <div id="settingsPopover" class="hidden absolute bottom-24 left-1/2 -translate-x-1/2 z-30 w-96 theme-dock p-5 space-y-4">
-        <div class="flex items-center justify-between border-b border-white/10 pb-2.5">
-          <h3 class="text-xs font-bold uppercase tracking-wider text-white">Качество стрима & Микшер ПК</h3>
-          <button id="closeSettingsBtn" type="button" class="text-slate-400 hover:text-white p-1">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-          </button>
-        </div>
-
-        <div class="space-y-1.5">
-          <label class="text-[11px] text-slate-300 block">Разрешение и частота кадров (Экран)</label>
-          <select id="qualityPresetSelect" class="w-full bg-black/70 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none">
-            <option value="1440p60">QHD 1440p (2560×1440) @ 60 FPS — 12 Mbps</option>
-            <option value="1080p60" selected>Full HD 1080p (1920×1080) @ 60 FPS — 8.5 Mbps</option>
-            <option value="720p60">HD 720p (1280×720) @ 60 FPS — 4.5 Mbps</option>
-          </select>
-        </div>
-
-        <div class="space-y-1.5">
-          <label class="text-[11px] text-slate-300 block">Профиль кодирования WebRTC</label>
-          <select id="contentHintSelect" class="w-full bg-black/70 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none">
-            <option value="motion" selected>Игры / Видео (Приоритет плавности 60 FPS)</option>
-            <option value="detail">Код / Текст (Максимальная резкость пикселей)</option>
-          </select>
-        </div>
-
-        <!-- Audio Mixer -->
-        <div class="space-y-3 pt-2 border-t border-white/10">
-          <div class="space-y-1">
-            <div class="flex justify-between text-[11px]">
-              <span class="text-slate-300">Усиление вашего микрофона</span>
-              <span id="micGainLabel" class="font-mono accent-text">100%</span>
-            </div>
-            <input id="micGainSlider" type="range" min="0" max="200" value="100" class="w-full" />
-          </div>
-
-          <div class="space-y-1">
-            <div class="flex justify-between text-[11px]">
-              <span class="text-slate-300">Громкость системного звука экрана</span>
-              <span id="sysGainLabel" class="font-mono accent-text">100%</span>
-            </div>
-            <input id="sysGainSlider" type="range" min="0" max="200" value="100" class="w-full" />
-          </div>
-
-          <div class="space-y-1">
-            <div class="flex justify-between text-[11px]">
-              <span class="text-slate-300">Громкость собеседника</span>
-              <span id="remoteVolLabel" class="font-mono text-emerald-400">100%</span>
-            </div>
-            <input id="remoteVolSlider" type="range" min="0" max="100" value="100" class="w-full" />
-          </div>
-        </div>
-      </div>
-
-      <!-- Bottom Floating Desktop Control Dock -->
-      <div class="absolute bottom-5 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2.5 px-4 py-2.5 theme-dock">
+      <!-- Bottom Floating Desktop Control Dock (VISIBLE ONLY WHEN IN A CALL WITH SOMEONE) -->
+      <div id="callControlDock" class="hidden absolute bottom-5 left-1/2 -translate-x-1/2 z-30 items-center gap-2.5 px-4 py-2.5 theme-dock transition-all duration-300">
         <!-- Microphone Toggle -->
         <button id="micToggleBtn" type="button" title="Включить / Выключить микрофон" class="h-11 px-3.5 theme-btn text-white flex items-center gap-2 text-xs font-bold">
           <svg id="micIconOn" class="w-5 h-5 hidden text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /></svg>
@@ -936,8 +1130,8 @@
           <span>Саундпад</span>
         </button>
 
-        <!-- Mixer & Stream Quality Settings -->
-        <button id="openSettingsBtn" type="button" title="Качество стрима и микшер громкости" class="w-11 h-11 theme-btn text-slate-200 flex items-center justify-center">
+        <!-- Audio & Noise Suppression Settings Button -->
+        <button id="openSettingsBtn" type="button" title="Настройки шумоподавления, звука и качества стрима" class="w-11 h-11 theme-btn text-slate-200 flex items-center justify-center">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" /></svg>
         </button>
 
@@ -947,7 +1141,7 @@
         </button>
 
         <!-- Disconnect Call -->
-        <button id="disconnectBtn" type="button" title="Отключиться от комнаты" class="hidden h-11 px-3.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white items-center gap-1.5 text-xs font-bold">
+        <button id="disconnectBtn" type="button" title="Отключиться от комнаты" class="h-11 px-3.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white flex items-center gap-1.5 text-xs font-bold">
           <span>Выйти</span>
         </button>
       </div>
@@ -1113,6 +1307,16 @@
 
     const CHUNK_SIZE = 64 * 1024;
 
+    const DEFAULT_AUDIO_SETTINGS = {
+      mode: 'studio', // 'studio' | 'standard' | 'raw'
+      noiseSuppression: true,
+      echoCancellation: true,
+      autoGainControl: true,
+      voiceFilter: true, // High-pass 85Hz + Low-pass 14kHz + Compressor
+      noiseGateThreshold: 12, // 0..60
+      deviceId: 'default'
+    };
+
     const state = {
       myPeerId: '',
       peerReady: false,
@@ -1121,6 +1325,7 @@
       pendingTargetId: null,
       dataConn: null,
       mediaCall: null,
+      inCall: false,
       remotePeerId: null,
       remoteNickname: null,
       remoteAvatarId: 'hp-hallows',
@@ -1129,6 +1334,7 @@
 
       videoMode: 'none', // 'none' | 'screen' | 'camera'
       micEnabled: false,
+      micLoopbackTest: false,
       sysAudioAvailable: false,
       selectedPreset: '1080p60',
       contentHint: 'motion',
@@ -1144,7 +1350,13 @@
       audioCtx: null,
       audioDest: null,
       micSourceNode: null,
+      micHighPassNode: null,
+      micLowPassNode: null,
+      micCompressorNode: null,
+      micNoiseGateNode: null,
       micGainNode: null,
+      micMonitorGainNode: null,
+      rawMicAnalyser: null,
       sysSourceNode: null,
       sysGainNode: null,
       soundpadGainNode: null,
@@ -1164,7 +1376,8 @@
       prevStatsTimestamp: 0,
 
       incomingFiles: {},
-      theme: { ...DEFAULT_THEME }
+      theme: { ...DEFAULT_THEME },
+      audioSettings: { ...DEFAULT_AUDIO_SETTINGS }
     };
 
     const el = {
@@ -1205,6 +1418,7 @@
       localVideo: document.getElementById('localVideo'),
       localPipLabel: document.getElementById('localPipLabel'),
 
+      callControlDock: document.getElementById('callControlDock'),
       micToggleBtn: document.getElementById('micToggleBtn'),
       micIconOn: document.getElementById('micIconOn'),
       micIconOff: document.getElementById('micIconOff'),
@@ -1216,8 +1430,6 @@
       disconnectBtn: document.getElementById('disconnectBtn'),
 
       openSettingsBtn: document.getElementById('openSettingsBtn'),
-      closeSettingsBtn: document.getElementById('closeSettingsBtn'),
-      settingsPopover: document.getElementById('settingsPopover'),
       qualityPresetSelect: document.getElementById('qualityPresetSelect'),
       contentHintSelect: document.getElementById('contentHintSelect'),
       micGainSlider: document.getElementById('micGainSlider'),
@@ -1226,6 +1438,21 @@
       sysGainLabel: document.getElementById('sysGainLabel'),
       remoteVolSlider: document.getElementById('remoteVolSlider'),
       remoteVolLabel: document.getElementById('remoteVolLabel'),
+      settingsSoundpadVolSlider: document.getElementById('settingsSoundpadVolSlider'),
+      settingsSoundpadVolLabel: document.getElementById('settingsSoundpadVolLabel'),
+
+      audioInputSelect: document.getElementById('audioInputSelect'),
+      micLoopbackTestBtn: document.getElementById('micLoopbackTestBtn'),
+      micLoopbackLabel: document.getElementById('micLoopbackLabel'),
+      micLiveLevelBar: document.getElementById('micLiveLevelBar'),
+      noiseGateMarker: document.getElementById('noiseGateMarker'),
+      noiseGateSlider: document.getElementById('noiseGateSlider'),
+      noiseGateValLabel: document.getElementById('noiseGateValLabel'),
+      noiseGateStatusBadge: document.getElementById('noiseGateStatusBadge'),
+      toggleNoiseSuppression: document.getElementById('toggleNoiseSuppression'),
+      toggleEchoCancellation: document.getElementById('toggleEchoCancellation'),
+      toggleAutoGain: document.getElementById('toggleAutoGain'),
+      toggleVoiceFilter: document.getElementById('toggleVoiceFilter'),
 
       openSoundpadBtn: document.getElementById('openSoundpadBtn'),
       closeSoundpadBtn: document.getElementById('closeSoundpadBtn'),
@@ -1281,6 +1508,8 @@
       doneThemeBtn: document.getElementById('doneThemeBtn'),
       resetThemeBtn: document.getElementById('resetThemeBtn'),
       themeStudioModal: document.getElementById('themeStudioModal'),
+      settingsModalTitle: document.getElementById('settingsModalTitle'),
+      settingsModalSubtitle: document.getElementById('settingsModalSubtitle'),
       customNicknameInput: document.getElementById('customNicknameInput'),
       customWallpaperInput: document.getElementById('customWallpaperInput'),
       applyWallpaperBtn: document.getElementById('applyWallpaperBtn'),
@@ -1411,13 +1640,110 @@
         const raw = localStorage.getItem('disstya_pc_theme_v2');
         if (raw) state.theme = { ...DEFAULT_THEME, ...JSON.parse(raw) };
       } catch (e) {}
+      try {
+        const rawAudio = localStorage.getItem('disstya_pc_audio_v1');
+        if (rawAudio) state.audioSettings = { ...DEFAULT_AUDIO_SETTINGS, ...JSON.parse(rawAudio) };
+      } catch (e) {}
       if (el.customNicknameInput) el.customNicknameInput.value = state.theme.nickname || '';
       if (el.customWallpaperInput) el.customWallpaperInput.value = state.theme.customWallpaper || '';
       applyThemeToDOM();
+      syncAudioSettingsUI();
     }
 
     function saveTheme() {
       try { localStorage.setItem('disstya_pc_theme_v2', JSON.stringify(state.theme)); } catch (e) {}
+    }
+
+    function saveAudioSettings() {
+      try { localStorage.setItem('disstya_pc_audio_v1', JSON.stringify(state.audioSettings)); } catch (e) {}
+    }
+
+    const SETTINGS_TAB_META = {
+      audio: {
+        title: 'Голос, Микрофон и Шумоподавление',
+        subtitle: 'Настройка чистоты голоса, отсечения шума клавиатуры и микшера каналов'
+      },
+      profile: {
+        title: 'Профиль и Анимированные Аватарки',
+        subtitle: 'Ваш уличный тег, аватарки Властелина Колец, Гарри Поттера и свои GIF'
+      },
+      stream: {
+        title: 'Качество стрима 60 FPS и Кодирование',
+        subtitle: 'Управление битрейтом WebRTC, разрешением 1080p/1440p и подсветкой Ambilight'
+      },
+      appearance: {
+        title: 'Оформление, Палитра и Стиль disstya',
+        subtitle: 'Персонализация тем, граффити-шрифта, обоев сцены и силы неона'
+      }
+    };
+
+    function openSettingsModal(tabId = 'audio') {
+      el.themeStudioModal.classList.remove('hidden');
+      switchSettingsTab(tabId);
+      populateAudioDevicesList();
+    }
+
+    function closeSettingsModal() {
+      if (state.micLoopbackTest) {
+        toggleMicLoopbackTest(false);
+      }
+      el.themeStudioModal.classList.add('hidden');
+    }
+
+    function switchSettingsTab(tabId) {
+      document.querySelectorAll('.settings-tab-pane').forEach(pane => pane.classList.add('hidden'));
+      const targetPane = document.getElementById(`settingsTab-${tabId}`);
+      if (targetPane) targetPane.classList.remove('hidden');
+
+      document.querySelectorAll('.settings-nav-btn').forEach(btn => {
+        const isCurrent = btn.getAttribute('data-settings-tab') === tabId;
+        btn.classList.toggle('theme-btn-active', isCurrent);
+      });
+
+      const meta = SETTINGS_TAB_META[tabId] || SETTINGS_TAB_META.audio;
+      if (el.settingsModalTitle) el.settingsModalTitle.textContent = meta.title;
+      if (el.settingsModalSubtitle) el.settingsModalSubtitle.textContent = meta.subtitle;
+    }
+
+    function syncAudioSettingsUI() {
+      const a = state.audioSettings;
+      if (el.toggleNoiseSuppression) el.toggleNoiseSuppression.checked = Boolean(a.noiseSuppression);
+      if (el.toggleEchoCancellation) el.toggleEchoCancellation.checked = Boolean(a.echoCancellation);
+      if (el.toggleAutoGain) el.toggleAutoGain.checked = Boolean(a.autoGainControl);
+      if (el.toggleVoiceFilter) el.toggleVoiceFilter.checked = Boolean(a.voiceFilter);
+      if (el.noiseGateSlider) el.noiseGateSlider.value = a.noiseGateThreshold;
+      if (el.noiseGateValLabel) el.noiseGateValLabel.textContent = `${a.noiseGateThreshold}%`;
+      if (el.noiseGateMarker) el.noiseGateMarker.style.left = `${a.noiseGateThreshold}%`;
+
+      document.querySelectorAll('.nr-mode-btn').forEach(btn => {
+        btn.classList.toggle('theme-btn-active', btn.dataset.nrMode === a.mode);
+      });
+    }
+
+    async function populateAudioDevicesList() {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices || !el.audioInputSelect) return;
+      try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const inputs = devices.filter(d => d.kind === 'audioinput');
+        const currentVal = state.audioSettings.deviceId || 'default';
+        el.audioInputSelect.innerHTML = '';
+
+        if (inputs.length === 0) {
+          const opt = document.createElement('option');
+          opt.value = 'default';
+          opt.textContent = 'Системный микрофон по умолчанию';
+          el.audioInputSelect.appendChild(opt);
+          return;
+        }
+
+        inputs.forEach((dev, idx) => {
+          const opt = document.createElement('option');
+          opt.value = dev.deviceId || 'default';
+          opt.textContent = dev.label || `Микрофон #${idx + 1}`;
+          if (opt.value === currentVal) opt.selected = true;
+          el.audioInputSelect.appendChild(opt);
+        });
+      } catch (e) {}
     }
 
     function applyThemeToDOM() {
@@ -1562,8 +1888,42 @@
           state.audioDest = state.audioCtx.createMediaStreamDestination();
           state.audioDest.channelCount = 2;
 
+          // Studio Voice DSP Filter Chain:
+          // micSource -> rawMicAnalyser -> highPass (85Hz) -> lowPass (14kHz) -> compressor -> noiseGate -> micGain -> audioDest
+          state.rawMicAnalyser = state.audioCtx.createAnalyser();
+          state.rawMicAnalyser.fftSize = 256;
+
+          state.micHighPassNode = state.audioCtx.createBiquadFilter();
+          state.micHighPassNode.type = 'highpass';
+          state.micHighPassNode.frequency.value = state.audioSettings.voiceFilter ? 85 : 10;
+
+          state.micLowPassNode = state.audioCtx.createBiquadFilter();
+          state.micLowPassNode.type = 'lowpass';
+          state.micLowPassNode.frequency.value = state.audioSettings.voiceFilter ? 14500 : 22000;
+
+          state.micCompressorNode = state.audioCtx.createDynamicsCompressor();
+          state.micCompressorNode.threshold.value = -24;
+          state.micCompressorNode.knee.value = 18;
+          state.micCompressorNode.ratio.value = state.audioSettings.voiceFilter ? 4 : 1;
+          state.micCompressorNode.attack.value = 0.003;
+          state.micCompressorNode.release.value = 0.15;
+
+          state.micNoiseGateNode = state.audioCtx.createGain();
+          state.micNoiseGateNode.gain.value = 1.0;
+
           state.micGainNode = state.audioCtx.createGain();
+          state.micGainNode.gain.value = 1.0;
+
+          state.micMonitorGainNode = state.audioCtx.createGain();
+          state.micMonitorGainNode.gain.value = 0; // Only active when testing mic in settings
+
+          state.micHighPassNode.connect(state.micLowPassNode);
+          state.micLowPassNode.connect(state.micCompressorNode);
+          state.micCompressorNode.connect(state.micNoiseGateNode);
+          state.micNoiseGateNode.connect(state.micGainNode);
           state.micGainNode.connect(state.audioDest);
+          state.micGainNode.connect(state.micMonitorGainNode);
+          state.micMonitorGainNode.connect(state.audioCtx.destination);
 
           state.sysGainNode = state.audioCtx.createGain();
           state.sysGainNode.connect(state.audioDest);
@@ -1602,6 +1962,55 @@
         startVoiceActivityDetectionLoop();
       }
       return state.masterOutStream;
+    }
+
+    function updateVoiceDspChainParams() {
+      if (!state.audioCtx) return;
+      const now = state.audioCtx.currentTime;
+      const useFilter = Boolean(state.audioSettings.voiceFilter);
+      if (state.micHighPassNode) {
+        state.micHighPassNode.frequency.setTargetAtTime(useFilter ? 85 : 10, now, 0.02);
+      }
+      if (state.micLowPassNode) {
+        state.micLowPassNode.frequency.setTargetAtTime(useFilter ? 14500 : 22000, now, 0.02);
+      }
+      if (state.micCompressorNode) {
+        state.micCompressorNode.ratio.setTargetAtTime(useFilter ? 4 : 1, now, 0.02);
+      }
+    }
+
+    async function applyAudioConstraintsToActiveMic() {
+      updateVoiceDspChainParams();
+      if (!state.micStream) return;
+      const track = state.micStream.getAudioTracks()[0];
+      if (!track || !track.applyConstraints) return;
+      try {
+        await track.applyConstraints({
+          noiseSuppression: Boolean(state.audioSettings.noiseSuppression),
+          echoCancellation: Boolean(state.audioSettings.echoCancellation),
+          autoGainControl: Boolean(state.audioSettings.autoGainControl)
+        });
+      } catch (e) {}
+    }
+
+    async function toggleMicLoopbackTest(forceState) {
+      await resumeAudioContextIfNeeded();
+      const target = forceState !== undefined ? forceState : !state.micLoopbackTest;
+      if (target && !state.micStream) {
+        await acquireMicrophoneStream();
+      }
+      state.micLoopbackTest = Boolean(target && state.micStream);
+      if (state.micMonitorGainNode && state.audioCtx) {
+        state.micMonitorGainNode.gain.setTargetAtTime(
+          state.micLoopbackTest ? 1.0 : 0.0,
+          state.audioCtx.currentTime,
+          0.02
+        );
+      }
+      if (el.micLoopbackTestBtn && el.micLoopbackLabel) {
+        el.micLoopbackTestBtn.classList.toggle('theme-btn-active', state.micLoopbackTest);
+        el.micLoopbackLabel.textContent = state.micLoopbackTest ? 'Остановить тест' : 'Прослушать себя';
+      }
     }
 
     async function resumeAudioContextIfNeeded() {
@@ -1644,6 +2053,36 @@
     function startVoiceActivityDetectionLoop() {
       const SPEAK_THRESHOLD = 13;
       const tick = () => {
+        // 1. Raw Microphone level for Noise Gate & Settings VU Meter
+        const rawMicVol = (state.micStream && (state.micEnabled || state.micLoopbackTest))
+          ? computeAnalyserVolume(state.rawMicAnalyser)
+          : 0;
+        const normalizedMicPct = Math.min(100, Math.round((rawMicVol / 95) * 100));
+        const gateThreshold = Number(state.audioSettings.noiseGateThreshold || 0);
+        const gateOpen = gateThreshold === 0 || normalizedMicPct >= gateThreshold;
+
+        if (state.micNoiseGateNode && state.audioCtx) {
+          const targetGain = gateOpen ? 1.0 : 0.0;
+          state.micNoiseGateNode.gain.setTargetAtTime(targetGain, state.audioCtx.currentTime, gateOpen ? 0.008 : 0.06);
+        }
+
+        if (el.micLiveLevelBar) {
+          el.micLiveLevelBar.style.width = `${normalizedMicPct}%`;
+        }
+        if (el.noiseGateStatusBadge) {
+          if (!state.micEnabled && !state.micLoopbackTest) {
+            el.noiseGateStatusBadge.textContent = 'Микрофон выкл';
+            el.noiseGateStatusBadge.className = 'font-mono text-[10px] px-2 py-0.5 rounded bg-white/10 text-slate-400';
+          } else if (gateOpen && normalizedMicPct > 2) {
+            el.noiseGateStatusBadge.textContent = 'Голос в эфире';
+            el.noiseGateStatusBadge.className = 'font-mono text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300';
+          } else {
+            el.noiseGateStatusBadge.textContent = 'Шум отсечен (Gate)';
+            el.noiseGateStatusBadge.className = 'font-mono text-[10px] px-2 py-0.5 rounded bg-amber-500/20 text-amber-300';
+          }
+        }
+
+        // 2. Post-Gate Local Speaking Ring
         const localVol = (state.micEnabled || state.activeSoundNodes.length > 0)
           ? computeAnalyserVolume(state.localAnalyser)
           : 0;
@@ -1653,6 +2092,7 @@
         el.stageMyAvatar.classList.toggle('is-speaking', isLocalSpeaking);
         el.localPipCard.classList.toggle('is-speaking', isLocalSpeaking);
 
+        // 3. Remote Speaking Ring
         const remoteVol = state.remoteAnalyser ? computeAnalyserVolume(state.remoteAnalyser) : 0;
         const isRemoteSpeaking = remoteVol > SPEAK_THRESHOLD;
 
@@ -1875,21 +2315,34 @@
       });
     }
 
+    function updateCallDockVisibility(inCall) {
+      state.inCall = Boolean(inCall);
+      if (!el.callControlDock) return;
+      if (state.inCall) {
+        el.callControlDock.classList.remove('hidden');
+        el.callControlDock.classList.add('flex');
+      } else {
+        el.callControlDock.classList.add('hidden');
+        el.callControlDock.classList.remove('flex');
+        el.soundpadPopover.classList.add('hidden');
+      }
+    }
+
     function setConnectionStatus(mode, labelText) {
       el.connStatusText.textContent = labelText || '';
       el.connStatusDot.className = 'w-2.5 h-2.5 rounded-full relative ';
       if (mode === 'connected') {
         el.connStatusDot.classList.add('bg-emerald-400', 'pulse-indicator');
-        el.disconnectBtn.classList.remove('hidden');
-        el.disconnectBtn.classList.add('flex');
+        updateCallDockVisibility(true);
       } else if (mode === 'connecting') {
         el.connStatusDot.classList.add('bg-amber-400', 'animate-ping');
+        updateCallDockVisibility(false);
       } else if (mode === 'error') {
         el.connStatusDot.classList.add('bg-rose-500');
+        updateCallDockVisibility(false);
       } else {
         el.connStatusDot.classList.add('bg-purple-400');
-        el.disconnectBtn.classList.add('hidden');
-        el.disconnectBtn.classList.remove('flex');
+        updateCallDockVisibility(false);
       }
     }
 
@@ -2060,24 +2513,49 @@
       }
     }
 
+    async function acquireMicrophoneStream() {
+      await resumeAudioContextIfNeeded();
+      if (state.micStream) {
+        state.micStream.getTracks().forEach(t => t.stop());
+        state.micStream = null;
+      }
+      if (state.micSourceNode) {
+        try { state.micSourceNode.disconnect(); } catch (e) {}
+        state.micSourceNode = null;
+      }
+
+      const a = state.audioSettings;
+      const audioConstraints = {
+        echoCancellation: Boolean(a.echoCancellation),
+        noiseSuppression: Boolean(a.noiseSuppression),
+        autoGainControl: Boolean(a.autoGainControl),
+        channelCount: 2,
+        sampleRate: 48000
+      };
+      if (a.deviceId && a.deviceId !== 'default') {
+        audioConstraints.deviceId = { ideal: a.deviceId };
+      }
+
+      state.micStream = await navigator.mediaDevices.getUserMedia({
+        audio: audioConstraints,
+        video: false
+      });
+
+      if (state.audioCtx && state.micHighPassNode) {
+        state.micSourceNode = state.audioCtx.createMediaStreamSource(state.micStream);
+        state.micSourceNode.connect(state.rawMicAnalyser);
+        state.micSourceNode.connect(state.micHighPassNode);
+        updateVoiceDspChainParams();
+      }
+      populateAudioDevicesList();
+      return state.micStream;
+    }
+
     async function toggleMicrophone() {
       await resumeAudioContextIfNeeded();
       if (!state.micStream) {
         try {
-          state.micStream = await navigator.mediaDevices.getUserMedia({
-            audio: {
-              echoCancellation: true,
-              noiseSuppression: true,
-              autoGainControl: true,
-              channelCount: 2,
-              sampleRate: 48000
-            },
-            video: false
-          });
-          if (state.audioCtx && state.micGainNode) {
-            state.micSourceNode = state.audioCtx.createMediaStreamSource(state.micStream);
-            state.micSourceNode.connect(state.micGainNode);
-          }
+          await acquireMicrophoneStream();
           state.micEnabled = true;
         } catch (err) {
           showToast('Не удалось получить доступ к микрофону', 'error');
@@ -2093,7 +2571,7 @@
       el.micToggleBtn.classList.toggle('theme-btn-active', state.micEnabled);
       el.micBtnLabel.textContent = state.micEnabled ? 'Микро вкл' : 'Микрофон';
       broadcastMediaState();
-      showToast(state.micEnabled ? 'Микрофон включен' : 'Микрофон выключен', 'info');
+      showToast(state.micEnabled ? 'Микрофон включен (Шумодав активен)' : 'Микрофон выключен', 'info');
     }
 
     async function startScreenShare() {
@@ -2319,6 +2797,9 @@
 
     function handleCallClosed() {
       stopWebRtcStatsLoop();
+      if (state.videoMode !== 'none') {
+        stopVideoBroadcast();
+      }
       el.remoteVideo.srcObject = null;
       el.remoteVideo.classList.add('hidden');
       el.idleStageOverlay.classList.remove('hidden');
@@ -2736,19 +3217,105 @@
         }
       });
 
+      // Open unified Settings Modal on Audio/Noise Suppression tab from bottom dock or lobby
       el.openSettingsBtn.addEventListener('click', () => {
         el.soundpadPopover.classList.add('hidden');
-        el.settingsPopover.classList.toggle('hidden');
+        openSettingsModal('audio');
       });
-      el.closeSettingsBtn.addEventListener('click', () => el.settingsPopover.classList.add('hidden'));
+
+      const heroOpenAudioSettingsBtn = document.getElementById('heroOpenAudioSettingsBtn');
+      if (heroOpenAudioSettingsBtn) {
+        heroOpenAudioSettingsBtn.addEventListener('click', () => openSettingsModal('audio'));
+      }
+      const heroOpenAppearanceBtn = document.getElementById('heroOpenAppearanceBtn');
+      if (heroOpenAppearanceBtn) {
+        heroOpenAppearanceBtn.addEventListener('click', () => openSettingsModal('appearance'));
+      }
+
+      // Settings Modal Sidebar Navigation
+      document.querySelectorAll('.settings-nav-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          switchSettingsTab(btn.getAttribute('data-settings-tab'));
+        });
+      });
+
+      // Noise Suppression Mode Presets
+      document.querySelectorAll('.nr-mode-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const mode = btn.dataset.nrMode;
+          state.audioSettings.mode = mode;
+          if (mode === 'studio') {
+            state.audioSettings.noiseSuppression = true;
+            state.audioSettings.echoCancellation = true;
+            state.audioSettings.autoGainControl = true;
+            state.audioSettings.voiceFilter = true;
+            if (state.audioSettings.noiseGateThreshold === 0) state.audioSettings.noiseGateThreshold = 12;
+          } else if (mode === 'standard') {
+            state.audioSettings.noiseSuppression = true;
+            state.audioSettings.echoCancellation = true;
+            state.audioSettings.autoGainControl = true;
+            state.audioSettings.voiceFilter = false;
+          } else if (mode === 'raw') {
+            state.audioSettings.noiseSuppression = false;
+            state.audioSettings.echoCancellation = false;
+            state.audioSettings.autoGainControl = false;
+            state.audioSettings.voiceFilter = false;
+            state.audioSettings.noiseGateThreshold = 0;
+          }
+          syncAudioSettingsUI();
+          saveAudioSettings();
+          await applyAudioConstraintsToActiveMic();
+          showToast(`Режим обработки голоса: ${mode === 'studio' ? 'Студийный AI/DSP' : mode === 'standard' ? 'Стандартный' : 'Чистый эфир'}`, 'success');
+        });
+      });
+
+      // Granular Noise Suppression Toggles
+      const handleDspCheckboxChange = async () => {
+        state.audioSettings.noiseSuppression = el.toggleNoiseSuppression.checked;
+        state.audioSettings.echoCancellation = el.toggleEchoCancellation.checked;
+        state.audioSettings.autoGainControl = el.toggleAutoGain.checked;
+        state.audioSettings.voiceFilter = el.toggleVoiceFilter.checked;
+        saveAudioSettings();
+        await applyAudioConstraintsToActiveMic();
+      };
+      el.toggleNoiseSuppression.addEventListener('change', handleDspCheckboxChange);
+      el.toggleEchoCancellation.addEventListener('change', handleDspCheckboxChange);
+      el.toggleAutoGain.addEventListener('change', handleDspCheckboxChange);
+      el.toggleVoiceFilter.addEventListener('change', handleDspCheckboxChange);
+
+      // Noise Gate Threshold Slider
+      el.noiseGateSlider.addEventListener('input', (e) => {
+        const val = Number(e.target.value);
+        state.audioSettings.noiseGateThreshold = val;
+        el.noiseGateValLabel.textContent = `${val}%`;
+        if (el.noiseGateMarker) el.noiseGateMarker.style.left = `${val}%`;
+        saveAudioSettings();
+      });
+
+      // Microphone Device Selection
+      el.audioInputSelect.addEventListener('change', async (e) => {
+        state.audioSettings.deviceId = e.target.value;
+        saveAudioSettings();
+        if (state.micStream) {
+          try {
+            await acquireMicrophoneStream();
+            state.micStream.getAudioTracks().forEach(t => { t.enabled = state.micEnabled || state.micLoopbackTest; });
+            showToast('Микрофон переключен', 'success');
+          } catch (err) {
+            showToast('Ошибка переключения микрофона', 'error');
+          }
+        }
+      });
+
+      // Mic Loopback Self-Test Button
+      el.micLoopbackTestBtn.addEventListener('click', () => {
+        toggleMicLoopbackTest();
+      });
 
       const toggleSoundpad = () => {
-        el.settingsPopover.classList.add('hidden');
         el.soundpadPopover.classList.toggle('hidden');
       };
       el.openSoundpadBtn.addEventListener('click', toggleSoundpad);
-      const heroOpenSoundpadBtn = document.getElementById('heroOpenSoundpadBtn');
-      if (heroOpenSoundpadBtn) heroOpenSoundpadBtn.addEventListener('click', toggleSoundpad);
       el.closeSoundpadBtn.addEventListener('click', () => el.soundpadPopover.classList.add('hidden'));
       el.stopAllSoundsBtn.addEventListener('click', stopAllSoundpadAudio);
 
@@ -2771,11 +3338,17 @@
         broadcastMediaState();
       });
 
-      el.soundpadVolSlider.addEventListener('input', (e) => {
-        const val = Number(e.target.value);
+      const updateSoundpadGain = (val) => {
         el.soundpadVolLabel.textContent = `${val}%`;
+        el.soundpadVolSlider.value = val;
+        if (el.settingsSoundpadVolLabel) el.settingsSoundpadVolLabel.textContent = `${val}%`;
+        if (el.settingsSoundpadVolSlider) el.settingsSoundpadVolSlider.value = val;
         if (state.soundpadGainNode) state.soundpadGainNode.gain.value = val / 100;
-      });
+      };
+      el.soundpadVolSlider.addEventListener('input', (e) => updateSoundpadGain(Number(e.target.value)));
+      if (el.settingsSoundpadVolSlider) {
+        el.settingsSoundpadVolSlider.addEventListener('input', (e) => updateSoundpadGain(Number(e.target.value)));
+      }
 
       el.uploadSoundBtn.addEventListener('click', () => el.soundpadUploadInput.click());
       el.soundpadUploadInput.addEventListener('change', async (e) => {
@@ -2874,15 +3447,16 @@
         if (e.target === el.imageModal) el.imageModal.classList.add('hidden');
       });
 
-      const closeStudio = () => el.themeStudioModal.classList.add('hidden');
-      const openStudio = () => el.themeStudioModal.classList.remove('hidden');
-      el.openThemeStudioBtn.addEventListener('click', openStudio);
-      el.headerAvatarBtn.addEventListener('click', openStudio);
-      el.stageMyAvatar.addEventListener('click', openStudio);
+      el.openThemeStudioBtn.addEventListener('click', () => openSettingsModal('audio'));
+      el.headerAvatarBtn.addEventListener('click', () => openSettingsModal('profile'));
+      el.stageMyAvatar.addEventListener('click', () => openSettingsModal('profile'));
       const heroOpenAvatarBtn = document.getElementById('heroOpenAvatarBtn');
-      if (heroOpenAvatarBtn) heroOpenAvatarBtn.addEventListener('click', openStudio);
-      el.closeThemeStudioBtn.addEventListener('click', closeStudio);
-      el.doneThemeBtn.addEventListener('click', closeStudio);
+      if (heroOpenAvatarBtn) heroOpenAvatarBtn.addEventListener('click', () => openSettingsModal('profile'));
+      el.closeThemeStudioBtn.addEventListener('click', closeSettingsModal);
+      el.doneThemeBtn.addEventListener('click', closeSettingsModal);
+      el.themeStudioModal.addEventListener('click', (e) => {
+        if (e.target === el.themeStudioModal) closeSettingsModal();
+      });
 
       document.querySelectorAll('.avatar-preset-btn').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -3001,9 +3575,13 @@
       el.resetThemeBtn.addEventListener('click', () => {
         const nick = state.theme.nickname;
         state.theme = { ...DEFAULT_THEME, nickname: nick };
+        state.audioSettings = { ...DEFAULT_AUDIO_SETTINGS };
         applyThemeToDOM();
+        syncAudioSettingsUI();
+        applyAudioConstraintsToActiveMic();
         saveTheme();
-        showToast('Стиль сброшен по умолчанию', 'info');
+        saveAudioSettings();
+        showToast('Настройки стиля и звука сброшены по умолчанию', 'info');
       });
     }
 
