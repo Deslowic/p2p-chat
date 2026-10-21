@@ -3,2050 +3,2903 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>P2P Studio Link // 1080p60 &amp; 128kbps Stereo Opus</title>
-  <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+  <title>disstya — P2P Стрим 60 FPS & Голос без VPN</title>
+
+  <!-- Уличные шрифты и современный UI-шрифт (не блокируются и имеют системный фоллбэк) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&family=Permanent+Marker&family=Rock+Salt&family=Rubik+Wet+Paint&family=Sedgwick+Ave+Display&display=swap" rel="stylesheet">
+
   <style>
     :root {
-      --bg-root: #090a0d;
-      --bg-panel: #111318;
-      --bg-elevated: #171a21;
-      --border: #242936;
-      --border-focus: #384152;
-      --text-main: #e2e8f0;
-      --text-muted: #8b95a5;
-      --text-dim: #566070;
-      --accent: #3b82f6;
-      --accent-hover: #2563eb;
-      --green: #10b981;
-      --green-bg: rgba(16, 185, 129, 0.12);
-      --amber: #f59e0b;
-      --amber-bg: rgba(245, 158, 11, 0.12);
-      --red: #ef4444;
-      --red-bg: rgba(239, 68, 68, 0.12);
-      --purple: #8b5cf6;
-      --purple-bg: rgba(139, 92, 246, 0.14);
-      --mono: 'JetBrains Mono', 'Fira Code', 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
-      --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --bg-base: #07070c;
+      --panel-rgb: 16, 17, 26;
+      --panel-alpha: 0.86;
+      --glass-blur: 20px;
+      --accent-1: #a855f7;
+      --accent-2: #ec4899;
+      --accent-glow: 0.45;
+      --radius-lg: 18px;
+      --radius-md: 12px;
+      --tag-font: 'Rubik Wet Paint', 'Permanent Marker', system-ui, sans-serif;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --border-subtle: rgba(255, 255, 255, 0.09);
+      --talk-green: #10b981;
+      --danger: #ef4444;
     }
 
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
+      user-select: none;
     }
 
     html, body {
-      height: 100%;
-      background-color: var(--bg-root);
-      color: var(--text-main);
-      font-family: var(--sans);
-      font-size: 13px;
-      line-height: 1.4;
+      width: 100vw;
+      height: 100vh;
       overflow: hidden;
-      user-select: none;
+      background-color: var(--bg-base);
+      color: var(--text-main);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       -webkit-font-smoothing: antialiased;
     }
 
-    .app-shell {
-      display: grid;
-      grid-template-rows: auto 1fr auto;
-      height: 100vh;
-      width: 100vw;
+    /* Атмосфера сцены */
+    .scene-bg {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      transition: opacity 0.4s ease;
+    }
+    .scene-bg.aurora {
+      background:
+        radial-gradient(circle at 18% 20%, color-mix(in srgb, var(--accent-1) 22%, transparent), transparent 45%),
+        radial-gradient(circle at 82% 78%, color-mix(in srgb, var(--accent-2) 18%, transparent), transparent 48%),
+        radial-gradient(circle at 50% 50%, rgba(15, 23, 42, 0.8), var(--bg-base));
+    }
+    .scene-bg.grid {
+      background-color: var(--bg-base);
+      background-image:
+        linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+      background-size: 36px 36px;
+    }
+    .scene-bg.dots {
+      background-color: var(--bg-base);
+      background-image: radial-gradient(rgba(255,255,255,0.08) 1px, transparent 1px);
+      background-size: 22px 22px;
+    }
+    .scene-bg.minimal {
+      background: var(--bg-base);
     }
 
-    /* TOP TELEMETRY &SIGNALING BAR */
+    /* Главная сетка приложения */
+    .app-shell {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    /* ВЕРХНЯЯ ПАНЕЛЬ (ШАПКА) */
     .topbar {
+      height: 62px;
+      padding: 0 20px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 12px;
-      padding: 10px 16px;
-      background-color: var(--bg-panel);
-      border-bottom: 1px solid var(--border);
-      flex-wrap: wrap;
+      gap: 16px;
+      background: rgba(var(--panel-rgb), var(--panel-alpha));
+      backdrop-filter: blur(var(--glass-blur));
+      border-bottom: 1px solid var(--border-subtle);
+      z-index: 20;
     }
 
-    .brand-group {
+    .brand-cluster {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 14px;
     }
 
-    .brand-title {
-      font-family: var(--mono);
-      font-weight: 700;
-      font-size: 13px;
-      letter-spacing: 0.04em;
-      color: var(--text-main);
+    /* Аватарка в шапке с индикатором голоса */
+    .avatar-trigger {
+      position: relative;
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      cursor: pointer;
       display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #12131f;
+      border: 2px solid rgba(255,255,255,0.16);
+      transition: transform 0.2s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .avatar-trigger:hover {
+      transform: scale(1.06);
+      border-color: var(--accent-1);
+    }
+    .avatar-trigger.speaking {
+      border-color: var(--talk-green) !important;
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.32), 0 0 18px var(--talk-green) !important;
+    }
+    .avatar-trigger svg, .avatar-trigger img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 50%;
+    }
+
+    /* Рамки аватарок */
+    .frame-mordor { border-color: #f97316 !important; box-shadow: 0 0 12px rgba(249, 115, 22, 0.5); }
+    .frame-ring { border-color: #eab308 !important; box-shadow: 0 0 12px rgba(234, 179, 8, 0.55); }
+    .frame-patronus { border-color: #38bdf8 !important; box-shadow: 0 0 14px rgba(56, 189, 248, 0.6); }
+    .frame-neon { border-color: var(--accent-1) !important; box-shadow: 0 0 12px var(--accent-1); }
+
+    .logo-tag {
+      font-family: var(--tag-font);
+      font-size: 27px;
+      letter-spacing: 1px;
+      background: linear-gradient(135deg, #ffffff 0%, var(--accent-1) 50%, var(--accent-2) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 2px 12px color-mix(in srgb, var(--accent-1) 50%, transparent));
+      transform: rotate(-2deg);
+    }
+
+    .status-pill {
+      display: inline-flex;
       align-items: center;
       gap: 8px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
     }
-
     .status-dot {
       width: 8px;
       height: 8px;
       border-radius: 50%;
-      background-color: var(--amber);
-      box-shadow: 0 0 8px var(--amber);
-      transition: background-color 0.2s, box-shadow 0.2s;
+      background: #f59e0b;
+      box-shadow: 0 0 8px #f59e0b;
+      transition: all 0.25s ease;
     }
+    .status-dot.ready { background: #10b981; box-shadow: 0 0 10px #10b981; }
+    .status-dot.incall { background: #38bdf8; box-shadow: 0 0 12px #38bdf8; }
+    .status-dot.error { background: #ef4444; box-shadow: 0 0 10px #ef4444; }
 
-    .status-dot.online {
-      background-color: var(--green);
-      box-shadow: 0 0 8px var(--green);
+    /* Центральный блок быстрого подключения в шапке */
+    .top-connect-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(0, 0, 0, 0.35);
+      padding: 5px 8px 5px 12px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-subtle);
     }
-
-    .status-dot.error {
-      background-color: var(--red);
-      box-shadow: 0 0 8px var(--red);
-    }
-
-    .badge {
-      font-family: var(--mono);
+    .my-id-label {
       font-size: 11px;
-      padding: 3px 8px;
-      border-radius: 4px;
-      background-color: var(--bg-elevated);
-      border: 1px solid var(--border);
       color: var(--text-muted);
-      white-space: nowrap;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .my-id-code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+      background: rgba(255,255,255,0.07);
+      padding: 4px 8px;
+      border-radius: 6px;
+      user-select: all;
     }
 
-    .badge.role-host {
-      color: var(--accent);
-      border-color: rgba(59, 130, 246, 0.35);
-      background-color: rgba(59, 130, 246, 0.1);
+    .top-input {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border-subtle);
+      color: #fff;
+      padding: 6px 11px;
+      border-radius: 8px;
+      font-size: 12.5px;
+      width: 190px;
+      outline: none;
+      transition: border-color 0.2s;
+      user-select: text;
     }
-
-    .badge.role-guest {
-      color: var(--purple);
-      border-color: rgba(139, 92, 246, 0.35);
-      background-color: var(--purple-bg);
-    }
-
-    . badge-sdp {
-      color: var(--green);
-      border-color: rgba(16, 185, 129, 0.3);
-      background-color: var(--green-bg);
-    }
-
-    .room-controls {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .room-box {
-      display: flex;
-      align-items: center;
-      background-color: var(--bg-root);
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      padding: 4px 10px;
-      font-family: var(--mono);
-      font-size: 12px;
-      color: var(--text-main);
-      gap: 8px;
-    }
-
-    .room-box span.label {
-      color: var(--text-dim);
-      font-size: 11px;
+    .top-input:focus {
+      border-color: var(--accent-1);
     }
 
     .btn {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 6px;
-      font-family: var(--mono);
-      font-size: 12px;
-      font-weight: 500;
-      padding: 6px 12px;
-      border-radius: 4px;
-      border: 1px solid var(--border);
-      background-color: var(--bg-elevated);
-      color: var(--text-main);
+      gap: 7px;
+      padding: 7px 14px;
+      border-radius: 9px;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: #fff;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid var(--border-subtle);
       cursor: pointer;
-      transition: all 0.15s ease;
+      transition: all 0.18s ease;
       white-space: nowrap;
     }
-
-    .btn:hover:not(:disabled) {
-      background-color: #202530;
-      border-color: var(--border-focus);
+    .btn:hover {
+      background: rgba(255,255,255,0.13);
+      border-color: rgba(255,255,255,0.22);
     }
-
-    .btn:active:not(:disabled) {
+    .btn:active {
       transform: translateY(1px);
     }
-
-    .btn:disabled {
-      opacity: 0.45;
-      cursor: not-allowed;
-    }
-
     .btn-primary {
-      background-color: var(--accent);
-      border-color: var(--accent);
-      color: #fff;
+      background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+      border: none;
+      box-shadow: 0 4px 16px color-mix(in srgb, var(--accent-1) 40%, transparent);
+    }
+    .btn-primary:hover {
+      filter: brightness(1.1);
+      box-shadow: 0 6px 22px color-mix(in srgb, var(--accent-1) 60%, transparent);
     }
 
-    .btn-primary:hover:not(:disabled) {
-      background-color: var(--accent-hover);
-      border-color: var(--accent-hover);
-    }
-
-    .btn-active-green {
-      background-color: var(--green-bg);
-      border-color: var(--green);
-      color: var(--green);
-    }
-
-    .btn-active-purple {
-      background-color: var(--purple-bg);
-      border-color: var(--purple);
-      color: #c4b5fd;
-    }
-
-    .btn-danger {
-      background-color: var(--red-bg);
-      border-color: rgba(239, 68, 68, 0.45);
-      color: #fca5a5;
-    }
-
-    .btn-danger:hover:not(:disabled) {
-      background-color: rgba(239, 68, 68, 0.25);
-      border-color: var(--red);
-    }
-
-    /* MAIN WORKSPACE */
-    .workspace {
-      display: grid;
-      grid-template-columns: 1fr 340px;
-      gap: 12px;
-      padding: 12px;
-      overflow: hidden;
-      min-height: 0;
-    }
-
-    @media (max-width: 980px) {
-      .workspace {
-        grid-template-columns: 1fr;
-        grid-template-rows: 1fr auto;
-        overflow-y: auto;
-      }
-    }
-
-    /* STAGE / STREAM VIEWPORT */
-    .stage-container {
-      position: relative;
+    .top-actions {
       display: flex;
-      flex-direction: column;
-      background-color: #050608;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      overflow: hidden;
-      min-height: 280px;
+      align-items: center;
+      gap: 10px;
     }
 
-    .video-wrapper {
+    .stats-badge {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 11px;
+      border-radius: 8px;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11.5px;
+      color: #34d399;
+    }
+    .stats-badge.visible {
+      display: inline-flex;
+    }
+
+    /* РАБОЧАЯ ОБЛАСТЬ (СЦЕНА + ЧАТ) */
+    .workspace {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
       position: relative;
-      width: 100%;
-      height: 100%;
+    }
+
+    .stage-area {
+      flex: 1;
+      position: relative;
       display: flex;
       align-items: center;
       justify-content: center;
-      background: radial-gradient(circle at center, #0e1117 0%, #050608 100%);
+      overflow: hidden;
+      padding: 20px;
     }
 
-    video#remoteVideo {
+    /* Ambilight подсветка видео */
+    .ambilight-glow {
+      position: absolute;
+      width: 78%;
+      height: 78%;
+      border-radius: 40px;
+      background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+      filter: blur(90px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.5s ease;
+    }
+    .ambilight-glow.active {
+      opacity: 0.24;
+    }
+
+    /* Контейнер видеоплеера */
+    .video-frame {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      border-radius: var(--radius-lg);
+      background: rgba(8, 9, 15, 0.72);
+      border: 1.5px solid var(--border-subtle);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65);
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .video-frame.remote-speaking {
+      border-color: var(--talk-green);
+      box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.35), 0 0 32px rgba(16, 185, 129, 0.28);
+    }
+
+    #remoteVideo {
       width: 100%;
       height: 100%;
       object-fit: contain;
-      background-color: #000;
-      display: block;
-    }
-
-    .stage-overlay-top {
-      position: absolute;
-      top: 12px;
-      left: 12px;
-      right: 12px;
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      pointer-events: none;
-      z-index: 10;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .hud-pills {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-      pointer-events: auto;
-    }
-
-    .hud-pill {
-      font-family: var(--mono);
-      font-size: 11px;
-      padding: 4px 8px;
-      border-radius: 4px;
-      background-color: rgba(11, 13, 18, 0.85);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      color: var(--text-main);
-      backdrop-filter: blur(4px);
-    }
-
-    .hud-pill strong {
-      color: var(--green);
-      font-weight: 600;
-    }
-
-    .local-pip {
-      position: absolute;
-      bottom: 14px;
-      right: 14px;
-      width: 220px;
-      aspect-ratio: 16 / 9;
-      background-color: #0b0d12;
-      border: 1px solid var(--border-focus);
-      border-radius: 5px;
-      overflow: hidden;
-      z-index: 12;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.65);
+      background: #050508;
       display: none;
     }
-
-    .local-pip.active {
+    #remoteVideo.active {
       display: block;
     }
 
+    /* Плашка собеседника во время звонка (когда стрим экрана еще не включен) */
+    .remote-peer-stage {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      z-index: 4;
+      text-align: center;
+    }
+    .remote-peer-stage.visible {
+      display: flex;
+    }
+    .remote-avatar-big {
+      width: 108px;
+      height: 108px;
+      border-radius: 50%;
+      background: #131524;
+      border: 3px solid rgba(255,255,255,0.18);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+    }
+    .remote-avatar-big.speaking {
+      border-color: var(--talk-green) !important;
+      transform: scale(1.06);
+      box-shadow: 0 0 0 6px rgba(16, 185, 129, 0.22), 0 0 35px var(--talk-green) !important;
+    }
+    .remote-avatar-big svg, .remote-avatar-big img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .remote-peer-name {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+    }
+    .remote-peer-sub {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    /* Миниатюра своего экрана/вебки (PiP) */
+    .local-pip {
+      position: absolute;
+      right: 22px;
+      bottom: 88px;
+      width: 230px;
+      aspect-ratio: 16 / 9;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #0c0d14;
+      border: 1.5px solid rgba(255,255,255,0.18);
+      box-shadow: 0 12px 30px rgba(0,0,0,0.6);
+      display: none;
+      z-index: 8;
+    }
+    .local-pip.visible {
+      display: block;
+    }
     .local-pip video {
       width: 100%;
       height: 100%;
-      object-fit: contain;
-      background: #000;
+      object-fit: cover;
+    }
+    .local-pip-tag {
+      position: absolute;
+      left: 8px;
+      bottom: 6px;
+      padding: 2px 7px;
+      border-radius: 5px;
+      background: rgba(0,0,0,0.7);
+      font-size: 10.5px;
+      font-weight: 600;
     }
 
-    .local-pip-label {
-      position: absolute;
-      bottom: 4px;
-      left: 6px;
-      font-family: var(--mono);
-      font-size: 10px;
-      padding: 2px 5px;
-      border-radius: 3px;
-      background: rgba(0, 0, 0, 0.75);
-      color: var(--green);
-      border: 1px solid rgba(16, 185, 129, 0.3);
-    }
-
-    .empty-stage {
-      position: absolute;
-      inset: 0;
+    /* КАРТОЧКА ЛОББИ (В ЦЕНТРЕ ЭКРАНА ДО ЗВОНКА) */
+    .lobby-card {
+      position: relative;
+      z-index: 5;
+      width: 100%;
+      max-width: 470px;
+      padding: 30px 28px;
+      border-radius: var(--radius-lg);
+      background: rgba(var(--panel-rgb), var(--panel-alpha));
+      backdrop-filter: blur(var(--glass-blur));
+      border: 1px solid var(--border-subtle);
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.65);
+      text-align: center;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      color: var(--text-muted);
-      text-align: center;
-      padding: 24px;
-      pointer-events: none;
+      gap: 18px;
     }
-
-    .empty-stage.hidden {
+    .lobby-card.hidden {
       display: none;
     }
+    .lobby-badge {
+      align-self: center;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 10.5px;
+      font-weight: 700;
+      letter-spacing: 0.9px;
+      text-transform: uppercase;
+      color: var(--accent-1);
+      background: color-mix(in srgb, var(--accent-1) 14%, transparent);
+      border: 1px solid color-mix(in srgb, var(--accent-1) 35%, transparent);
+    }
+    .lobby-logo {
+      font-family: var(--tag-font);
+      font-size: 46px;
+      line-height: 1.08;
+      background: linear-gradient(135deg, #fff 0%, var(--accent-1) 50%, var(--accent-2) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 6px 20px color-mix(in srgb, var(--accent-1) 45%, transparent));
+    }
+    .lobby-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .lobby-desc {
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--text-muted);
+    }
 
-    .empty-stage-icon {
-      width: 44px;
-      height: 44px;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-      background-color: var(--bg-panel);
+    .lobby-box {
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 13px;
+      text-align: left;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .lobby-box-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+    .lobby-row {
+      display: flex;
+      gap: 8px;
+    }
+    .lobby-input {
+      flex: 1;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border-subtle);
+      border-radius: 9px;
+      padding: 10px 12px;
+      color: #fff;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12.5px;
+      outline: none;
+      user-select: text;
+    }
+    .lobby-input:focus {
+      border-color: var(--accent-1);
+    }
+
+    /* НИЖНЯЯ ПАНЕЛЬ ЗВОНКА (ПОЯВЛЯЕТСЯ ТОЛЬКО В ЗВОНКЕ) */
+    .call-dock {
+      position: absolute;
+      bottom: 22px;
+      left: 50%;
+      transform: translateX(-50%) translateY(120px);
+      opacity: 0;
+      pointer-events: none;
+      z-index: 15;
       display: flex;
       align-items: center;
-      justify-content: center;
-      font-family: var(--mono);
-      font-size: 16px;
-      color: var(--text-dim);
+      gap: 10px;
+      padding: 10px 16px;
+      border-radius: 18px;
+      background: rgba(var(--panel-rgb), 0.92);
+      backdrop-filter: blur(22px);
+      border: 1px solid rgba(255,255,255,0.14);
+      box-shadow: 0 18px 45px rgba(0,0,0,0.7);
+      transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
+    }
+    .call-dock.in-call {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+      pointer-events: auto;
     }
 
-    .empty-stage h2 {
-      font-family: var(--mono);
-      font-size: 14px;
+    .dock-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      border-radius: 12px;
+      font-size: 13px;
       font-weight: 600;
-      color: var(--text-main);
+      color: #fff;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.1);
+      cursor: pointer;
+      transition: all 0.18s ease;
+    }
+    .dock-btn:hover {
+      background: rgba(255,255,255,0.14);
+      transform: translateY(-1px);
+    }
+    .dock-btn.active {
+      background: color-mix(in srgb, var(--accent-1) 24%, rgba(255,255,255,0.08));
+      border-color: var(--accent-1);
+      box-shadow: 0 0 16px color-mix(in srgb, var(--accent-1) 35%, transparent);
+    }
+    .dock-btn.muted {
+      background: rgba(239, 68, 68, 0.18);
+      border-color: rgba(239, 68, 68, 0.5);
+      color: #fca5a5;
+    }
+    .dock-btn.danger {
+      background: rgba(239, 68, 68, 0.22);
+      border-color: rgba(239, 68, 68, 0.55);
+      color: #fecaca;
+    }
+    .dock-btn.danger:hover {
+      background: #ef4444;
+      color: #fff;
+    }
+    .dock-divider {
+      width: 1px;
+      height: 26px;
+      background: var(--border-subtle);
+      margin: 0 2px;
     }
 
-    .empty-stage p {
-      max-width: 420px;
-      font-size: 12px;
-      color: var(--text-dim);
+    /* ПАНЕЛЬ САУНДПАДА */
+    .soundpad-popover {
+      position: absolute;
+      bottom: 88px;
+      left: 50%;
+      transform: translateX(-50%) scale(0.95);
+      width: 440px;
+      padding: 18px;
+      border-radius: 18px;
+      background: rgba(var(--panel-rgb), 0.96);
+      backdrop-filter: blur(24px);
+      border: 1px solid rgba(255,255,255,0.14);
+      box-shadow: 0 24px 60px rgba(0,0,0,0.75);
+      z-index: 25;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.2s ease;
     }
-
-    /* SIDEBAR: TELEMETRY, AUDIO ENGINE & LOGS */
-    .sidebar {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      min-height: 0;
-      overflow-y: auto;
+    .soundpad-popover.open {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateX(-50%) scale(1);
     }
-
-    .panel {
-      background-color: var(--bg-panel);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .panel-header {
+    .sp-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 7px;
+      margin-bottom: 12px;
+    }
+    .sp-title {
+      font-size: 14px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .sp-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      max-height: 220px;
+      overflow-y: auto;
+      margin-bottom: 12px;
+    }
+    .sp-pad {
+      position: relative;
+      padding: 10px 8px;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--border-subtle);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .sp-pad:hover {
+      background: color-mix(in srgb, var(--accent-1) 22%, rgba(255,255,255,0.08));
+      border-color: var(--accent-1);
+    }
+    .sp-pad:active {
+      transform: scale(0.96);
+    }
+    .sp-pad .sp-del {
+      position: absolute;
+      top: 3px;
+      right: 5px;
+      font-size: 10px;
+      color: #f87171;
+      opacity: 0.7;
+    }
+    .sp-pad .sp-del:hover { opacity: 1; }
+
+    /* БОКОВОЙ ЧАТ */
+    .chat-sidebar {
+      width: 340px;
+      background: rgba(var(--panel-rgb), var(--panel-alpha));
+      backdrop-filter: blur(var(--glass-blur));
+      border-left: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      transition: margin-right 0.28s ease;
+    }
+    .chat-sidebar.collapsed {
+      margin-right: -340px;
+    }
+    .chat-header {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .chat-messages {
+      flex: 1;
+      padding: 14px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .chat-empty {
+      margin: auto;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 12.5px;
+      line-height: 1.5;
+      max-width: 230px;
+    }
+    .msg-bubble {
+      max-width: 85%;
+      padding: 9px 12px;
+      border-radius: 12px;
+      font-size: 13px;
+      line-height: 1.45;
+      word-break: break-word;
+      user-select: text;
+    }
+    .msg-bubble.me {
+      align-self: flex-end;
+      background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+      color: #fff;
+      border-bottom-right-radius: 4px;
+    }
+    .msg-bubble.peer {
+      align-self: flex-start;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid var(--border-subtle);
+      color: #fff;
+      border-bottom-left-radius: 4px;
+    }
+    .msg-meta {
+      font-size: 10px;
+      opacity: 0.72;
+      margin-bottom: 3px;
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .msg-img {
+      max-width: 100%;
+      border-radius: 8px;
+      margin-top: 6px;
+      cursor: pointer;
+    }
+    .chat-input-bar {
+      padding: 12px;
+      border-top: 1px solid var(--border-subtle);
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .chat-input {
+      flex: 1;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--border-subtle);
+      border-radius: 9px;
+      padding: 9px 12px;
+      color: #fff;
+      font-size: 13px;
+      outline: none;
+      user-select: text;
+    }
+    .chat-input:focus {
+      border-color: var(--accent-1);
     }
 
-    .panel-title {
-      font-family: var(--mono);
+    /* МОДАЛЬНОЕ ОКНО ЦЕНТРА НАСТРОЕК */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.72);
+      backdrop-filter: blur(8px);
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.22s ease;
+    }
+    .modal-backdrop.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .settings-modal {
+      width: 820px;
+      max-width: 94vw;
+      height: 580px;
+      max-height: 88vh;
+      border-radius: 20px;
+      background: rgba(14, 15, 24, 0.97);
+      border: 1px solid rgba(255,255,255,0.14);
+      box-shadow: 0 30px 80px rgba(0,0,0,0.85);
+      display: flex;
+      overflow: hidden;
+    }
+    .settings-nav {
+      width: 230px;
+      background: rgba(0,0,0,0.35);
+      border-right: 1px solid var(--border-subtle);
+      padding: 20px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .settings-nav-title {
       font-size: 11px;
       font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.06em;
+      letter-spacing: 0.8px;
       color: var(--text-muted);
+      padding: 0 10px 10px;
     }
-
-    .panel-tag {
-      font-family: var(--mono);
-      font-size: 10px;
-      color: var(--text-dim);
-    }
-
-    /* METRICS GRID */
-    .metrics-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-    }
-
-    .metric-card {
-      background-color: var(--bg-root);
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      padding: 8px 10px;
-    }
-
-    .metric-label {
-      font-family: var(--mono);
-      font-size: 10px;
-      color: var(--text-dim);
-      text-transform: uppercase;
-    }
-
-    .metric-value {
-      font-family: var(--mono);
-      font-size: 14px;
+    .s-tab-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 11px 12px;
+      border-radius: 10px;
+      font-size: 13px;
       font-weight: 600;
-      color: var(--text-main);
-      margin-top: 2px;
-    }
-
-    .metric-sub {
-      font-family: var(--mono);
-      font-size: 10px;
       color: var(--text-muted);
-      margin-top: 2px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.16s;
+    }
+    .s-tab-btn:hover {
+      background: rgba(255,255,255,0.06);
+      color: #fff;
+    }
+    .s-tab-btn.active {
+      background: linear-gradient(135deg, color-mix(in srgb, var(--accent-1) 28%, transparent), color-mix(in srgb, var(--accent-2) 22%, transparent));
+      color: #fff;
+      border: 1px solid color-mix(in srgb, var(--accent-1) 45%, transparent);
     }
 
-    /* STUDIO AUDIO ENGINE CONTROLS */
-    .meter-row {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .meter-label {
-      display: flex;
-      justify-content: space-between;
-      font-family: var(--mono);
-      font-size: 11px;
-      color: var(--text-muted);
-    }
-
-    .meter-bar-bg {
-      width: 100%;
-      height: 6px;
-      background-color: var(--bg-root);
-      border: 1px solid var(--border);
-      border-radius: 3px;
-      overflow: hidden;
-    }
-
-    .meter-bar-fill {
-      height: 100%;
-      width: 0%;
-      background: linear-gradient(90deg, var(--green) 0%, var(--amber) 75%, var(--red) 100%);
-      transition: width 0.06s linear;
-    }
-
-    .spec-list {
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
-      font-family: var(--mono);
-      font-size: 11px;
-      background-color: var(--bg-root);
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      padding: 8px 10px;
-    }
-
-    .spec-item {
-      display: flex;
-      justify-content: space-between;
-      color: var(--text-muted);
-    }
-
-    .spec-item span.val {
-      color: var(--text-main);
-      font-weight: 500;
-    }
-
-    .spec-item span.val.ok {
-      color: var(--green);
-    }
-
-    .spec-item span.val.studio {
-      color: #c4b5fd;
-    }
-
-    /* LOG CONSOLE */
-    .log-panel {
+    .settings-content {
       flex: 1;
-      min-height: 130px;
-    }
-
-    .log-box {
-      flex: 1;
-      background-color: var(--bg-root);
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      padding: 8px;
-      font-family: var(--mono);
-      font-size: 11px;
-      color: var(--text-muted);
+      padding: 24px 28px;
       overflow-y: auto;
-      max-height: 200px;
       display: flex;
       flex-direction: column;
-      gap: 4px;
-      user-select: text;
+      gap: 18px;
+    }
+    .s-pane {
+      display: none;
+      flex-direction: column;
+      gap: 18px;
+    }
+    .s-pane.active {
+      display: flex;
+    }
+    .s-pane-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border-subtle);
+      padding-bottom: 12px;
+    }
+    .s-pane-title {
+      font-size: 18px;
+      font-weight: 700;
     }
 
-    .log-entry {
-      line-height: 1.35;
-      word-break: break-word;
+    .s-card {
+      background: rgba(255,255,255,0.035);
+      border: 1px solid var(--border-subtle);
+      border-radius: 13px;
+      padding: 15px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
     }
-
-    .log-entry .ts {
-      color: var(--text-dim);
-      margin-right: 6px;
-    }
-
-    .log-entry.info { color: var(--text-main); }
-    .log-entry.ok { color: var(--green); }
-    .log-entry.warn { color: var(--amber); }
-    .log-entry.err { color: var(--red); }
-
-    /* BOTTOM CONTROL DECK */
-    .bottombar {
+    .s-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 12px;
-      padding: 10px 16px;
-      background-color: var(--bg-panel);
-      border-top: 1px solid var(--border);
-      flex-wrap: wrap;
+    }
+    .s-label {
+      font-size: 13.5px;
+      font-weight: 600;
+    }
+    .s-sub {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      margin-top: 2px;
     }
 
-    .deck-left, .deck-center, .deck-right {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
+    .s-select {
+      background: #0d0e17;
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.16);
+      border-radius: 8px;
+      padding: 8px 11px;
+      font-size: 12.5px;
+      outline: none;
     }
 
-    .volume-group {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      background-color: var(--bg-root);
-      border: 1px solid var(--border);
-      padding: 5px 10px;
-      border-radius: 4px;
-      font-family: var(--mono);
+    .preset-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+    .preset-card {
+      padding: 12px;
+      border-radius: 11px;
+      background: rgba(255,255,255,0.04);
+      border: 1.5px solid var(--border-subtle);
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.16s;
+    }
+    .preset-card:hover {
+      border-color: rgba(255,255,255,0.28);
+    }
+    .preset-card.active {
+      border-color: var(--accent-1);
+      background: color-mix(in srgb, var(--accent-1) 16%, transparent);
+    }
+    .preset-title {
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .preset-desc {
       font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    /* Сетка аватарок LotR / HP */
+    .avatar-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 10px;
+    }
+    .av-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      padding: 8px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.04);
+      border: 1.5px solid var(--border-subtle);
+      cursor: pointer;
+      transition: all 0.16s;
+    }
+    .av-item:hover {
+      border-color: rgba(255,255,255,0.3);
+    }
+    .av-item.active {
+      border-color: var(--accent-1);
+      background: color-mix(in srgb, var(--accent-1) 18%, transparent);
+    }
+    .av-preview {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      overflow: hidden;
+    }
+    .av-name {
+      font-size: 10.5px;
+      font-weight: 600;
+      text-align: center;
+      color: var(--text-muted);
+    }
+
+    /* Индикатор уровня микрофона */
+    .meter-track {
+      width: 100%;
+      height: 8px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 999px;
+      overflow: hidden;
+      position: relative;
+    }
+    .meter-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #10b981, #a855f7);
+      transition: width 0.06s linear;
     }
 
     input[type="range"] {
-      -webkit-appearance: none;
-      appearance: none;
-      width: 90px;
-      height: 4px;
-      background: var(--border-focus);
-      border-radius: 2px;
-      outline: none;
-    }
-
-    input[type="range"]::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      appearance: none;
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      background: var(--text-main);
+      accent-color: var(--accent-1);
       cursor: pointer;
     }
 
-    .manual-connect-input {
-      background-color: var(--bg-root);
-      border: 1px solid var(--border);
-      color: var(--text-main);
-      font-family: var(--mono);
-      font-size: 12px;
-      padding: 5px 8px;
-      border-radius: 4px;
-      width: 170px;
-      outline: none;
-    }
-
-    .manual-connect-input:focus {
-      border-color: var(--accent);
-    }
-
-    .toast {
+    /* Тост-уведомления */
+    .toast-wrap {
       position: fixed;
-      bottom: 64px;
-      left: 50%;
-      transform: translateX(-50%) translateY(10px);
-      background-color: var(--bg-elevated);
-      border: 1px solid var(--green);
-      color: var(--text-main);
-      font-family: var(--mono);
-      font-size: 12px;
-      padding: 8px 14px;
-      border-radius: 4px;
-      opacity: 0;
-      pointer-events: none;
-      transition: all 0.2s ease;
+      top: 74px;
+      right: 22px;
       z-index: 100;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      pointer-events: none;
+    }
+    .toast {
+      padding: 10px 16px;
+      border-radius: 10px;
+      background: rgba(16, 18, 28, 0.95);
+      border: 1px solid var(--accent-1);
+      color: #fff;
+      font-size: 12.5px;
+      font-weight: 600;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      animation: toastIn 0.22s ease;
+    }
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
-    .toast.show {
-      opacity: 1;
-      transform: translateX(-50%) translateY(0);
-    }
+    /* Анимации для SVG аватарок Властелина Колец и Гарри Поттера */
+    @keyframes spinSlow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    @keyframes pulseEye { 0%, 100% { transform: scale(1); opacity: 0.92; } 50% { transform: scale(1.12); opacity: 1; } }
+    @keyframes wingFlap { 0%, 100% { transform: rotate(-12deg); } 50% { transform: rotate(16deg); } }
+    .svg-spin { transform-origin: 50px 50px; animation: spinSlow 14s linear infinite; }
+    .svg-pulse { transform-origin: 50px 50px; animation: pulseEye 2.4s ease-in-out infinite; }
+    .svg-wing { transform-origin: 50px 50px; animation: wingFlap 0.35s ease-in-out infinite; }
   </style>
 </head>
 <body>
+
+  <!-- Глобальные SVG-градиенты для анимированных аватарок LotR / HP -->
+  <svg width="0" height="0" style="position:absolute">
+    <defs>
+      <radialGradient id="sauronGrad" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#fef08a"/>
+        <stop offset="45%" stop-color="#f97316"/>
+        <stop offset="85%" stop-color="#991b1b"/>
+        <stop offset="100%" stop-color="#09090b"/>
+      </radialGradient>
+      <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#fef08a"/>
+        <stop offset="50%" stop-color="#eab308"/>
+        <stop offset="100%" stop-color="#a16207"/>
+      </linearGradient>
+      <radialGradient id="patronusGrad" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#e0f2fe"/>
+        <stop offset="55%" stop-color="#38bdf8"/>
+        <stop offset="100%" stop-color="#0c4a6e"/>
+      </radialGradient>
+    </defs>
+  </svg>
+
+  <!-- Атмосферный фон -->
+  <div id="sceneBg" class="scene-bg aurora"></div>
+
+  <!-- Всплывающие уведомления -->
+  <div id="toastWrap" class="toast-wrap"></div>
+
   <div class="app-shell">
-    <!-- TOP SIGNALING & ROOM BAR -->
+    <!-- ВЕРХНЯЯ ПАНЕЛЬ -->
     <header class="topbar">
-      <div class="brand-group">
-        <div class="brand-title">
+      <div class="brand-cluster">
+        <div id="topAvatarBtn" class="avatar-trigger frame-mordor" title="Нажми, чтобы сменить аватарку LotR / HP"></div>
+        <div class="logo-tag">disstya</div>
+        <div class="status-pill">
           <span id="statusDot" class="status-dot"></span>
-          <span>P2P//STUDIO-LINK</span>
+          <span id="statusText">Инициализация...</span>
         </div>
-        <span id="roleBadge" class="badge role-host">ROLE: INITIALIZING</span>
-        <span id="peerStateBadge" class="badge">SIGNALING: CONNECTING</span>
-        <span id="iceStateBadge" class="badge">ICE: IDLE</span>
       </div>
 
-      <div class="room-controls">
-        <div class="room-box" title="Идентификатор комнаты (Hash URL)">
-          <span class="label">ROOM ID:</span>
-          <span id="roomIdDisplay">...</span>
-        </div>
-        <button id="copyLinkBtn" class="btn btn-primary" type="button">
-          СКОПИРОВАТЬ ССЫЛКУ
-        </button>
-        <input id="manualPeerInput" class="manual-connect-input" type="text" placeholder="ID хоста (опционально)" aria-label="ID хоста" />
-        <button id="manualConnectBtn" class="btn" type="button">
-          ПОДКЛЮЧИТЬСЯ
-        </button>
-        <button id="newRoomBtn" class="btn" type="button" title="Сгенерировать новую комнату и стать хостом">
-          НОВАЯ КОМНАТА
-        </button>
+      <!-- Быстрый инвайт и подключение -->
+      <div class="top-connect-bar">
+        <span class="my-id-label">Твой ID:</span>
+        <span id="topMyId" class="my-id-code">ds-......</span>
+        <button id="topCopyBtn" class="btn btn-primary">Скопировать инвайт</button>
+        <div class="dock-divider"></div>
+        <input id="topJoinInput" class="top-input" type="text" placeholder="ID или ссылка друга..." />
+        <button id="topJoinBtn" class="btn">Войти к другу</button>
+      </div>
+
+      <!-- Правые кнопки -->
+      <div class="top-actions">
+        <div id="statsBadge" class="stats-badge">60 FPS • 0 kbps</div>
+        <button id="openSettingsBtn" class="btn">⚙️ Настройки</button>
+        <button id="toggleChatBtn" class="btn">💬 Чат</button>
       </div>
     </header>
 
-    <!-- MAIN WORKSPACE -->
-    <main class="workspace">
-      <!-- VIDEO & STREAM STAGE -->
-      <section class="stage-container">
-        <div class="stage-overlay-top">
-          <div class="hud-pills">
-            <span class="hud-pill">VIDEO TARGET: <strong>1080p @ 60 FPS (8 Mbps CBR)</strong></span>
-            <span class="hud-pill">HINT: <strong id="hudContentHint">motion</strong></span>
-            <span class="hud-pill">OPUS: <strong>128 kbps Stereo / CBR=1 / DTX=0</strong></span>
-          </div>
-          <div class="hud-pills">
-            <button id="pipToggleBtn" class="btn" type="button" style="padding: 3px 8px; font-size: 11px;">
-              PiP
-            </button>
-            <button id="fullscreenBtn" class="btn" type="button" style="padding: 3px 8px; font-size: 11px;">
-              ПОЛНЫЙ ЭКРАН
-            </button>
-          </div>
-        </div>
+    <!-- ОСНОВНАЯ СЦЕНА -->
+    <div class="workspace">
+      <main class="stage-area">
+        <div id="ambilightGlow" class="ambilight-glow"></div>
 
-        <div class="video-wrapper" id="videoContainer">
+        <div id="videoFrame" class="video-frame">
+          <!-- Видеопоток собеседника -->
           <video id="remoteVideo" playsinline autoplay></video>
-          <!-- Hidden/Dedicated Audio Element for Independent Studio Voice Playback -->
+          <!-- Отдельный аудиоплеер для голоса и звука экрана собеседника -->
           <audio id="remoteAudio" autoplay></audio>
 
-          <div id="emptyStage" class="empty-stage">
-            <div class="empty-stage-icon">60</div>
-            <h2 id="emptyStageTitle">ОЖИДАНИЕ ВТОРОГО УЧАСТНИКА</h2>
-            <p id="emptyStageDesc">
-              Скопируйте ссылку сверху и отправьте собеседнику. При открытии ссылки с хэшем P2P-соединение и студийный голосовой тракт поднимутся автоматически.
-            </p>
+          <!-- Аватар собеседника во время голосового звонка (пока не включен экран) -->
+          <div id="remotePeerStage" class="remote-peer-stage">
+            <div id="remoteAvatarBig" class="remote-avatar-big frame-mordor"></div>
+            <div id="remotePeerName" class="remote-peer-name">Собеседник</div>
+            <div class="remote-peer-sub">Голосовой канал защищен • Krisp AI активен</div>
           </div>
 
-          <!-- Local Screen Share Preview PiP -->
-          <div id="localPip" class="local-pip">
-            <video id="localScreenPreview" muted playsinline autoplay></video>
-            <span class="local-pip-label">LOCAL 1080p60 TX</span>
-          </div>
-        </div>
-      </section>
+          <!-- КАРТОЧКА ЛОББИ (Скрывается при начале звонка) -->
+          <div id="lobbyCard" class="lobby-card">
+            <div class="lobby-badge">БЕЗ VPN • P2P DIRECT • 60 FPS AUDIO</div>
+            <div class="lobby-logo">disstya</div>
+            <div class="lobby-title">Приватная комната готова</div>
+            <div class="lobby-desc">
+              Отправь ссылку-инвайт другу или вставь его код ниже. Работает напрямую без VPN через мульти-шлюз.
+            </div>
 
-      <!-- ENGINEERING SIDEBAR -->
-      <aside class="sidebar">
-        <!-- LIVE WEBRTC TELEMETRY -->
-        <div class="panel">
-          <div class="panel-header">
-            <span class="panel-title">Сетевая телеметрия (RTCPeer)</span>
-            <span id="rttTag" class="panel-tag">RTT: -- ms</span>
-          </div>
-          <div class="metrics-grid">
-            <div class="metric-card">
-              <div class="metric-label">АУДИО БИТРЕЙТ (TX/RX)</div>
-              <div class="metric-value" id="metricAudioBitrate">0 / 0 kbps</div>
-              <div class="metric-sub" id="metricAudioCodec">Opus 48kHz Stereo</div>
+            <div class="lobby-box">
+              <div class="lobby-box-header">
+                <span>1. Твоя ссылка для приглашения друга</span>
+                <span id="relayCountText" style="color:#10b981">Генерация...</span>
+              </div>
+              <div class="lobby-row">
+                <input id="lobbyInviteInput" class="lobby-input" type="text" readonly />
+                <button id="lobbyCopyBtn" class="btn btn-primary">Скопировать</button>
+              </div>
             </div>
-            <div class="metric-card">
-              <div class="metric-label">ВИДЕО БИТРЕЙТ (TX/RX)</div>
-              <div class="metric-value" id="metricVideoBitrate">0.00 / 0.00 Mbps</div>
-              <div class="metric-sub" id="metricPacketLoss">Потери: 0 pkts</div>
-            </div>
-            <div class="metric-card">
-              <div class="metric-label">КАДРОВАЯ ЧАСТОТА</div>
-              <div class="metric-value" id="metricFps">-- FPS</div>
-              <div class="metric-sub" id="metricResolution">Разрешение: --</div>
-            </div>
-            <div class="metric-card">
-              <div class="metric-label">JITTER / СЕССИЯ</div>
-              <div class="metric-value" id="metricJitter">-- ms</div>
-              <div class="metric-sub" id="metricUptime">Время: 00:00</div>
+
+            <div class="lobby-box">
+              <div class="lobby-box-header">
+                <span>2. Подключиться к комнате друга</span>
+                <span>Вставь ID или ссылку</span>
+              </div>
+              <div class="lobby-row">
+                <input id="lobbyJoinInput" class="lobby-input" type="text" placeholder="Например: ds-a7k9x2 или ссылка..." />
+                <button id="lobbyJoinBtn" class="btn">Войти</button>
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- STUDIO AUDIO ENGINE STATUS -->
-        <div class="panel">
-          <div class="panel-header">
-            <span class="panel-title">Аудио тракт (getUserMedia + SDP)</span>
-            <span id="audioModeTag" class="panel-tag">MODE 1: DSP ON</span>
-          </div>
+        <!-- Миниатюра своего стрима -->
+        <div id="localPip" class="local-pip">
+          <video id="localVideo" muted playsinline autoplay></video>
+          <span class="local-pip-tag">Твой эфир</span>
+        </div>
 
-          <div class="meter-row">
-            <div class="meter-label">
-              <span>УРОВЕНЬ МИКРОФОНА (L/R PEAK)</span>
-              <span id="micDbValue">-∞ dB</span>
-            </div>
-            <div class="meter-bar-bg">
-              <div id="micMeterFill" class="meter-bar-fill"></div>
-            </div>
+        <!-- ВСПЛЫВАЮЩИЙ САУНДПАД -->
+        <div id="soundpadPopover" class="soundpad-popover">
+          <div class="sp-header">
+            <div class="sp-title">🔊 Уличный Саундпад (Слышно в эфире)</div>
+            <button id="closeSoundpadBtn" class="btn" style="padding:4px 9px">✕</button>
           </div>
-
-          <div class="spec-list">
-            <div class="spec-item">
-              <span>autoGainControl (AGC):</span>
-              <span class="val ok" id="specAgc">false (LOCKED OFF)</span>
-            </div>
-            <div class="spec-item">
-              <span>Дискретизация / Каналы:</span>
-              <span class="val" id="specSampleRate">48000 Hz / 2ch Stereo</span>
-            </div>
-            <div class="spec-item">
-              <span>echoCancellation / NR:</span>
-              <span class="val" id="specDsp">true / true</span>
-            </div>
-            <div class="spec-item">
-              <span>Opus SDP fmtp:</span>
-              <span class="val ok">stereo=1;cbr=1;usedtx=0</span>
-            </div>
-            <div class="spec-item">
-              <span>RTCRtpSender maxBitrate:</span>
-              <span class="val ok" id="specSenderBitrate">128 000 bps (Audio)</span>
+          <div id="soundpadGrid" class="sp-grid"></div>
+          <div class="s-row">
+            <label class="btn" style="cursor:pointer">
+              ➕ Загрузить MP3/WAV
+              <input id="soundpadFileInput" type="file" accept="audio/*" multiple hidden />
+            </label>
+            <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-muted)">
+              <span>Громкость:</span>
+              <input id="soundpadVolSlider" type="range" min="0" max="200" value="100" style="width:90px" />
             </div>
           </div>
         </div>
 
-        <!-- EVENT & SDP LOGS -->
-        <div class="panel log-panel">
-          <div class="panel-header">
-            <span class="panel-title">Журнал WebRTC / SDP / События</span>
-            <button id="clearLogBtn" class="btn" type="button" style="padding: 2px 6px; font-size: 10px;">ОЧИСТИТЬ</button>
+        <!-- НИЖНЯЯ ПАНЕЛЬ УПРАВЛЕНИЯ ЗВОНКОМ (Видна ТОЛЬКО в звонке) -->
+        <div id="callDock" class="call-dock">
+          <button id="micToggleBtn" class="dock-btn active">🎙️ Микро вкл</button>
+          <button id="screenShareBtn" class="dock-btn">🖥️ Экран 60 FPS</button>
+          <button id="webcamBtn" class="dock-btn">📷 Вебка</button>
+          <div class="dock-divider"></div>
+          <button id="soundpadBtn" class="dock-btn">🔊 Саундпад</button>
+          <button id="dockSettingsBtn" class="dock-btn">🎛️ Krisp / Настройки</button>
+          <button id="fullscreenBtn" class="dock-btn" title="На весь экран">⛶</button>
+          <div class="dock-divider"></div>
+          <button id="hangupBtn" class="dock-btn danger">Завершить</button>
+        </div>
+      </main>
+
+      <!-- БОКОВОЙ ПРИВАТНЫЙ ЧАТ -->
+      <aside id="chatSidebar" class="chat-sidebar">
+        <div class="chat-header">
+          <span>⚡ Приватный P2P-чат</span>
+          <span style="font-size:11px;color:var(--text-muted)">Без истории</span>
+        </div>
+        <div id="chatMessages" class="chat-messages">
+          <div class="chat-empty">
+            Сообщения и файлы передаются напрямую из браузера в браузер и исчезают после закрытия.
           </div>
-          <div id="logContainer" class="log-box"></div>
+        </div>
+        <div class="chat-input-bar">
+          <label class="btn" title="Отправить картинку или файл" style="padding:8px 10px;cursor:pointer">
+            📎
+            <input id="chatFileInput" type="file" hidden />
+          </label>
+          <input id="chatInput" class="chat-input" type="text" placeholder="Написать сообщение..." />
+          <button id="chatSendBtn" class="btn btn-primary" style="padding:8px 12px">➤</button>
         </div>
       </aside>
-    </main>
-
-    <!-- BOTTOM MEDIA & RENEGOTIATION CONTROL BAR -->
-    <footer class="bottombar">
-      <div class="deck-left">
-        <button id="micMuteBtn" class="btn btn-active-green" type="button">
-          МИКРОФОН: ВКЛ
-        </button>
-        <button id="audioModeBtn" class="btn" type="button" title="Переключение между Режимом 1 (Шумодав) и Режимом 2 (Чистая студия 20Гц-20кГц)">
-          РЕЖИМ 1: ШУМОДАВ ВКЛ
-        </button>
-      </div>
-
-      <div class="deck-center">
-        <button id="screenShareBtn" class="btn btn-primary" type="button">
-          СТРИМИТЬ ЭКРАН (1080p @ 60 FPS)
-        </button>
-        <button id="reapplyBitrateBtn" class="btn" type="button" title="Принудительно обновить лимиты RTCRtpSender (128kbps Audio / 8Mbps 60FPS Video)">
-          ФОРСИРОВАТЬ БИТРЕЙТЫ
-        </button>
-      </div>
-
-      <div class="deck-right">
-        <div class="volume-group">
-          <span>МОНИТОРИНГ RX:</span>
-          <input id="remoteVolumeSlider" type="range" min="0" max="100" value="100" aria-label="Громкость собеседника" />
-          <span id="remoteVolumeLabel">100%</span>
-        </div>
-        <button id="reconnectBtn" class="btn btn-danger" type="button">
-          ПЕРЕПОДКЛЮЧИТЬ
-        </button>
-      </div>
-    </footer>
+    </div>
   </div>
 
-  <div id="toast" class="toast">Ссылка скопирована в буфер обмена</div>
+  <!-- МОДАЛЬНОЕ ОКНО НАСТРОЕК (4 РАЗДЕЛА) -->
+  <div id="settingsBackdrop" class="modal-backdrop">
+    <div class="settings-modal">
+      <nav class="settings-nav">
+        <div class="settings-nav-title">Центр настроек</div>
+        <button class="s-tab-btn active" data-tab="tabVoice">🎙️ Голос и Krisp AI</button>
+        <button class="s-tab-btn" data-tab="tabProfile">👁️ Профиль и Аватар</button>
+        <button class="s-tab-btn" data-tab="tabStream">🖥️ Стрим 60 FPS</button>
+        <button class="s-tab-btn" data-tab="tabTheme">🎨 Оформление и Тема</button>
+      </nav>
+
+      <div class="settings-content">
+        <!-- ВКЛАДКА 1: ГОЛОС И ШУМОПОДАВЛЕНИЕ KRISP AI -->
+        <div id="tabVoice" class="s-pane active">
+          <div class="s-pane-header">
+            <div class="s-pane-title">Голос и Шумоподавление Krisp AI</div>
+            <button class="btn close-settings-btn">Готово</button>
+          </div>
+
+          <div class="s-card">
+            <div class="s-label">Профиль нейро-очистки голоса (Krisp AI Engine)</div>
+            <div class="preset-grid">
+              <div class="preset-card active" data-krisp="ultra">
+                <div class="preset-title">⚡ Krisp AI Ultra</div>
+                <div class="preset-desc">Полное отсечение стука клавиатуры, кликов мыши и кулеров ПК</div>
+              </div>
+              <div class="preset-card" data-krisp="balanced">
+                <div class="preset-title">🎙️ Мягкий фильтр</div>
+                <div class="preset-desc">Стандартное подавление фонового шума и эха комнаты</div>
+              </div>
+              <div class="preset-card" data-krisp="raw">
+                <div class="preset-title">🎵 Чистый студийный</div>
+                <div class="preset-desc">Без сжатия для внешних аудиокарт и вокала</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="s-card">
+            <div class="s-row">
+              <div>
+                <div class="s-label">Устройство ввода (Микрофон)</div>
+                <div class="s-sub">Переключение на лету без обрыва звонка</div>
+              </div>
+              <select id="micDeviceSelect" class="s-select" style="max-width:260px"></select>
+            </div>
+
+            <div class="s-row">
+              <div>
+                <div class="s-label">Порог отсечения тишины (Noise Gate)</div>
+                <div class="s-sub">Отсекает дыхание и тихие шорохи, когда ты молчишь</div>
+              </div>
+              <input id="noiseGateSlider" type="range" min="0" max="35" value="6" style="width:160px" />
+            </div>
+
+            <div class="meter-track">
+              <div id="micLevelFill" class="meter-fill"></div>
+            </div>
+
+            <div class="s-row">
+              <span style="font-size:12px;color:var(--text-muted)">Проверь, как звучит твой голос после фильтра Krisp AI:</span>
+              <button id="loopbackTestBtn" class="btn">🎧 Прослушать себя: Выкл</button>
+            </div>
+          </div>
+
+          <div class="s-card">
+            <div class="s-label">Микшер громкости и обход блокировок (Анти-ТСПУ)</div>
+            <div class="s-row">
+              <span class="s-sub">Усиление твоего микрофона</span>
+              <input id="micGainSlider" type="range" min="0" max="200" value="100" style="width:170px" />
+            </div>
+            <div class="s-row">
+              <span class="s-sub">Громкость системного звука экрана</span>
+              <input id="screenAudioGainSlider" type="range" min="0" max="200" value="100" style="width:170px" />
+            </div>
+            <div class="s-row">
+              <span class="s-sub">Громкость собеседника</span>
+              <input id="remoteVolSlider" type="range" min="0" max="100" value="100" style="width:170px" />
+            </div>
+            <div class="s-row" style="margin-top:4px;padding-top:10px;border-top:1px solid var(--border-subtle)">
+              <div>
+                <div class="s-label">Режим пробития сети РФ (Без VPN)</div>
+                <div class="s-sub">«Принудительный туннель 443» помогает, если провайдер глушит P2P UDP</div>
+              </div>
+              <select id="iceTransportSelect" class="s-select">
+                <option value="all">Авто (Прямой P2P + Туннель 443)</option>
+                <option value="relay">Только туннель TURN TCP/443</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- ВКЛАДКА 2: ПРОФИЛЬ И АВАТАР LOTR / HP -->
+        <div id="tabProfile" class="s-pane">
+          <div class="s-pane-header">
+            <div class="s-pane-title">Профиль и Анимированные аватарки</div>
+            <button class="btn close-settings-btn">Готово</button>
+          </div>
+
+          <div class="s-card">
+            <div class="s-row">
+              <div>
+                <div class="s-label">Твой уличный никнейм</div>
+                <div class="s-sub">Отображается у собеседника в звонке и в чате</div>
+              </div>
+              <input id="nicknameInput" class="top-input" type="text" value="Rider" style="width:200px" />
+            </div>
+          </div>
+
+          <div class="s-card">
+            <div class="s-label">Анимированные аватарки «Властелин Колец» и «Гарри Поттер»</div>
+            <div id="avatarPresetGrid" class="avatar-grid"></div>
+            <div class="s-row" style="margin-top:8px">
+              <label class="btn" style="cursor:pointer">
+                🖼️ Загрузить свою GIF / Картинку
+                <input id="customAvatarInput" type="file" accept="image/*" hidden />
+              </label>
+              <select id="avatarFrameSelect" class="s-select">
+                <option value="frame-mordor">Рамка: Пламя Мордора</option>
+                <option value="frame-ring">Рамка: Кольцо Всевластья</option>
+                <option value="frame-patronus">Рамка: Сияние Патронуса</option>
+                <option value="frame-neon">Рамка: Уличный Неон</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- ВКЛАДКА 3: СТРИМ ЭКРАНА 60 FPS -->
+        <div id="tabStream" class="s-pane">
+          <div class="s-pane-header">
+            <div class="s-pane-title">Параметры демонстрации экрана 60 FPS</div>
+            <button class="btn close-settings-btn">Готово</button>
+          </div>
+
+          <div class="s-card">
+            <div class="s-row">
+              <div>
+                <div class="s-label">Разрешение и максимальный битрейт</div>
+                <div class="s-sub">Высокий битрейт убирает квадраты и мыло в динамичных играх</div>
+              </div>
+              <select id="streamQualitySelect" class="s-select">
+                <option value="1440p">1440p QHD • 60 FPS (12 000 kbps)</option>
+                <option value="1080p" selected>1080p Full HD • 60 FPS (8 500 kbps)</option>
+                <option value="720p">720p Turbo • 60 FPS (5 000 kbps)</option>
+              </select>
+            </div>
+
+            <div class="s-row">
+              <div>
+                <div class="s-label">Приоритет кодировщика (`contentHint`)</div>
+                <div class="s-sub">Плавность 60 кадров для игр или максимальная резкость шрифтов</div>
+              </div>
+              <select id="streamHintSelect" class="s-select">
+                <option value="motion">Игры и кино (Держать 60 FPS)</option>
+                <option value="detail">Код и текст (Максимальная резкость)</option>
+              </select>
+            </div>
+
+            <div class="s-row">
+              <div>
+                <div class="s-label">Подсветка Ambilight вокруг плеера</div>
+                <div class="s-sub">Мягкое свечение в цвет темы позади видеопотока</div>
+              </div>
+              <input id="ambilightCheck" type="checkbox" checked style="width:18px;height:18px" />
+            </div>
+          </div>
+        </div>
+
+        <!-- ВКЛАДКА 4: ОФОРМЛЕНИЕ И ТЕМА -->
+        <div id="tabTheme" class="s-pane">
+          <div class="s-pane-header">
+            <div class="s-pane-title">Студия стиля disstya</div>
+            <button class="btn close-settings-btn">Готово</button>
+          </div>
+
+          <div class="s-card">
+            <div class="s-label">Цветовые пресеты</div>
+            <div class="preset-grid">
+              <div class="preset-card active" data-theme="tokyo">
+                <div class="preset-title">🟣 Tokyo Tag</div>
+                <div class="preset-desc">Фиолетовый неон и розовый киберпанк</div>
+              </div>
+              <div class="preset-card" data-theme="acid">
+                <div class="preset-title">🟢 Acid Graffiti</div>
+                <div class="preset-desc">Кислотный лайм и изумрудный тег</div>
+              </div>
+              <div class="preset-card" data-theme="blood">
+                <div class="preset-title">🔴 Bloodline</div>
+                <div class="preset-desc">Багровый закат и темный карбон</div>
+              </div>
+              <div class="preset-card" data-theme="ice">
+                <div class="preset-title">🔵 Cyber Ice</div>
+                <div class="preset-desc">Ледяной циан и глубокий космос</div>
+              </div>
+              <div class="preset-card" data-theme="gold">
+                <div class="preset-title">🟡 Street Gold</div>
+                <div class="preset-desc">Золото Кольца и теплый янтарь</div>
+              </div>
+              <div class="preset-card" data-theme="oled">
+                <div class="preset-title">⚫ OLED Black</div>
+                <div class="preset-desc">Абсолютный черный #000000</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="s-card">
+            <div class="s-row">
+              <span class="s-label">Шрифт уличного тега `disstya`</span>
+              <select id="tagFontSelect" class="s-select">
+                <option value="'Rubik Wet Paint', system-ui">Rubik Wet Paint (Мокрый тег)</option>
+                <option value="'Permanent Marker', cursive">Permanent Marker (Маркер)</option>
+                <option value="'Sedgwick Ave Display', cursive">Sedgwick Ave (Граффити)</option>
+                <option value="'Rock Salt', cursive">Rock Salt (Уличный мел)</option>
+              </select>
+            </div>
+            <div class="s-row">
+              <span class="s-label">Фоновая атмосфера сцены</span>
+              <select id="sceneBgSelect" class="s-select">
+                <option value="aurora">Неоновая Аврора</option>
+                <option value="grid">Кибер-сетка</option>
+                <option value="dots">Уличный дотинг</option>
+                <option value="minimal">Чистый мрак</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <script>
-    (function () {
-      'use strict';
+    /*************************************************************************
+     * DISSTYA — АВТОНОМНЫЙ P2P ДВИЖОК БЕЗ VPN (MULTI-WSS + KRISP AI + 60 FPS)
+     * Никаких внешних скриптов, никаких зависаний CDN или блокировок PeerJS!
+     *************************************************************************/
 
-      // =========================================================================
-      // 1. КОНСТАНТЫ СПЕЦИФИКАЦИИ (АУДИО И 1080p60 ВИДЕО)
-      // =========================================================================
-      const AUDIO_MAX_BITRATE = 128000; // 128 kbps stereo
-      const VIDEO_MAX_BITRATE = 8000000; // 8 Mbps
-      const VIDEO_MAX_FRAMERATE = 60;
+    // 1. Анимированные SVG-аватарки по «Властелину Колец» и «Гарри Поттеру»
+    const AVATAR_PRESETS = {
+      sauron: {
+        name: 'Око Саурона',
+        svg: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="48" fill="url(#sauronGrad)"/><g class="svg-spin"><circle cx="50" cy="50" r="41" fill="none" stroke="#fde047" stroke-width="1.5" stroke-dasharray="4 6" opacity="0.65"/></g><g class="svg-pulse"><ellipse cx="50" cy="50" rx="28" ry="16" fill="#ea580c"/><ellipse cx="50" cy="50" rx="5" ry="15" fill="#000"/><ellipse cx="50" cy="50" rx="8" ry="15" fill="none" stroke="#fef08a" stroke-width="1.5"/></g></svg>`
+      },
+      onering: {
+        name: 'Кольцо Всевластья',
+        svg: `<svg viewBox="0 0 100 100"><rect width="100" height="100" fill="#0c0a09"/><g class="svg-spin"><circle cx="50" cy="50" r="34" fill="none" stroke="url(#goldGrad)" stroke-width="9"/><circle cx="50" cy="50" r="34" fill="none" stroke="#fef9c3" stroke-width="1.5" stroke-dasharray="3 5"/></g><circle cx="50" cy="50" r="20" fill="none" stroke="#f97316" stroke-width="1.2" opacity="0.7"/></svg>`
+      },
+      gondor: {
+        name: 'Древо Гондора',
+        svg: `<svg viewBox="0 0 100 100"><rect width="100" height="100" fill="#0f172a"/><g class="svg-pulse"><circle cx="50" cy="24" r="3" fill="#e2e8f0"/><circle cx="33" cy="30" r="2.5" fill="#e2e8f0"/><circle cx="67" cy="30" r="2.5" fill="#e2e8f0"/><circle cx="25" cy="44" r="2" fill="#e2e8f0"/><circle cx="75" cy="44" r="2" fill="#e2e8f0"/></g><path d="M50 78 L50 42 M50 56 L34 40 M50 56 L66 40 M50 48 L40 33 M50 48 L60 33 M38 78 Q50 72 62 78" stroke="#f8fafc" stroke-width="3" fill="none" stroke-linecap="round"/></svg>`
+      },
+      hallows: {
+        name: 'Дары Смерти',
+        svg: `<svg viewBox="0 0 100 100"><rect width="100" height="100" fill="#090d16"/><g class="svg-spin"><circle cx="50" cy="57" r="18" fill="none" stroke="#38bdf8" stroke-width="2.5" stroke-dasharray="6 3"/></g><polygon points="50,20 20,75 80,75" fill="none" stroke="#e0f2fe" stroke-width="3.2" stroke-linejoin="round"/><line x1="50" y1="20" x2="50" y2="75" stroke="#38bdf8" stroke-width="3"/></svg>`
+      },
+      snitch: {
+        name: 'Золотой Снитч',
+        svg: `<svg viewBox="0 0 100 100"><rect width="100" height="100" fill="#111827"/><g class="svg-wing"><path d="M10 36 Q30 22 44 46" fill="none" stroke="#fef08a" stroke-width="3"/><path d="M90 36 Q70 22 56 46" fill="none" stroke="#fef08a" stroke-width="3"/></g><circle cx="50" cy="54" r="15" fill="url(#goldGrad)"/><circle cx="50" cy="54" r="11" fill="none" stroke="#713f12" stroke-width="1"/></svg>`
+      },
+      patronus: {
+        name: 'Патронус Молния',
+        svg: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="url(#patronusGrad)"/><g class="svg-pulse"><polygon points="55,16 32,54 49,54 43,84 68,45 51,45" fill="#fef08a" stroke="#fff" stroke-width="1.5"/></g></svg>`
+      }
+    };
 
-      const PEER_CONFIG = {
-        debug: 1,
-        config: {
-          iceServers: [
-            { urls: 'stun:stun.l.google.com:19302' },
-            { urls: 'stun:stun1.l.google.com:19302' }
-          ],
-          sdpSemantics: 'unified-plan'
-        }
-      };
+    const THEME_PRESETS = {
+      tokyo: { a1: '#a855f7', a2: '#ec4899', bg: '#07070c' },
+      acid:  { a1: '#10b981', a2: '#84cc16', bg: '#050a08' },
+      blood: { a1: '#ef4444', a2: '#f97316', bg: '#0b0607' },
+      ice:   { a1: '#06b6d4', a2: '#3b82f6', bg: '#050911' },
+      gold:  { a1: '#eab308', a2: '#f59e0b', bg: '#0a0805' },
+      oled:  { a1: '#e2e8f0', a2: '#64748b', bg: '#000000' }
+    };
 
-      // =========================================================================
-      // 2. СОСТОЯНИЕ ПРИЛОЖЕНИЯ
-      // =========================================================================
-      const state = {
-        isHost: false,
-        roomId: '',
-        myPeerId: '',
-        remotePeerId: '',
-        peer: null,
-        activeCall: null,
-        dataConn: null,
-        localMicStream: null,
-        localScreenStream: null,
-        studioMode: false, // false = Режим 1 (Шумодав ВКЛ), true = Режим 2 (Чистая студия)
-        micMuted: false,
-        isScreenSharing: false,
-        videoTransceiver: null,
-        systemAudioTransceiver: null,
-        negotiating: false,
-        callStartTime: null,
-        audioContext: null,
-        analyser: null,
-        micSource: null,
-        meterRafId: null,
-        statsIntervalId: null,
-        prevStats: {
-          timestamp: 0,
-          audioBytesSent: 0,
-          audioBytesRecv: 0,
-          videoBytesSent: 0,
-          videoBytesRecv: 0
-        }
-      };
+    // 2. Мгновенная генерация короткого ID комнаты (работает с 1-й миллисекунды)
+    function createRoomId() {
+      const chars = 'abcdefghjkmnpqrstuvwxyz23456789';
+      let out = 'ds-';
+      for (let i = 0; i < 6; i++) {
+        out += chars[Math.floor(Math.random() * chars.length)];
+      }
+      return out;
+    }
 
-      // =========================================================================
-      // 3. DOM-ЭЛЕМЕНТЫ
-      // =========================================================================
-      const els = {
-        statusDot: document.getElementById('statusDot'),
-        roleBadge: document.getElementById('roleBadge'),
-        peerStateBadge: document.getElementById('peerStateBadge'),
-        iceStateBadge: document.getElementById('iceStateBadge'),
-        roomIdDisplay: document.getElementById('roomIdDisplay'),
-        copyLinkBtn: document.getElementById('copyLinkBtn'),
-        manualPeerInput: document.getElementById('manualPeerInput'),
-        manualConnectBtn: document.getElementById('manualConnectBtn'),
-        newRoomBtn: document.getElementById('newRoomBtn'),
-        remoteVideo: document.getElementById('remoteVideo'),
-        remoteAudio: document.getElementById('remoteAudio'),
-        videoContainer: document.getElementById('videoContainer'),
-        emptyStage: document.getElementById('emptyStage'),
-        emptyStageTitle: document.getElementById('emptyStageTitle'),
-        emptyStageDesc: document.getElementById('emptyStageDesc'),
-        localPip: document.getElementById('localPip'),
-        localScreenPreview: document.getElementById('localScreenPreview'),
-        hudContentHint: document.getElementById('hudContentHint'),
-        pipToggleBtn: document.getElementById('pipToggleBtn'),
-        fullscreenBtn: document.getElementById('fullscreenBtn'),
-        rttTag: document.getElementById('rttTag'),
-        metricAudioBitrate: document.getElementById('metricAudioBitrate'),
-        metricAudioCodec: document.getElementById('metricAudioCodec'),
-        metricVideoBitrate: document.getElementById('metricVideoBitrate'),
-        metricPacketLoss: document.getElementById('metricPacketLoss'),
-        metricFps: document.getElementById('metricFps'),
-        metricResolution: document.getElementById('metricResolution'),
-        metricJitter: document.getElementById('metricJitter'),
-        metricUptime: document.getElementById('metricUptime'),
-        audioModeTag: document.getElementById('audioModeTag'),
-        micDbValue: document.getElementById('micDbValue'),
-        micMeterFill: document.getElementById('micMeterFill'),
-        specAgc: document.getElementById('specAgc'),
-        specSampleRate: document.getElementById('specSampleRate'),
-        specDsp: document.getElementById('specDsp'),
-        specSenderBitrate: document.getElementById('specSenderBitrate'),
-        logContainer: document.getElementById('logContainer'),
-        clearLogBtn: document.getElementById('clearLogBtn'),
-        micMuteBtn: document.getElementById('micMuteBtn'),
-        audioModeBtn: document.getElementById('audioModeBtn'),
-        screenShareBtn: document.getElementById('screenShareBtn'),
-        reapplyBitrateBtn: document.getElementById('reapplyBitrateBtn'),
-        remoteVolumeSlider: document.getElementById('remoteVolumeSlider'),
-        remoteVolumeLabel: document.getElementById('remoteVolumeLabel'),
-        reconnectBtn: document.getElementById('reconnectBtn'),
-        toast: document.getElementById('toast')
-      };
+    function extractCleanPeerId(raw) {
+      if (!raw) return '';
+      let str = String(raw).trim();
+      if (str.includes('#')) {
+        str = str.split('#').pop().trim();
+      }
+      const match = str.match(/ds-[a-z0-9]{4,12}/i);
+      if (match) return match[0].toLowerCase();
+      return str.replace(/[^a-zA-Z0-9_-]/g, '').toLowerCase();
+    }
 
-      // =========================================================================
-      // 4. УТИЛИТЫ И ЖУРНАЛИРОВАНИЕ
-      // =========================================================================
-      function logEvent(msg, level = 'info') {
-        const entry = document.createElement('div');
-        entry.className = 'log-entry ' + level;
-        const now = new Date();
-        const ts = now.toTimeString().split(' ')[0] + '.' + String(now.getMilliseconds()).padStart(3, '0');
-        const tsSpan = document.createElement('span');
-        tsSpan.className = 'ts';
-        tsSpan.textContent = '[' + ts + ']';
-        entry.appendChild(tsSpan);
-        entry.appendChild(document.createTextNode(msg));
-        els.logContainer.appendChild(entry);
-        els.logContainer.scrollTop = els.logContainer.scrollHeight;
+    // 3. Глобальное состояние приложения
+    const state = {
+      myId: createRoomId(),
+      remoteId: null,
+      inCall: false,
+      isCaller: false,
+      nickname: 'Rider',
+      avatarKey: 'sauron',
+      customAvatarUrl: null,
+      avatarFrame: 'frame-mordor',
+      krispMode: 'ultra',
+      noiseGate: 6,
+      iceTransportPolicy: 'all',
+      micEnabled: true,
+      videoMode: 'none', // 'none' | 'screen' | 'webcam'
+      loopbackEnabled: false,
+      streamQuality: '1080p',
+      streamHint: 'motion',
+      ambilight: true,
+
+      // WebAudio & Media
+      audioCtx: null,
+      micStream: null,
+      micSource: null,
+      krispNode: null,
+      highpassNode: null,
+      compressorNode: null,
+      gateGainNode: null,
+      micGainNode: null,
+      screenAudioSource: null,
+      screenAudioGainNode: null,
+      soundpadGainNode: null,
+      loopbackGainNode: null,
+      mixerDest: null,
+      localAnalyser: null,
+      remoteAnalyser: null,
+
+      // Видео-дорожка (включая фоновый холст для мгновенной замены без ренегоциации)
+      dummyCanvas: null,
+      dummyVideoTrack: null,
+      activeVideoStream: null,
+
+      // WebRTC
+      pc: null,
+      dataChannel: null,
+      audioSender: null,
+      videoSender: null,
+      pendingCandidates: [],
+      offerRetryTimer: null,
+      statsTimer: null,
+
+      // Саундпад
+      customSounds: []
+    };
+
+    // Загрузка сохраненных настроек из localStorage
+    try {
+      const saved = JSON.parse(localStorage.getItem('disstya_cfg_v5') || '{}');
+      if (saved.nickname) state.nickname = saved.nickname;
+      if (saved.avatarKey) state.avatarKey = saved.avatarKey;
+      if (saved.customAvatarUrl) state.customAvatarUrl = saved.customAvatarUrl;
+      if (saved.avatarFrame) state.avatarFrame = saved.avatarFrame;
+      if (saved.krispMode) state.krispMode = saved.krispMode;
+    } catch (_) {}
+
+    function saveConfig() {
+      try {
+        localStorage.setItem('disstya_cfg_v5', JSON.stringify({
+          nickname: state.nickname,
+          avatarKey: state.avatarKey,
+          customAvatarUrl: state.customAvatarUrl,
+          avatarFrame: state.avatarFrame,
+          krispMode: state.krispMode
+        }));
+      } catch (_) {}
+    }
+
+    function showToast(msg) {
+      const wrap = document.getElementById('toastWrap');
+      if (!wrap) return;
+      const el = document.createElement('div');
+      el.className = 'toast';
+      el.textContent = msg;
+      wrap.appendChild(el);
+      setTimeout(() => el.remove(), 3400);
+    }
+
+    function setStatus(text, mode = 'ready') {
+      const dot = document.getElementById('statusDot');
+      const label = document.getElementById('statusText');
+      if (label) label.textContent = text;
+      if (dot) {
+        dot.className = 'status-dot ' + mode;
+      }
+    }
+
+    /*************************************************************************
+     * 4. МУЛЬТИ-ШЛЮЗ СИГНАЛИНГА БЕЗ VPN (MQTT-OVER-WSS НА ЧИСТОМ JS + BC)
+     * Подключается сразу к 4 независимым WSS-серверам без единой внешней библиотеки
+     *************************************************************************/
+    class MultiMeshSignaling {
+      constructor(myId, onMessage, onStatusChange) {
+        this.myId = myId;
+        this.onMessage = onMessage;
+        this.onStatusChange = onStatusChange;
+        this.sockets = new Map();
+        this.seenIds = new Set();
+        this.bc = null;
+
+        // Список независимых публичных WSS-брокеров, работающих в РФ без VPN
+        this.brokers = [
+          'wss://broker.emqx.io:8084/mqtt',
+          'wss://broker.hivemq.com:8884/mqtt',
+          'wss://mqtt.eclipseprojects.io:443/mqtt',
+          'wss://test.mosquitto.org:8081/mqtt'
+        ];
       }
 
-      function showToast(text) {
-        els.toast.textContent = text;
-        els.toast.classList.add('show');
-        setTimeout(() => {
-          els.toast.classList.remove('show');
-        }, 2400);
-      }
-
-      function generateRoomId() {
-        const chars = 'abcdefghjkmnpqrstuvwxyz23456789';
-        let id = 'studio-';
-        for (let i = 0; i < 8; i++) {
-          id += chars.charAt(Math.floor(Math.random() * chars.length));
-        }
-        return id;
-      }
-
-      // =========================================================================
-      // 5. SDP MUNGE ДЛЯ OPUS (stereo=1; sprop-stereo=1; cbr=1; usedtx=0)
-      // =========================================================================
-      function forceOpusSdpParameters(sdp) {
-        if (!sdp || typeof sdp !== 'string') return sdp;
-        const lines = sdp.split(/\r?\n/);
-        let opusPayloadType = null;
-
-        for (let i = 0; i < lines.length; i++) {
-          const match = lines[i].match(/^a=rtpmap:(\d+)\s+opus\/48000\/2/i);
-          if (match) {
-            opusPayloadType = match[1];
-            break;
-          }
-        }
-
-        if (!opusPayloadType) return sdp;
-
-        const requiredParams = {
-          'stereo': '1',
-          'sprop-stereo': '1',
-          'cbr': '1',
-          'usedtx': '0',
-          'maxaveragebitrate': '128000'
-        };
-
-        let fmtpFound = false;
-        const fmtpPrefix = 'a=fmtp:' + opusPayloadType + ' ';
-
-        for (let i = 0; i < lines.length; i++) {
-          if (lines[i].startsWith(fmtpPrefix)) {
-            fmtpFound = true;
-            const existingRaw = lines[i].substring(fmtpPrefix.length).trim();
-            const paramMap = {};
-            existingRaw.split(';').forEach(pair => {
-              const trimmed = pair.trim();
-              if (!trimmed) return;
-              const [k, v] = trimmed.split('=');
-              if (k && v !== undefined) paramMap[k.trim()] = v.trim();
-            });
-            Object.keys(requiredParams).forEach(k => {
-              paramMap[k] = requiredParams[k];
-            });
-            const rebuilt = Object.entries(paramMap).map(([k, v]) => `${k}=${v}`).join(';');
-            lines[i] = fmtpPrefix + rebuilt;
-          }
-        }
-
-        if (!fmtpFound) {
-          const rtpmapLineIndex = lines.findIndex(l => l.startsWith('a=rtpmap:' + opusPayloadType + ' '));
-          if (rtpmapLineIndex !== -1) {
-            const fmtpString = Object.entries(requiredParams).map(([k, v]) => `${k}=${v}`).join(';');
-            lines.splice(rtpmapLineIndex + 1, 0, fmtpPrefix + fmtpString);
-          }
-        }
-
-        return lines.join('\r\n');
-      }
-
-      // Патчим RTCPeerConnection.prototype.createOffer и createAnswer, чтобы
-      // как при первичном вызове PeerJS, так и при динамическом renegotiation
-      // гарантированно форсировались параметры Opus: stereo=1; sprop-stereo=1; cbr=1; usedtx=0
-      function installGlobalSdpInterceptor() {
-        if (window.__opusSdpInterceptorInstalled || typeof RTCPeerConnection === 'undefined') return;
-        window.__opusSdpInterceptorInstalled = true;
-
-        const origCreateOffer = RTCPeerConnection.prototype.createOffer;
-        RTCPeerConnection.prototype.createOffer = async function (...args) {
-          const offer = await origCreateOffer.apply(this, args);
-          if (offer && offer.sdp) {
-            offer.sdp = forceOpusSdpParameters(offer.sdp);
-          }
-          return offer;
-        };
-
-        const origCreateAnswer = RTCPeerConnection.prototype.createAnswer;
-        RTCPeerConnection.prototype.createAnswer = async function (...args) {
-          const answer = await origCreateAnswer.apply(this, args);
-          if (answer && answer.sdp) {
-            answer.sdp = forceOpusSdpParameters(answer.sdp);
-          }
-          return answer;
-        };
-
-        logEvent('SDP-интерцептор Opus установлен: stereo=1; sprop-stereo=1; cbr=1; usedtx=0', 'ok');
-      }
-
-      // =========================================================================
-      // 6. ЗАХВАТ МИКРОФОНА И ПЕРЕКЛЮЧЕНИЕ РЕЖИМОВ (STUDIO-GRADE VOICE)
-      // =========================================================================
-      function buildAudioConstraints(isStudioMode) {
-        return {
-          audio: {
-            autoGainControl: { exact: false },
-            echoCancellation: { ideal: !isStudioMode },
-            noiseSuppression: { ideal: !isStudioMode },
-            channelCount: { ideal: 2 },
-            sampleRate: { ideal: 48000 }
-          },
-          video: false
-        };
-      }
-
-      function buildFallbackAudioConstraints(isStudioMode) {
-        return {
-          audio: {
-            autoGainControl: false,
-            echoCancellation: !isStudioMode,
-            noiseSuppression: !isStudioMode,
-            channelCount: 2,
-            sampleRate: 48000
-          },
-          video: false
-        };
-      }
-
-      async function acquireMicrophoneStream(isStudioMode) {
-        let stream;
+      start() {
+        // 1. Локальный канал между вкладками/окнами на одном ПК (мгновенно)
         try {
-          stream = await navigator.mediaDevices.getUserMedia(buildAudioConstraints(isStudioMode));
-        } catch (err) {
-          logEvent('Строгий constraint autoGainControl:exact отклонен, применяем стандартный профиль: ' + err.message, 'warn');
-          stream = await navigator.mediaDevices.getUserMedia(buildFallbackAudioConstraints(isStudioMode));
-        }
+          this.bc = new BroadcastChannel('disstya_local_mesh_v5');
+          this.bc.onmessage = (ev) => this.handleIncoming(ev.data);
+        } catch (_) {}
 
-        const audioTrack = stream.getAudioTracks()[0];
-        if (audioTrack) {
-          audioTrack.enabled = !state.micMuted;
-          if ('contentHint' in audioTrack) {
-            audioTrack.contentHint = isStudioMode ? 'music' : 'speech';
-          }
-          const settings = audioTrack.getSettings ? audioTrack.getSettings() : {};
-          els.specAgc.textContent = String(settings.autoGainControl ?? false) + ' (LOCKED OFF)';
-          els.specSampleRate.textContent = `${settings.sampleRate || 48000} Hz / ${settings.channelCount || 2}ch`;
-          els.specDsp.textContent = `EC:${!isStudioMode} / NS:${!isStudioMode}`;
-          logEvent(
-            `Микрофон активен [${isStudioMode ? 'Режим 2: Чистая студия' : 'Режим 1: Шумодав'}]: ` +
-            `AGC=${settings.autoGainControl ?? false}, EC=${settings.echoCancellation ?? !isStudioMode}, NS=${settings.noiseSuppression ?? !isStudioMode}`,
-            'ok'
-          );
-        }
-
-        setupLocalAudioMeter(stream);
-        return stream;
+        // 2. Параллельное подключение ко всем WSS-шлюзам
+        this.brokers.forEach((url) => this.connectBroker(url));
       }
 
-      function setupLocalAudioMeter(stream) {
+      encodeUtf8(str) {
+        return new TextEncoder().encode(str);
+      }
+
+      encodeRemainingLength(len) {
+        const bytes = [];
+        do {
+          let digit = len % 128;
+          len = Math.floor(len / 128);
+          if (len > 0) digit |= 0x80;
+          bytes.push(digit);
+        } while (len > 0);
+        return bytes;
+      }
+
+      buildConnectPacket(clientId) {
+        const cid = this.encodeUtf8(clientId);
+        const varHeader = [0x00, 0x04, 0x4d, 0x51, 0x54, 0x54, 0x04, 0x02, 0x00, 0x3c];
+        const payload = [cid.length >> 8, cid.length & 0xff, ...cid];
+        const rem = this.encodeRemainingLength(varHeader.length + payload.length);
+        return new Uint8Array([0x10, ...rem, ...varHeader, ...payload]);
+      }
+
+      buildSubscribePacket(topic) {
+        const top = this.encodeUtf8(topic);
+        const varHeader = [0x00, 0x01];
+        const payload = [top.length >> 8, top.length & 0xff, ...top, 0x00];
+        const rem = this.encodeRemainingLength(varHeader.length + payload.length);
+        return new Uint8Array([0x82, ...rem, ...varHeader, ...payload]);
+      }
+
+      buildPublishPacket(topic, jsonStr) {
+        const top = this.encodeUtf8(topic);
+        const data = this.encodeUtf8(jsonStr);
+        const varHeader = [top.length >> 8, top.length & 0xff, ...top];
+        const rem = this.encodeRemainingLength(varHeader.length + data.length);
+        const pkt = new Uint8Array(1 + rem.length + varHeader.length + data.length);
+        pkt[0] = 0x30;
+        pkt.set(rem, 1);
+        pkt.set(varHeader, 1 + rem.length);
+        pkt.set(data, 1 + rem.length + varHeader.length);
+        return pkt;
+      }
+
+      connectBroker(url) {
+        let ws;
         try {
-          if (!state.audioContext) {
-            const AudioCtx = window.AudioContext || window.webkitAudioContext;
-            state.audioContext = new AudioCtx({ sampleRate: 48000 });
-          }
-          if (state.audioContext.state === 'suspended') {
-            state.audioContext.resume().catch(() => {});
-          }
-          if (state.micSource) {
-            try { state.micSource.disconnect(); } catch (_) {}
-          }
-          if (!state.analyser) {
-            state.analyser = state.audioContext.createAnalyser();
-            state.analyser.fftSize = 512;
-            state.analyser.smoothingTimeConstant = 0.65;
-          }
-          state.micSource = state.audioContext.createMediaStreamSource(stream);
-          state.micSource.connect(state.analyser);
+          ws = new WebSocket(url, 'mqtt');
+          ws.binaryType = 'arraybuffer';
+        } catch (_) {
+          return;
+        }
 
-          if (state.meterRafId) cancelAnimationFrame(state.meterRafId);
-          const dataArray = new Float32Array(state.analyser.fftSize);
+        let pingTimer = null;
+        const clientId = 'ds_' + this.myId + '_' + Math.random().toString(36).slice(2, 7);
+        const myTopic = 'disstya/v5/room/' + this.myId;
 
-          const updateMeter = () => {
-            if (!state.analyser || state.micMuted) {
-              els.micMeterFill.style.width = '0%';
-              els.micDbValue.textContent = state.micMuted ? 'MUTED' : '-∞ dB';
-              state.meterRafId = requestAnimationFrame(updateMeter);
-              return;
+        ws.onopen = () => {
+          try {
+            ws.send(this.buildConnectPacket(clientId));
+          } catch (_) {}
+        };
+
+        ws.onmessage = (ev) => {
+          const buf = new Uint8Array(ev.data);
+          if (!buf.length) return;
+          const type = buf[0] & 0xf0;
+
+          // CONNACK (0x20) -> Подписываемся на личный канал комнаты
+          if (type === 0x20) {
+            this.sockets.set(url, ws);
+            this.notifyStatus();
+            ws.send(this.buildSubscribePacket(myTopic));
+            pingTimer = setInterval(() => {
+              if (ws.readyState === WebSocket.OPEN) {
+                ws.send(new Uint8Array([0xc0, 0x00]));
+              }
+            }, 25000);
+          }
+
+          // PUBLISH (0x30) -> Входящий сигнальный пакет от друга
+          if (type === 0x30) {
+            let idx = 1;
+            let mult = 1;
+            let remLen = 0;
+            while (idx < buf.length) {
+              const b = buf[idx++];
+              remLen += (b & 0x7f) * mult;
+              mult *= 128;
+              if ((b & 0x80) === 0) break;
             }
-            state.analyser.getFloatTimeDomainData(dataArray);
-            let sumSquares = 0;
-            for (let i = 0; i < dataArray.length; i++) {
-              sumSquares += dataArray[i] * dataArray[i];
-            }
-            const rms = Math.sqrt(sumSquares / dataArray.length);
-            const db = 20 * Math.log10(Math.max(rms, 1e-7));
-            const normalized = Math.min(100, Math.max(0, ((db + 60) / 60) * 100));
-            els.micMeterFill.style.width = normalized.toFixed(1) + '%';
-            els.micDbValue.textContent = db <= -59 ? '-∞ dB' : db.toFixed(1) + ' dB';
-            state.meterRafId = requestAnimationFrame(updateMeter);
+            if (idx + 2 > buf.length) return;
+            const topicLen = (buf[idx] << 8) | buf[idx + 1];
+            idx += 2 + topicLen;
+            const qos = (buf[0] >> 1) & 0x03;
+            if (qos > 0) idx += 2;
+            const payloadBytes = buf.slice(idx);
+            try {
+              const text = new TextDecoder().decode(payloadBytes);
+              this.handleIncoming(JSON.parse(text));
+            } catch (_) {}
+          }
+        };
+
+        const cleanup = () => {
+          if (pingTimer) clearInterval(pingTimer);
+          this.sockets.delete(url);
+          this.notifyStatus();
+          setTimeout(() => this.connectBroker(url), 6000);
+        };
+
+        ws.onerror = () => {};
+        ws.onclose = cleanup;
+      }
+
+      notifyStatus() {
+        if (this.onStatusChange) {
+          this.onStatusChange(this.sockets.size);
+        }
+      }
+
+      handleIncoming(msg) {
+        if (!msg || msg.to !== this.myId || !msg.msgId) return;
+        if (this.seenIds.has(msg.msgId)) return;
+        this.seenIds.add(msg.msgId);
+        if (this.seenIds.size > 500) {
+          const first = this.seenIds.values().next().value;
+          this.seenIds.delete(first);
+        }
+        this.onMessage(msg);
+      }
+
+      send(targetId, payload) {
+        const packet = {
+          ...payload,
+          from: this.myId,
+          to: targetId,
+          msgId: Math.random().toString(36).slice(2) + Date.now().toString(36)
+        };
+        const jsonStr = JSON.stringify(packet);
+        const topic = 'disstya/v5/room/' + targetId;
+
+        // 1. Локальный BroadcastChannel
+        if (this.bc) {
+          try { this.bc.postMessage(packet); } catch (_) {}
+        }
+
+        // 2. Дублируем во все открытые WSS-шлюзы для 100% доставки без VPN
+        const bin = this.buildPublishPacket(topic, jsonStr);
+        this.sockets.forEach((ws) => {
+          if (ws.readyState === WebSocket.OPEN) {
+            try { ws.send(bin); } catch (_) {}
+          }
+        });
+      }
+    }
+
+    let signaling = null;
+
+    /*************************************************************************
+     * 5. ЗВУКОВОЙ ДВИЖОК + НЕЙРО-ШУМОПОДАВЛЕНИЕ KRISP AI (AUDIOWORKLET)
+     *************************************************************************/
+    const KRISP_WORKLET_CODE = `
+      class KrispSuppressor extends AudioWorkletProcessor {
+        constructor() {
+          super();
+          this.noiseFloor = 0.0018;
+          this.smoothGain = 1.0;
+          this.mode = 'ultra';
+          this.gateThreshold = 0.006;
+          this.port.onmessage = (e) => {
+            if (e.data.mode) this.mode = e.data.mode;
+            if (typeof e.data.gate === 'number') this.gateThreshold = e.data.gate;
           };
-          state.meterRafId = requestAnimationFrame(updateMeter);
-        } catch (e) {
-          logEvent('Анализатор спектра микрофона недоступен: ' + e.message, 'warn');
         }
-      }
+        process(inputs, outputs) {
+          const input = inputs[0];
+          const output = outputs[0];
+          if (!input || !input[0]) return true;
+          const inCh = input[0];
+          const outCh = output[0];
 
-      async function switchAudioMode() {
-        const nextStudioMode = !state.studioMode;
-        try {
-          const newStream = await acquireMicrophoneStream(nextStudioMode);
-          const newAudioTrack = newStream.getAudioTracks()[0];
+          if (this.mode === 'raw') {
+            outCh.set(inCh);
+            return true;
+          }
 
-          // Заменяем аудиодорожку в активном RTCPeerConnection без обрыва звонка
-          const pc = getActivePeerConnection();
-          if (pc && newAudioTrack) {
-            const senders = pc.getSenders();
-            const micSender = senders.find(s => s.track && s.track.kind === 'audio');
-            if (micSender) {
-              await micSender.replaceTrack(newAudioTrack);
-              await enforceAudioSenderBitrate(micSender);
-              logEvent('Аудиодорожка заменена на лету через sender.replaceTrack()', 'ok');
+          let sumSq = 0;
+          let peak = 0;
+          let zeroCrossings = 0;
+          for (let i = 0; i < inCh.length; i++) {
+            const s = inCh[i];
+            sumSq += s * s;
+            const abs = Math.abs(s);
+            if (abs > peak) peak = abs;
+            if (i > 0 && ((inCh[i - 1] >= 0 && s < 0) || (inCh[i - 1] < 0 && s >= 0))) {
+              zeroCrossings++;
             }
           }
+          const rms = Math.sqrt(sumSq / inCh.length);
 
-          if (state.localMicStream) {
-            state.localMicStream.getTracks().forEach(t => t.stop());
+          // Адаптивная оценка фонового шума кулеров
+          if (rms < this.noiseFloor * 1.8) {
+            this.noiseFloor = 0.995 * this.noiseFloor + 0.005 * rms;
+          } else {
+            this.noiseFloor = Math.min(0.02, this.noiseFloor * 1.0002);
           }
-          state.localMicStream = newStream;
-          state.studioMode = nextStudioMode;
-          updateAudioModeUI();
-        } catch (err) {
-          logEvent('Ошибка переключения режима микрофона: ' + err.message, 'err');
+
+          // Transient Click Killer (гашение стука механической клавиатуры и кликов мыши)
+          const crest = peak / (rms + 0.0001);
+          const isKeyboardClick = this.mode === 'ultra' && zeroCrossings > 42 && crest > 4.2 && rms < 0.12;
+
+          let targetGain = 1.0;
+          const effGate = Math.max(this.gateThreshold, this.noiseFloor * (this.mode === 'ultra' ? 2.6 : 1.7));
+
+          if (isKeyboardClick) {
+            targetGain = 0.08;
+          } else if (rms < effGate) {
+            targetGain = 0.0;
+          } else if (rms < effGate * 2.2) {
+            targetGain = (rms - effGate) / (effGate * 1.2);
+          }
+
+          const coeff = targetGain > this.smoothGain ? 0.25 : 0.04;
+          for (let i = 0; i < inCh.length; i++) {
+            this.smoothGain += coeff * (targetGain - this.smoothGain);
+            outCh[i] = inCh[i] * this.smoothGain;
+          }
+          return true;
         }
       }
+      registerProcessor('krisp-suppressor', KrispSuppressor);
+    `;
 
-      function updateAudioModeUI() {
-        if (state.studioMode) {
-          els.audioModeBtn.textContent = 'РЕЖИМ 2: ЧИСТАЯ СТУДИЯ (20Гц–20кГц)';
-          els.audioModeBtn.classList.add('btn-active-purple');
-          els.audioModeTag.textContent = 'MODE 2: STUDIO RAW';
-          els.audioModeTag.style.color = '#c4b5fd';
-        } else {
-          els.audioModeBtn.textContent = 'РЕЖИМ 1: ШУМОДАВ ВКЛ';
-          els.audioModeBtn.classList.remove('btn-active-purple');
-          els.audioModeTag.textContent = 'MODE 1: DSP ON';
-          els.audioModeTag.style.color = '';
+    async function initAudioEngine() {
+      if (state.audioCtx) return;
+
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      state.audioCtx = new AudioContextClass({ sampleRate: 48000 });
+
+      // Фоновый видео-холст (чтобы видео-трансивер всегда был готов к мгновенной замене на 60 FPS экран)
+      state.dummyCanvas = document.createElement('canvas');
+      state.dummyCanvas.width = 640;
+      state.dummyCanvas.height = 360;
+      const ctx2d = state.dummyCanvas.getContext('2d');
+      setInterval(() => {
+        ctx2d.fillStyle = '#07070c';
+        ctx2d.fillRect(0, 0, 640, 360);
+      }, 500);
+      const canvasStream = state.dummyCanvas.captureStream(5);
+      state.dummyVideoTrack = canvasStream.getVideoTracks()[0];
+
+      // Выходной микшер (в него сходятся Микрофон + Krisp AI + Саундпад + Звук экрана)
+      state.mixerDest = state.audioCtx.createMediaStreamDestination();
+
+      state.highpassNode = state.audioCtx.createBiquadFilter();
+      state.highpassNode.type = 'highpass';
+      state.highpassNode.frequency.value = 85;
+
+      state.compressorNode = state.audioCtx.createDynamicsCompressor();
+      state.compressorNode.threshold.value = -24;
+      state.compressorNode.knee.value = 18;
+      state.compressorNode.ratio.value = 4;
+
+      state.micGainNode = state.audioCtx.createGain();
+      state.micGainNode.gain.value = 1.0;
+
+      state.screenAudioGainNode = state.audioCtx.createGain();
+      state.screenAudioGainNode.gain.value = 1.0;
+      state.screenAudioGainNode.connect(state.mixerDest);
+
+      state.soundpadGainNode = state.audioCtx.createGain();
+      state.soundpadGainNode.gain.value = 1.0;
+      state.soundpadGainNode.connect(state.mixerDest);
+      state.soundpadGainNode.connect(state.audioCtx.destination);
+
+      state.loopbackGainNode = state.audioCtx.createGain();
+      state.loopbackGainNode.gain.value = 0.0;
+      state.loopbackGainNode.connect(state.audioCtx.destination);
+
+      state.localAnalyser = state.audioCtx.createAnalyser();
+      state.localAnalyser.fftSize = 256;
+
+      // Загружаем AudioWorklet Krisp AI
+      try {
+        const blob = new Blob([KRISP_WORKLET_CODE], { type: 'application/javascript' });
+        const url = URL.createObjectURL(blob);
+        await state.audioCtx.audioWorklet.addModule(url);
+        state.krispNode = new AudioWorkletNode(state.audioCtx, 'krisp-suppressor');
+        updateKrispParams();
+      } catch (_) {}
+
+      await captureMicrophone();
+      startVoiceActivityLoop();
+    }
+
+    function updateKrispParams() {
+      if (state.krispNode) {
+        state.krispNode.port.postMessage({
+          mode: state.krispMode,
+          gate: (state.noiseGate / 1000)
+        });
+      }
+    }
+
+    async function captureMicrophone(deviceId) {
+      try {
+        if (state.micStream) {
+          state.micStream.getTracks().forEach(t => t.stop());
         }
+        const rawMode = state.krispMode === 'raw';
+        const constraints = {
+          audio: {
+            deviceId: deviceId ? { exact: deviceId } : undefined,
+            echoCancellation: !rawMode,
+            noiseSuppression: !rawMode,
+            autoGainControl: !rawMode,
+            voiceIsolation: !rawMode,
+            channelCount: 1,
+            sampleRate: 48000
+          }
+        };
+        state.micStream = await navigator.mediaDevices.getUserMedia(constraints);
+        if (state.micSource) {
+          try { state.micSource.disconnect(); } catch (_) {}
+        }
+        state.micSource = state.audioCtx.createMediaStreamSource(state.micStream);
+
+        // Цепочка: Микрофон -> HighPass 85Hz -> Krisp AI Worklet -> Компрессор -> Усиление -> Эфир
+        let lastNode = state.micSource;
+        if (state.krispMode !== 'raw') {
+          lastNode.connect(state.highpassNode);
+          lastNode = state.highpassNode;
+        }
+        if (state.krispNode) {
+          lastNode.connect(state.krispNode);
+          lastNode = state.krispNode;
+        }
+        lastNode.connect(state.compressorNode);
+        state.compressorNode.connect(state.micGainNode);
+        state.micGainNode.connect(state.localAnalyser);
+        state.micGainNode.connect(state.mixerDest);
+        state.micGainNode.connect(state.loopbackGainNode);
+
+        state.micGainNode.gain.value = state.micEnabled ? 1.0 : 0.0;
+        await refreshAudioDevicesList();
+      } catch (err) {
+        showToast('Нет доступа к микрофону — звонок будет в режиме прослушивания');
+      }
+    }
+
+    async function refreshAudioDevicesList() {
+      try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const select = document.getElementById('micDeviceSelect');
+        if (!select) return;
+        const currentVal = select.value;
+        select.innerHTML = '';
+        devices.filter(d => d.kind === 'audioinput').forEach((d, idx) => {
+          const opt = document.createElement('option');
+          opt.value = d.deviceId;
+          opt.textContent = d.label || `Микрофон #${idx + 1}`;
+          select.appendChild(opt);
+        });
+        if (currentVal) select.value = currentVal;
+      } catch (_) {}
+    }
+
+    /*************************************************************************
+     * 6. WEBRTC СОЕДИНЕНИЕ С РОССИЙСКИМИ STUN И ТУННЕЛЕМ TURN TCP/443
+     *************************************************************************/
+    function getIceServers() {
+      return [
+        // Российские STUN-серверы (не блокируются ТСПУ в РФ)
+        { urls: 'stun:stun.sipnet.ru:3478' },
+        { urls: 'stun:stun.zadarma.com:3478' },
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun.nextcloud.com:443' },
+        // Бесплатные TURN-ретрансляторы (включая TCP/TLS по порту 443 для обхода жесткого NAT и блокировок UDP)
+        {
+          urls: [
+            'turn:openrelay.metered.ca:80',
+            'turn:openrelay.metered.ca:443',
+            'turn:openrelay.metered.ca:443?transport=tcp',
+            'turns:openrelay.metered.ca:443?transport=tcp'
+          ],
+          username: 'openrelayproject',
+          credential: 'openrelayproject'
+        }
+      ];
+    }
+
+    function mungeHighBitrateSdp(sdp) {
+      if (!sdp) return sdp;
+      // 1. Стерео Opus 256 kbps для кристального системного звука и голоса
+      sdp = sdp.replace(/a=fmtp:111 /g, 'a=fmtp:111 stereo=1;sprop-stereo=1;maxaveragebitrate=256000;cbr=1;useinbandfec=1;');
+      // 2. Повышение порога видеобитрейта до 12 000 kbps
+      const maxKbps = state.streamQuality === '1440p' ? 12000 : (state.streamQuality === '1080p' ? 8500 : 5000);
+      sdp = sdp.replace(/(m=video.*\r\n)/g, `$1b=AS:${maxKbps}\r\n`);
+      return sdp;
+    }
+
+    async function applyVideoSenderBitrate() {
+      if (!state.videoSender) return;
+      try {
+        const params = state.videoSender.getParameters();
+        if (!params.encodings || !params.encodings.length) {
+          params.encodings = [{}];
+        }
+        const maxBps = state.streamQuality === '1440p' ? 12000000 : (state.streamQuality === '1080p' ? 8500000 : 5000000);
+        params.encodings[0].maxBitrate = maxBps;
+        params.encodings[0].maxFramerate = 60;
+        params.encodings[0].scaleResolutionDownBy = 1.0;
+        params.degradationPreference = state.streamHint === 'detail' ? 'maintain-resolution' : 'maintain-framerate';
+        await state.videoSender.setParameters(params);
+      } catch (_) {}
+    }
+
+    async function createPeerConnection(targetId, isCaller) {
+      await initAudioEngine();
+      if (state.audioCtx && state.audioCtx.state === 'suspended') {
+        try { await state.audioCtx.resume(); } catch (_) {}
       }
 
-      function toggleMicMute() {
-        state.micMuted = !state.micMuted;
-        if (state.localMicStream) {
-          state.localMicStream.getAudioTracks().forEach(track => {
-            track.enabled = !state.micMuted;
+      if (state.pc) {
+        try { state.pc.close(); } catch (_) {}
+      }
+
+      state.remoteId = targetId;
+      state.isCaller = isCaller;
+      state.pendingCandidates = [];
+
+      const pc = new RTCPeerConnection({
+        iceServers: getIceServers(),
+        iceTransportPolicy: state.iceTransportPolicy,
+        bundlePolicy: 'max-bundle'
+      });
+      state.pc = pc;
+
+      // Прикрепляем микшированный звук и видео-дорожку
+      const audioTrack = state.mixerDest.stream.getAudioTracks()[0];
+      if (audioTrack) {
+        state.audioSender = pc.addTrack(audioTrack, state.mixerDest.stream);
+      }
+
+      const currentVideoTrack = (state.activeVideoStream && state.activeVideoStream.getVideoTracks()[0]) || state.dummyVideoTrack;
+      if (currentVideoTrack) {
+        state.videoSender = pc.addTrack(currentVideoTrack, state.mixerDest.stream);
+      }
+
+      // Отправка ICE-кандидатов собеседнику
+      pc.onicecandidate = (ev) => {
+        if (ev.candidate && state.remoteId) {
+          signaling.send(state.remoteId, {
+            type: 'ICE_CAND',
+            candidate: ev.candidate
           });
         }
-        if (state.micMuted) {
-          els.micMuteBtn.textContent = 'МИКРОФОН: ВЫКЛ';
-          els.micMuteBtn.classList.remove('btn-active-green');
-          els.micMuteBtn.classList.add('btn-danger');
-          logEvent('Микрофон отключен (Mute)', 'warn');
-        } else {
-          els.micMuteBtn.textContent = 'МИКРОФОН: ВКЛ';
-          els.micMuteBtn.classList.remove('btn-danger');
-          els.micMuteBtn.classList.add('btn-active-green');
-          logEvent('Микрофон включен', 'ok');
+      };
+
+      // Получение медиапотоков собеседника
+      pc.ontrack = (ev) => {
+        if (ev.track.kind === 'video') {
+          const remoteVideo = document.getElementById('remoteVideo');
+          remoteVideo.srcObject = new MediaStream([ev.track]);
+          remoteVideo.play().catch(() => {});
+        } else if (ev.track.kind === 'audio') {
+          const remoteAudio = document.getElementById('remoteAudio');
+          const audioStream = new MediaStream([ev.track]);
+          remoteAudio.srcObject = audioStream;
+          remoteAudio.play().catch(() => {});
+
+          // Подключаем анализатор голоса собеседника для зеленой обводки
+          try {
+            const src = state.audioCtx.createMediaStreamSource(audioStream);
+            state.remoteAnalyser = state.audioCtx.createAnalyser();
+            state.remoteAnalyser.fftSize = 256;
+            src.connect(state.remoteAnalyser);
+          } catch (_) {}
         }
+      };
+
+      pc.onconnectionstatechange = () => {
+        if (pc.connectionState === 'connected') {
+          enterCallUi();
+        } else if (pc.connectionState === 'failed' || pc.connectionState === 'closed') {
+          if (state.inCall) leaveCall(false);
+        }
+      };
+
+      if (isCaller) {
+        const dc = pc.createDataChannel('disstya_dc', { ordered: true });
+        setupDataChannel(dc);
+      } else {
+        pc.ondatachannel = (ev) => setupDataChannel(ev.channel);
       }
 
-      // =========================================================================
-      // 7. RTCRtpSender: ЖЕСТКАЯ ФИКСАЦИЯ БИТРЕЙТОВ (128kbps Audio / 8Mbps 60fps Video)
-      // =========================================================================
-      async function enforceAudioSenderBitrate(sender) {
-        if (!sender || typeof sender.getParameters !== 'function') return;
-        try {
-          const params = sender.getParameters();
-          if (!params.encodings || params.encodings.length === 0) {
-            params.encodings = [{}];
-          }
-          params.encodings[0].maxBitrate = AUDIO_MAX_BITRATE;
-          params.encodings[0].priority = 'high';
-          params.encodings[0].networkPriority = 'high';
-          await sender.setParameters(params);
-          els.specSenderBitrate.textContent = '128 kbps Audio + ' + (state.isScreenSharing ? '8 Mbps Video' : 'Idle Video');
-          logEvent('RTCRtpSender (Audio): maxBitrate зафиксирован на 128 000 bps', 'ok');
-        } catch (err) {
-          logEvent('Предупреждение setParameters (Audio): ' + err.message, 'warn');
-        }
+      return pc;
+    }
+
+    async function startCallToFriend(rawInput) {
+      const targetId = extractCleanPeerId(rawInput);
+      if (!targetId) {
+        showToast('Введи корректный ID или ссылку друга');
+        return;
+      }
+      if (targetId === state.myId) {
+        showToast('Это твой собственный ID! Открой ссылку в соседней вкладке или у друга');
+        return;
       }
 
-      async function enforceVideoSenderBitrate(sender) {
-        if (!sender || typeof sender.getParameters !== 'function') return;
-        try {
-          const params = sender.getParameters();
-          if (!params.encodings || params.encodings.length === 0) {
-            params.encodings = [{}];
-          }
-          params.encodings[0].maxBitrate = VIDEO_MAX_BITRATE;
-          params.encodings[0].maxFramerate = VIDEO_MAX_FRAMERATE;
-          params.encodings[0].scaleResolutionDownBy = 1.0;
-          params.encodings[0].priority = 'high';
-          params.encodings[0].networkPriority = 'high';
-          // Запрещаем браузеру ронять FPS при колебаниях сети (maintain-framerate)
-          params.degradationPreference = 'maintain-framerate';
-          await sender.setParameters(params);
-          els.specSenderBitrate.textContent = '128 kbps Audio / 8 Mbps 60fps Video';
-          logEvent('RTCRtpSender (Video): maxBitrate=8000000 (8 Mbps), maxFramerate=60, degradation=maintain-framerate', 'ok');
-        } catch (err) {
-          logEvent('Предупреждение setParameters (Video): ' + err.message, 'warn');
-        }
-      }
+      setStatus('Соединение с ' + targetId + '...', 'incall');
+      showToast('Вызов ' + targetId + '...');
 
-      async function enforceAllSendersParameters() {
-        const pc = getActivePeerConnection();
-        if (!pc) {
-          logEvent('Нет активного RTCPeerConnection для применения битрейтов', 'warn');
-          return;
-        }
-        const senders = pc.getSenders();
-        for (const sender of senders) {
-          if (!sender.track) continue;
-          if (sender.track.kind === 'audio') {
-            await enforceAudioSenderBitrate(sender);
-          } else if (sender.track.kind === 'video') {
-            await enforceVideoSenderBitrate(sender);
-          }
-        }
-      }
+      const pc = await createPeerConnection(targetId, true);
+      const offer = await pc.createOffer();
+      offer.sdp = mungeHighBitrateSdp(offer.sdp);
+      await pc.setLocalDescription(offer);
 
-      // =========================================================================
-      // 8. ЗАХВАТ ЭКРАНА 1080p @ 60 FPS + ДИНАМИЧЕСКИЙ RENEGOTIATION
-      // =========================================================================
-      async function toggleScreenShare() {
-        if (state.isScreenSharing) {
-          await stopScreenShare();
-        } else {
-          await startScreenShare();
-        }
-      }
-
-      async function startScreenShare() {
-        try {
-          const displayStream = await navigator.mediaDevices.getDisplayMedia({
-            video: {
-              width: { ideal: 1920, max: 1920 },
-              height: { ideal: 1080, max: 1080 },
-              frameRate: { ideal: 60, max: 60 }
-            },
-            audio: {
-              echoCancellation: false,
-              noiseSuppression: false,
-              autoGainControl: false,
-              channelCount: 2,
-              sampleRate: 48000
-            }
-          });
-
-          const videoTrack = displayStream.getVideoTracks()[0];
-          if (!videoTrack) {
-            throw new Error('Видеодорожка экрана не получена');
-          }
-
-          // КРИТИЧНО: предотвращение просадок FPS (указывает движку держать 60 кадров)
-          if ('contentHint' in videoTrack) {
-            videoTrack.contentHint = 'motion';
-            els.hudContentHint.textContent = videoTrack.contentHint;
-            logEvent("Установлен videoTrack.contentHint = 'motion' (приоритет 60 FPS)", 'ok');
-          }
-
-          videoTrack.addEventListener('ended', () => {
-            logEvent('Захват экрана остановлен пользователем через системный UI', 'warn');
-            stopScreenShare();
-          });
-
-          state.localScreenStream = displayStream;
-          state.isScreenSharing = true;
-
-          // Показываем локальное превью в PiP
-          els.localScreenPreview.srcObject = displayStream;
-          els.localPip.classList.add('active');
-          els.screenShareBtn.textContent = 'ОСТАНОВИТЬ СТРИМ ЭКРАНА';
-          els.screenShareBtn.classList.remove('btn-primary');
-          els.screenShareBtn.classList.add('btn-danger');
-
-          const settings = videoTrack.getSettings ? videoTrack.getSettings() : {};
-          logEvent(
-            `Экран захвачен: ${settings.width || 1920}x${settings.height || 1080} @ ${settings.frameRate || 60} FPS`,
-            'ok'
-          );
-
-          // Инжектируем видеопоток (и системный звук игры, если есть) в активный P2P-вызов
-          const pc = getActivePeerConnection();
-          if (pc) {
-            await attachScreenStreamToPeerConnection(pc, displayStream);
-          } else {
-            logEvent('Экран подготовлен. Поток будет передан сразу после подключения пира.', 'info');
-          }
-        } catch (err) {
-          logEvent('Отмена или ошибка захвата экрана: ' + err.message, 'warn');
-        }
-      }
-
-      async function attachScreenStreamToPeerConnection(pc, displayStream) {
-        const videoTrack = displayStream.getVideoTracks()[0];
-        const sysAudioTrack = displayStream.getAudioTracks()[0];
-
-        let needsRenegotiation = false;
-
-        // 1. Обработка видеодорожки
-        if (videoTrack) {
-          let videoSender = pc.getSenders().find(s => s.track && s.track.kind === 'video');
-          if (!videoSender && state.videoTransceiver && state.videoTransceiver.sender) {
-            videoSender = state.videoTransceiver.sender;
-          }
-
-          if (videoSender) {
-            await videoSender.replaceTrack(videoTrack);
-            if (state.videoTransceiver) {
-              state.videoTransceiver.direction = 'sendrecv';
-            }
-            await enforceVideoSenderBitrate(videoSender);
-            needsRenegotiation = true;
-          } else {
-            state.videoTransceiver = pc.addTransceiver(videoTrack, {
-              direction: 'sendrecv',
-              streams: [displayStream]
-            });
-            await enforceVideoSenderBitrate(state.videoTransceiver.sender);
-            needsRenegotiation = true;
-          }
-        }
-
-        // 2. Обработка системного/игрового аудио (если захвачено)
-        if (sysAudioTrack) {
-          if ('contentHint' in sysAudioTrack) {
-            sysAudioTrack.contentHint = 'music';
-          }
-          if (state.systemAudioTransceiver && state.systemAudioTransceiver.sender) {
-            await state.systemAudioTransceiver.sender.replaceTrack(sysAudioTrack);
-            state.systemAudioTransceiver.direction = 'sendonly';
-            await enforceAudioSenderBitrate(state.systemAudioTransceiver.sender);
-          } else {
-            state.systemAudioTransceiver = pc.addTransceiver(sysAudioTrack, {
-              direction: 'sendonly',
-              streams: [displayStream]
-            });
-            await enforceAudioSenderBitrate(state.systemAudioTransceiver.sender);
-          }
-          needsRenegotiation = true;
-          logEvent('Системный звук игры (Stereo 48kHz) добавлен в трансивер', 'ok');
-        }
-
-        if (needsRenegotiation) {
-          await triggerDynamicRenegotiation(pc);
-        }
-      }
-
-      async function stopScreenShare() {
-        if (!state.isScreenSharing) return;
-        state.isScreenSharing = false;
-
-        if (state.localScreenStream) {
-          state.localScreenStream.getTracks().forEach(t => t.stop());
-          state.localScreenStream = null;
-        }
-
-        els.localScreenPreview.srcObject = null;
-        els.localPip.classList.remove('active');
-        els.screenShareBtn.textContent = 'СТРИМИТЬ ЭКРАН (1080p @ 60 FPS)';
-        els.screenShareBtn.classList.remove('btn-danger');
-        els.screenShareBtn.classList.add('btn-primary');
-
-        const pc = getActivePeerConnection();
-        if (pc) {
-          if (state.videoTransceiver && state.videoTransceiver.sender) {
-            await state.videoTransceiver.sender.replaceTrack(null);
-          } else {
-            const vSender = pc.getSenders().find(s => s.track && s.track.kind === 'video');
-            if (vSender) await vSender.replaceTrack(null);
-          }
-          if (state.systemAudioTransceiver && state.systemAudioTransceiver.sender) {
-            await state.systemAudioTransceiver.sender.replaceTrack(null);
-          }
-          if (state.dataConn && state.dataConn.open) {
-            state.dataConn.send({ type: 'SCREEN_STOPPED' });
-          }
-          await triggerDynamicRenegotiation(pc);
-        }
-
-        logEvent('Стрим экрана остановлен, голосовой канал продолжает работу без прерывания', 'info');
-      }
-
-      // =========================================================================
-      // 9. ДИНАМИЧЕСКИЙ RENEGOTIATION ЧЕРЕЗ PEERJS DATA CHANNEL
-      // =========================================================================
-      async function triggerDynamicRenegotiation(pc) {
-        if (!pc) return;
-        if (!state.dataConn || !state.dataConn.open) {
-          logEvent('DataChannel еще не открыт для renegotiation, ожидание канала...', 'warn');
-          return;
-        }
-        if (state.negotiating) return;
-
-        try {
-          state.negotiating = true;
-          const offer = await pc.createOffer();
-          offer.sdp = forceOpusSdpParameters(offer.sdp);
-          await pc.setLocalDescription(offer);
-          state.dataConn.send({
+      const sendOfferPacket = () => {
+        if (!state.inCall && state.pc === pc) {
+          signaling.send(targetId, {
             type: 'SDP_OFFER',
             sdp: pc.localDescription
           });
-          logEvent('Отправлен динамический SDP Offer (Renegotiation 1080p60 / Opus)', 'info');
-        } catch (err) {
-          logEvent('Ошибка при инициации renegotiation: ' + err.message, 'err');
-        } finally {
-          state.negotiating = false;
         }
-      }
+      };
 
-      async function handleSignalingData(data) {
-        if (!data || !data.type) return;
-        const pc = getActivePeerConnection();
+      sendOfferPacket();
+      clearInterval(state.offerRetryTimer);
+      state.offerRetryTimer = setInterval(sendOfferPacket, 2500);
+    }
 
-        if (data.type === 'SDP_OFFER' && pc) {
-          try {
-            logEvent('Получен динамический SDP Offer от собеседника', 'info');
-            await pc.setRemoteDescription(new RTCSessionDescription(data.sdp));
-            const answer = await pc.createAnswer();
-            answer.sdp = forceOpusSdpParameters(answer.sdp);
-            await pc.setLocalDescription(answer);
-            if (state.dataConn && state.dataConn.open) {
-              state.dataConn.send({
-                type: 'SDP_ANSWER',
-                sdp: pc.localDescription
-              });
-            }
-            await enforceAllSendersParameters();
-          } catch (err) {
-            logEvent('Ошибка обработки SDP_OFFER: ' + err.message, 'err');
-          }
-        } else if (data.type === 'SDP_ANSWER' && pc) {
-          try {
-            logEvent('Получен динамический SDP Answer, новые медиа-параметры применены', 'ok');
-            await pc.setRemoteDescription(new RTCSessionDescription(data.sdp));
-            await enforceAllSendersParameters();
-          } catch (err) {
-            logEvent('Ошибка обработки SDP_ANSWER: ' + err.message, 'err');
-          }
-        } else if (data.type === 'SCREEN_STOPPED') {
-          logEvent('Собеседник завершил демонстрацию экрана', 'info');
-          els.remoteVideo.srcObject = null;
-          els.emptyStage.classList.remove('hidden');
-          els.emptyStageTitle.textContent = 'ГОЛОСОВОЙ КАНАЛ АКТИВЕН (OPUS 128 KBPS STEREO)';
-          els.emptyStageDesc.textContent = 'Стрим экрана остановлен. Вы можете включить демонстрацию экрана в любой момент.';
+    async function handleSignalingMessage(msg) {
+      if (msg.type === 'SDP_OFFER') {
+        clearInterval(state.offerRetryTimer);
+        const pc = await createPeerConnection(msg.from, false);
+        await pc.setRemoteDescription(new RTCSessionDescription(msg.sdp));
+        for (const c of state.pendingCandidates) {
+          try { await pc.addIceCandidate(new RTCIceCandidate(c)); } catch (_) {}
         }
-      }
+        state.pendingCandidates = [];
 
-      // =========================================================================
-      // 10. PEERJS SIGNALING & УПРАВЛЕНИЕ СОЕДИНЕНИЕМ («СКИНЬ ССЫЛКУ»)
-      // =========================================================================
-      function getActivePeerConnection() {
-        return state.activeCall && state.activeCall.peerConnection ? state.activeCall.peerConnection : null;
-      }
+        const answer = await pc.createAnswer();
+        answer.sdp = mungeHighBitrateSdp(answer.sdp);
+        await pc.setLocalDescription(answer);
 
-      function resolveRoleFromHash() {
-        const rawHash = (window.location.hash || '').replace(/^#\/?/, '').trim();
-        if (!rawHash) {
-          // Вход без хэша -> пользователь становится ХОСТОМ
-          state.isHost = true;
-          state.roomId = generateRoomId();
-          state.myPeerId = state.roomId;
-          try {
-            window.history.replaceState(null, '', '#' + state.roomId);
-          } catch (_) {
-            window.location.hash = state.roomId;
-          }
-          els.roleBadge.textContent = 'ROLE: HOST';
-          els.roleBadge.className = 'badge role-host';
-        } else {
-          // Вход по ссылке с хэшем -> пользователь становится КЛИЕНТОМ и звонит хосту
-          state.isHost = false;
-          state.roomId = rawHash;
-          state.remotePeerId = rawHash;
-          state.myPeerId = rawHash + '-peer-' + Math.random().toString(36).substring(2, 7);
-          els.roleBadge.textContent = 'ROLE: CLIENT';
-          els.roleBadge.className = 'badge role-guest';
-          els.manualPeerInput.value = rawHash;
-        }
-        els.roomIdDisplay.textContent = state.roomId;
-      }
-
-      async function initApplication() {
-        installGlobalSdpInterceptor();
-        resolveRoleFromHash();
-
-        try {
-          state.localMicStream = await acquireMicrophoneStream(state.studioMode);
-        } catch (err) {
-          logEvent('Доступ к микрофону не предоставлен, создаем резервный тихий аудио-трек: ' + err.message, 'warn');
-          state.localMicStream = createSilentFallbackAudioStream();
-        }
-
-        initPeerInstance();
-      }
-
-      function createSilentFallbackAudioStream() {
-        try {
-          const AudioCtx = window.AudioContext || window.webkitAudioContext;
-          const ctx = new AudioCtx({ sampleRate: 48000 });
-          const dst = ctx.createMediaStreamDestination();
-          dst.channelCount = 2;
-          return dst.stream;
-        } catch (_) {
-          return new MediaStream();
-        }
-      }
-
-      function initPeerInstance() {
-        if (state.peer) {
-          try { state.peer.destroy(); } catch (_) {}
-        }
-
-        els.peerStateBadge.textContent = 'SIGNALING: CONNECTING...';
-        logEvent(`Инициализация PeerJS (ID: ${state.myPeerId}) со STUN Google...`, 'info');
-
-        const peer = new Peer(state.myPeerId, PEER_CONFIG);
-        state.peer = peer;
-
-        peer.on('open', (id) => {
-          els.statusDot.classList.remove('error');
-          els.statusDot.classList.add('online');
-          els.peerStateBadge.textContent = 'SIGNALING: ONLINE';
-          logEvent('Подключено к облачному сигналингу PeerJS. Ваш ID: ' + id, 'ok');
-
-          if (!state.isHost && state.remotePeerId) {
-            logEvent('Обнаружен хэш комнаты. Автоматический вызов хоста: ' + state.remotePeerId, 'info');
-            connectToRemotePeer(state.remotePeerId);
-          }
+        signaling.send(msg.from, {
+          type: 'SDP_ANSWER',
+          sdp: pc.localDescription
         });
-
-        peer.on('connection', (conn) => {
-          setupDataConnection(conn);
-        });
-
-        peer.on('call', (call) => {
-          logEvent('Входящий P2P-вызов от: ' + call.peer, 'ok');
-          state.remotePeerId = call.peer;
-          const outboundStream = buildInitialOutboundStream();
-          call.answer(outboundStream, {
-            sdpTransform: forceOpusSdpParameters
-          });
-          setupMediaCall(call);
-        });
-
-        peer.on('disconnected', () => {
-          els.statusDot.classList.remove('online');
-          els.peerStateBadge.textContent = 'SIGNALING: RECONNECTING';
-          logEvent('Связь с сервером сигналинга потеряна. Переподключение...', 'warn');
-          try { peer.reconnect(); } catch (_) {}
-        });
-
-        peer.on('error', (err) => {
-          els.statusDot.classList.remove('online');
-          els.statusDot.classList.add('error');
-          logEvent(`Ошибка PeerJS [${err.type}]: ${err.message}`, 'err');
-
-          // Если ID хоста уже занят (например, открыта вторая вкладка с тем же хэшем в том же браузере) —
-          // автоматически переключаемся в роль клиента и звоним хосту!
-          if (err.type === 'unavailable-id' && state.isHost) {
-            logEvent('ID хоста уже активен в другой вкладке. Переключаемся в режим КЛИЕНТА и вызываем хоста...', 'warn');
-            state.isHost = false;
-            state.remotePeerId = state.roomId;
-            state.myPeerId = state.roomId + '-peer-' + Math.random().toString(36).substring(2, 7);
-            els.roleBadge.textContent = 'ROLE: CLIENT';
-            els.roleBadge.className = 'badge role-guest';
-            setTimeout(() => initPeerInstance(), 400);
+        enterCallUi();
+      } else if (msg.type === 'SDP_ANSWER') {
+        clearInterval(state.offerRetryTimer);
+        if (state.pc && state.pc.signalingState === 'have-local-offer') {
+          await state.pc.setRemoteDescription(new RTCSessionDescription(msg.sdp));
+          for (const c of state.pendingCandidates) {
+            try { await state.pc.addIceCandidate(new RTCIceCandidate(c)); } catch (_) {}
           }
-        });
-      }
-
-      function buildInitialOutboundStream() {
-        const stream = new MediaStream();
-        if (state.localMicStream) {
-          state.localMicStream.getAudioTracks().forEach(t => stream.addTrack(t));
+          state.pendingCandidates = [];
+          enterCallUi();
         }
-        if (state.isScreenSharing && state.localScreenStream) {
-          state.localScreenStream.getVideoTracks().forEach(t => stream.addTrack(t));
-          state.localScreenStream.getAudioTracks().forEach(t => stream.addTrack(t));
+      } else if (msg.type === 'ICE_CAND') {
+        if (state.pc) {
+          if (state.pc.remoteDescription && state.pc.remoteDescription.type) {
+            try { await state.pc.addIceCandidate(new RTCIceCandidate(msg.candidate)); } catch (_) {}
+          } else {
+            state.pendingCandidates.push(msg.candidate);
+          }
         }
-        return stream;
+      } else if (msg.type === 'HANGUP') {
+        showToast('Собеседник завершил звонок');
+        leaveCall(false);
       }
+    }
 
-      function connectToRemotePeer(targetPeerId) {
-        if (!state.peer || !targetPeerId) return;
-        const cleanId = targetPeerId.replace(/^#\/?/, '').trim();
-        if (!cleanId || cleanId === state.myPeerId) {
-          logEvent('Укажите корректный ID удаленного пира', 'warn');
+    function enterCallUi() {
+      if (state.inCall) return;
+      state.inCall = true;
+      clearInterval(state.offerRetryTimer);
+
+      document.getElementById('lobbyCard').classList.add('hidden');
+      document.getElementById('callDock').classList.add('in-call');
+      document.getElementById('remotePeerStage').classList.add('visible');
+      document.getElementById('statsBadge').classList.add('visible');
+
+      setStatus('В звонке с ' + state.remoteId, 'incall');
+      showToast('Прямое P2P-соединение установлено!');
+      applyVideoSenderBitrate();
+      startStatsMonitor();
+    }
+
+    function leaveCall(notifyPeer = true) {
+      clearInterval(state.offerRetryTimer);
+      clearInterval(state.statsTimer);
+      if (notifyPeer && state.remoteId && signaling) {
+        signaling.send(state.remoteId, { type: 'HANGUP' });
+      }
+      stopVideoShare();
+      if (state.pc) {
+        try { state.pc.close(); } catch (_) {}
+        state.pc = null;
+      }
+      state.inCall = false;
+      state.remoteId = null;
+
+      document.getElementById('callDock').classList.remove('in-call');
+      document.getElementById('soundpadPopover').classList.remove('open');
+      document.getElementById('remoteVideo').classList.remove('active');
+      document.getElementById('remotePeerStage').classList.remove('visible');
+      document.getElementById('statsBadge').classList.remove('visible');
+      document.getElementById('lobbyCard').classList.remove('hidden');
+
+      setStatus('Готов к звонку (Без VPN)', 'ready');
+    }
+
+    /*************************************************************************
+     * 7. ДЕМОНСТРАЦИЯ ЭКРАНА 60 FPS СО СТЕРЕОЗВУКОМ И ВЕБ-КАМЕРА
+     *************************************************************************/
+    async function startScreenShare() {
+      try {
+        if (state.videoMode === 'screen') {
+          await stopVideoShare();
           return;
         }
+        await initAudioEngine();
+        const heightIdeal = state.streamQuality === '1440p' ? 1440 : (state.streamQuality === '1080p' ? 1080 : 720);
+        const widthIdeal = state.streamQuality === '1440p' ? 2560 : (state.streamQuality === '1080p' ? 1920 : 1280);
 
-        state.remotePeerId = cleanId;
-        logEvent('Инициация P2P-вызова и DataChannel к: ' + cleanId, 'info');
-
-        // 1. Открываем DataChannel для мгновенного SDP renegotiation
-        const conn = state.peer.connect(cleanId, { reliable: true });
-        setupDataConnection(conn);
-
-        // 2. Инициируем медиа-вызов с sdpTransform
-        const outboundStream = buildInitialOutboundStream();
-        const call = state.peer.call(cleanId, outboundStream, {
-          sdpTransform: forceOpusSdpParameters
-        });
-        setupMediaCall(call);
-      }
-
-      function setupDataConnection(conn) {
-        if (!conn) return;
-        state.dataConn = conn;
-        conn.on('open', () => {
-          logEvent('Сигнальный DataChannel открыт с ' + conn.peer, 'ok');
-          // Если у нас уже активен захват экрана — синхронизируем его
-          const pc = getActivePeerConnection();
-          if (pc && state.isScreenSharing && state.localScreenStream) {
-            attachScreenStreamToPeerConnection(pc, state.localScreenStream);
+        const stream = await navigator.mediaDevices.getDisplayMedia({
+          video: {
+            width: { ideal: widthIdeal },
+            height: { ideal: heightIdeal },
+            frameRate: { ideal: 60 }
+          },
+          audio: {
+            echoCancellation: false,
+            noiseSuppression: false,
+            autoGainControl: false
           }
         });
-        conn.on('data', (data) => {
-          handleSignalingData(data);
-        });
-        conn.on('close', () => {
-          logEvent('DataChannel закрыт', 'warn');
-        });
-      }
 
-      function setupMediaCall(call) {
-        if (!call) return;
-        if (state.activeCall && state.activeCall !== call) {
-          try { state.activeCall.close(); } catch (_) {}
-        }
-        state.activeCall = call;
-        state.callStartTime = Date.now();
+        await setNewVideoStream(stream, 'screen');
 
-        els.emptyStageTitle.textContent = 'УСТАНОВКА P2P-КАНАЛА...';
-        els.emptyStageDesc.textContent = 'Согласование ICE-кандидатов и параметров Opus 128 kbps Stereo.';
-
-        call.on('stream', (remoteStream) => {
-          handleIncomingMediaStream(remoteStream);
-        });
-
-        call.on('close', () => {
-          logEvent('Медиа-сессия завершена', 'warn');
-          els.iceStateBadge.textContent = 'ICE: CLOSED';
-          els.remoteVideo.srcObject = null;
-          els.emptyStage.classList.remove('hidden');
-          els.emptyStageTitle.textContent = 'СОЕДИНЕНИЕ ЗАВЕРШЕНО';
-        });
-
-        call.on('error', (err) => {
-          logEvent('Ошибка медиа-вызова: ' + err.message, 'err');
-        });
-
-        // Привязываем слушатели directamente к нативному RTCPeerConnection
-        const attachPcHooks = () => {
-          const pc = call.peerConnection;
-          if (!pc) return;
-
-          pc.addEventListener('track', (event) => {
-            logEvent(`Получена входящая дорожка RTCPeerConnection: kind=${event.track.kind}`, 'ok');
-            if (event.streams && event.streams[0]) {
-              handleIncomingMediaStream(event.streams[0]);
-            } else {
-              const fallbackStream = new MediaStream([event.track]);
-              handleIncomingMediaStream(fallbackStream);
-            }
-          });
-
-          pc.addEventListener('iceconnectionstatechange', () => {
-            const iceState = pc.iceConnectionState;
-            els.iceStateBadge.textContent = 'ICE: ' + iceState.toUpperCase();
-            logEvent('Состояние ICE изменилось: ' + iceState, iceState === 'connected' || iceState === 'completed' ? 'ok' : 'info');
-
-            if (iceState === 'connected' || iceState === 'completed') {
-              enforceAllSendersParameters();
-              if (state.isScreenSharing && state.localScreenStream) {
-                attachScreenStreamToPeerConnection(pc, state.localScreenStream);
-              }
-            } else if (iceState === 'failed') {
-              logEvent('Обнаружен сбой ICE, запускаем автоматический restartIce()', 'warn');
-              if (typeof pc.restartIce === 'function') {
-                pc.restartIce();
-              }
-              triggerDynamicRenegotiation(pc);
-            }
-          });
-
-          // Сразу применяем битрейты к сендерам и запускаем сбор телеметрии
-          setTimeout(() => {
-            enforceAllSendersParameters();
-          }, 350);
-          startTelemetryLoop(pc);
-        };
-
-        if (call.peerConnection) {
-          attachPcHooks();
+        // Если захвачен системный звук экрана — подаем его в наш микшер
+        const sysAudioTrack = stream.getAudioTracks()[0];
+        if (sysAudioTrack && state.audioCtx) {
+          if (state.screenAudioSource) {
+            try { state.screenAudioSource.disconnect(); } catch (_) {}
+          }
+          state.screenAudioSource = state.audioCtx.createMediaStreamSource(new MediaStream([sysAudioTrack]));
+          state.screenAudioSource.connect(state.screenAudioGainNode);
+          showToast('Стрим 60 FPS + Системный звук запущены!');
         } else {
-          setTimeout(attachPcHooks, 100);
+          showToast('Стрим экрана 60 FPS запущен');
         }
+      } catch (_) {}
+    }
 
-        // Если мы хост и у нас еще нет открытого DataChannel к звонящему — открываем его
-        if ((!state.dataConn || !state.dataConn.open) && state.peer && call.peer) {
-          const conn = state.peer.connect(call.peer, { reliable: true });
-          setupDataConnection(conn);
+    async function startWebcam() {
+      try {
+        if (state.videoMode === 'webcam') {
+          await stopVideoShare();
+          return;
+        }
+        await initAudioEngine();
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 60 } },
+          audio: false
+        });
+        await setNewVideoStream(stream, 'webcam');
+        showToast('Веб-камера включена');
+      } catch (_) {
+        showToast('Не удалось открыть веб-камеру');
+      }
+    }
+
+    async function setNewVideoStream(stream, mode) {
+      await stopVideoShare(false);
+      state.activeVideoStream = stream;
+      state.videoMode = mode;
+
+      const vTrack = stream.getVideoTracks()[0];
+      if (vTrack) {
+        try { vTrack.contentHint = state.streamHint; } catch (_) {}
+        vTrack.onended = () => stopVideoShare(true);
+        if (state.videoSender) {
+          await state.videoSender.replaceTrack(vTrack);
+          await applyVideoSenderBitrate();
         }
       }
 
-      function handleIncomingMediaStream(remoteStream) {
-        if (!remoteStream) return;
-        const videoTracks = remoteStream.getVideoTracks();
-        const audioTracks = remoteStream.getAudioTracks();
+      const localVideo = document.getElementById('localVideo');
+      localVideo.srcObject = stream;
+      document.getElementById('localPip').classList.add('visible');
+      document.getElementById('screenShareBtn').classList.toggle('active', mode === 'screen');
+      document.getElementById('webcamBtn').classList.toggle('active', mode === 'webcam');
 
-        if (audioTracks.length > 0) {
-          const audioOnlyStream = new MediaStream(audioTracks);
-          els.remoteAudio.srcObject = audioOnlyStream;
-          els.remoteAudio.volume = Number(els.remoteVolumeSlider.value) / 100;
-          els.remoteAudio.play().catch(() => {});
-        }
+      sendChatMeta({ type: 'VIDEO_STATE', active: true });
+    }
 
-        if (videoTracks.length > 0) {
-          els.remoteVideo.srcObject = remoteStream;
-          els.remoteVideo.volume = Number(els.remoteVolumeSlider.value) / 100;
-          els.remoteVideo.play().catch(() => {});
-          els.emptyStage.classList.add('hidden');
-
-          videoTracks[0].onmute = () => {
-            els.emptyStage.classList.remove('hidden');
-            els.emptyStageTitle.textContent = 'ГОЛОСОВОЙ КАНАЛ АКТИВЕН (СТРИМ НА ПАУЗЕ)';
-          };
-          videoTracks[0].onunmute = () => {
-            els.emptyStage.classList.add('hidden');
-          };
-          videoTracks[0].onended = () => {
-            els.emptyStage.classList.remove('hidden');
-          };
-        } else {
-          els.emptyStage.classList.remove('hidden');
-          els.emptyStageTitle.textContent = 'ГОЛОСОВОЙ КАНАЛ АКТИВЕН (OPUS 128 KBPS STEREO)';
-          els.emptyStageDesc.textContent = 'P2P-соединение установлено. Нажмите «СТРИМИТЬ ЭКРАН (1080p @ 60 FPS)» для запуска трансляции игры.';
-        }
+    async function stopVideoShare(notify = true) {
+      if (state.activeVideoStream) {
+        state.activeVideoStream.getTracks().forEach(t => t.stop());
+        state.activeVideoStream = null;
       }
+      state.videoMode = 'none';
+      if (state.videoSender && state.dummyVideoTrack) {
+        try { await state.videoSender.replaceTrack(state.dummyVideoTrack); } catch (_) {}
+      }
+      document.getElementById('localPip').classList.remove('visible');
+      document.getElementById('screenShareBtn').classList.remove('active');
+      document.getElementById('webcamBtn').classList.remove('active');
+      if (notify) {
+        sendChatMeta({ type: 'VIDEO_STATE', active: false });
+      }
+    }
 
-      // =========================================================================
-      // 11. ТЕЛЕМЕТРИЯ RTCPeerConnection.getStats()
-      // =========================================================================
-      function startTelemetryLoop(pc) {
-        if (state.statsIntervalId) clearInterval(state.statsIntervalId);
-        state.prevStats = {
-          timestamp: performance.now(),
-          audioBytesSent: 0,
-          audioBytesRecv: 0,
-          videoBytesSent: 0,
-          videoBytesRecv: 0
-        };
+    /*************************************************************************
+     * 8. ПРИВАТНЫЙ ЧАТ, ФАЙЛЫ И СИНХРОНИЗАЦИЯ ПРОФИЛЯ (DATACHANNEL)
+     *************************************************************************/
+    let incomingFileInfo = null;
+    let incomingChunks = [];
+    let incomingSize = 0;
 
-        state.statsIntervalId = setInterval(async () => {
-          if (!pc || pc.connectionState === 'closed') return;
+    function setupDataChannel(dc) {
+      state.dataChannel = dc;
+      dc.binaryType = 'arraybuffer';
+
+      dc.onopen = () => {
+        syncMyProfileToPeer();
+        if (state.videoMode !== 'none') {
+          sendChatMeta({ type: 'VIDEO_STATE', active: true });
+        }
+      };
+
+      dc.onmessage = (ev) => {
+        if (typeof ev.data === 'string') {
           try {
-            const stats = await pc.getStats();
-            const now = performance.now();
-            const dt = Math.max(0.1, (now - state.prevStats.timestamp) / 1000);
-
-            let audioBytesSent = 0;
-            let audioBytesRecv = 0;
-            let videoBytesSent = 0;
-            let videoBytesRecv = 0;
-            let fps = null;
-            let width = null;
-            let height = null;
-            let packetsLost = 0;
-            let jitterMs = null;
-            let rttMs = null;
-
-            stats.forEach(report => {
-              if (report.type === 'outbound-rtp') {
-                if (report.kind === 'audio') {
-                  audioBytesSent += report.bytesSent || 0;
-                } else if (report.kind === 'video') {
-                  videoBytesSent += report.bytesSent || 0;
-                  if (report.framesPerSecond) fps = report.framesPerSecond;
-                  if (report.frameWidth) width = report.frameWidth;
-                  if (report.frameHeight) height = report.frameHeight;
-                }
-              } else if (report.type === 'inbound-rtp') {
-                if (report.kind === 'audio') {
-                  audioBytesRecv += report.bytesReceived || 0;
-                  packetsLost += report.packetsLost || 0;
-                  if (typeof report.jitter === 'number') jitterMs = Math.round(report.jitter * 1000);
-                } else if (report.kind === 'video') {
-                  videoBytesRecv += report.bytesReceived || 0;
-                  packetsLost += report.packetsLost || 0;
-                  if (report.framesPerSecond) fps = report.framesPerSecond;
-                  if (report.frameWidth) width = report.frameWidth;
-                  if (report.frameHeight) height = report.frameHeight;
-                }
-              } else if (report.type === 'candidate-pair' && report.state === 'succeeded') {
-                if (typeof report.currentRoundTripTime === 'number') {
-                  rttMs = Math.round(report.currentRoundTripTime * 1000);
-                }
-              }
-            });
-
-            const audioTxKbps = Math.max(0, Math.round(((audioBytesSent - state.prevStats.audioBytesSent) * 8) / dt / 1000));
-            const audioRxKbps = Math.max(0, Math.round(((audioBytesRecv - state.prevStats.audioBytesRecv) * 8) / dt / 1000));
-            const videoTxMbps = Math.max(0, (((videoBytesSent - state.prevStats.videoBytesSent) * 8) / dt / 1000000));
-            const videoRxMbps = Math.max(0, (((videoBytesRecv - state.prevStats.videoBytesRecv) * 8) / dt / 1000000));
-
-            state.prevStats = {
-              timestamp: now,
-              audioBytesSent,
-              audioBytesRecv,
-              videoBytesSent,
-              videoBytesRecv
-            };
-
-            els.metricAudioBitrate.textContent = `${audioTxKbps} / ${audioRxKbps} kbps`;
-            els.metricVideoBitrate.textContent = `${videoTxMbps.toFixed(2)} / ${videoRxMbps.toFixed(2)} Mbps`;
-            els.metricPacketLoss.textContent = `Потери: ${packetsLost} pkts`;
-            els.metricFps.textContent = fps !== null ? `${Math.round(fps)} FPS` : '-- FPS';
-            els.metricResolution.textContent = width && height ? `${width}×${height}` : 'Разрешение: --';
-            els.metricJitter.textContent = jitterMs !== null ? `${jitterMs} ms` : '-- ms';
-            els.rttTag.textContent = rttMs !== null ? `RTT: ${rttMs} ms` : 'RTT: -- ms';
-
-            if (state.callStartTime) {
-              const sec = Math.floor((Date.now() - state.callStartTime) / 1000);
-              const m = String(Math.floor(sec / 60)).padStart(2, '0');
-              const s = String(sec % 60).padStart(2, '0');
-              els.metricUptime.textContent = `Время: ${m}:${s}`;
-            }
+            const msg = JSON.parse(ev.data);
+            handleDataChannelJson(msg);
           } catch (_) {}
-        }, 1000);
-      }
-
-      // =========================================================================
-      // 12. ОБРАБОТЧИКИ UI-КНОПОК
-      // =========================================================================
-      function copyInviteLink() {
-        const inviteUrl = window.location.origin + window.location.pathname + '#' + state.roomId;
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(inviteUrl).then(() => {
-            showToast('Ссылка скопирована: ' + inviteUrl);
-            logEvent('Ссылка приглашения скопирована в буфер обмена', 'ok');
-          }).catch(() => fallbackCopyText(inviteUrl));
-        } else {
-          fallbackCopyText(inviteUrl);
+        } else if (ev.data instanceof ArrayBuffer && incomingFileInfo) {
+          incomingChunks.push(ev.data);
+          incomingSize += ev.data.byteLength;
+          if (incomingSize >= incomingFileInfo.size) {
+            const blob = new Blob(incomingChunks, { type: incomingFileInfo.mime });
+            const url = URL.createObjectURL(blob);
+            appendFileMessage(incomingFileInfo.sender, incomingFileInfo.name, url, incomingFileInfo.mime, false);
+            incomingFileInfo = null;
+            incomingChunks = [];
+            incomingSize = 0;
+          }
         }
+      };
+    }
+
+    function sendChatMeta(obj) {
+      if (state.dataChannel && state.dataChannel.readyState === 'open') {
+        try { state.dataChannel.send(JSON.stringify(obj)); } catch (_) {}
+      }
+    }
+
+    function syncMyProfileToPeer() {
+      sendChatMeta({
+        type: 'PROFILE_SYNC',
+        nickname: state.nickname,
+        avatarKey: state.avatarKey,
+        customAvatarUrl: state.customAvatarUrl,
+        avatarFrame: state.avatarFrame
+      });
+    }
+
+    function handleDataChannelJson(msg) {
+      if (msg.type === 'CHAT_TEXT') {
+        appendChatMessage(msg.sender, msg.text, false);
+      } else if (msg.type === 'PROFILE_SYNC') {
+        document.getElementById('remotePeerName').textContent = msg.nickname || 'Собеседник';
+        renderAvatarElement(document.getElementById('remoteAvatarBig'), msg.avatarKey, msg.customAvatarUrl, msg.avatarFrame);
+      } else if (msg.type === 'VIDEO_STATE') {
+        const rv = document.getElementById('remoteVideo');
+        const stage = document.getElementById('remotePeerStage');
+        rv.classList.toggle('active', !!msg.active);
+        stage.classList.toggle('visible', !msg.active);
+        document.getElementById('ambilightGlow').classList.toggle('active', !!msg.active && state.ambilight);
+      } else if (msg.type === 'FILE_HEADER') {
+        incomingFileInfo = msg;
+        incomingChunks = [];
+        incomingSize = 0;
+      }
+    }
+
+    function appendChatMessage(sender, text, isMe) {
+      const box = document.getElementById('chatMessages');
+      const empty = box.querySelector('.chat-empty');
+      if (empty) empty.remove();
+
+      const div = document.createElement('div');
+      div.className = 'msg-bubble ' + (isMe ? 'me' : 'peer');
+      const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      div.innerHTML = `<div class="msg-meta"><span>${sender}</span><span>${time}</span></div><div></div>`;
+      div.lastElementChild.textContent = text;
+      box.appendChild(div);
+      box.scrollTop = box.scrollHeight;
+    }
+
+    function appendFileMessage(sender, fileName, url, mime, isMe) {
+      const box = document.getElementById('chatMessages');
+      const empty = box.querySelector('.chat-empty');
+      if (empty) empty.remove();
+
+      const div = document.createElement('div');
+      div.className = 'msg-bubble ' + (isMe ? 'me' : 'peer');
+      const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const isImg = mime && mime.startsWith('image/');
+      div.innerHTML = `
+        <div class="msg-meta"><span>${sender}</span><span>${time}</span></div>
+        <div style="font-weight:600;margin-bottom:4px">📎 ${fileName}</div>
+        ${isImg ? `<img class="msg-img" src="${url}" />` : ''}
+        <div style="margin-top:6px"><a href="${url}" download="${fileName}" style="color:#fff;font-size:11.5px;text-decoration:underline">Скачать файл</a></div>
+      `;
+      box.appendChild(div);
+      box.scrollTop = box.scrollHeight;
+    }
+
+    async function sendFileOverDataChannel(file) {
+      if (!file || !state.dataChannel || state.dataChannel.readyState !== 'open') {
+        showToast('Для отправки файла нужно активное соединение с другом');
+        return;
+      }
+      sendChatMeta({
+        type: 'FILE_HEADER',
+        name: file.name,
+        size: file.size,
+        mime: file.type || 'application/octet-stream',
+        sender: state.nickname
+      });
+
+      const buf = await file.arrayBuffer();
+      const chunkSize = 16384;
+      for (let offset = 0; offset < buf.byteLength; offset += chunkSize) {
+        const slice = buf.slice(offset, offset + chunkSize);
+        state.dataChannel.send(slice);
       }
 
-      function fallbackCopyText(text) {
-        const ta = document.createElement('textarea');
-        ta.value = text;
-        ta.style.position = 'fixed';
-        ta.style.opacity = '0';
-        document.body.appendChild(ta);
-        ta.select();
+      const localUrl = URL.createObjectURL(file);
+      appendFileMessage(state.nickname, file.name, localUrl, file.type, true);
+    }
+
+    /*************************************************************************
+     * 9. САУНДПАД (ВСТРОЕННЫЕ СИНТЕЗАТОРЫ + СВОИ MP3 В INDEXEDDB)
+     *************************************************************************/
+    const BUILTIN_SOUNDS = [
+      { id: 'horn', name: '📢 MLG Горн', freq: [440, 554, 659], type: 'sawtooth', dur: 0.65 },
+      { id: 'bass', name: '💣 Bass Drop', freq: [140, 55, 32], type: 'sine', dur: 0.8 },
+      { id: 'alohomora', name: '✨ Алохомора', freq: [587, 880, 1174, 1567], type: 'triangle', dur: 0.6 },
+      { id: 'mordor', name: '🌋 Гул Мордора', freq: [65, 58, 48], type: 'sawtooth', dur: 0.9 },
+      { id: 'snitch', name: '🪽 Снитч', freq: [1046, 1318, 1567, 2093], type: 'sine', dur: 0.45 },
+      { id: 'siren', name: '🚨 Сирена', freq: [620, 880, 620, 880], type: 'square', dur: 0.75 }
+    ];
+
+    async function playBuiltInSound(sound) {
+      await initAudioEngine();
+      if (state.audioCtx.state === 'suspended') await state.audioCtx.resume();
+      const now = state.audioCtx.currentTime;
+      const osc = state.audioCtx.createOscillator();
+      const gain = state.audioCtx.createGain();
+      osc.type = sound.type;
+
+      const step = sound.dur / sound.freq.length;
+      sound.freq.forEach((f, idx) => {
+        osc.frequency.setValueAtTime(f, now + idx * step);
+      });
+
+      gain.gain.setValueAtTime(0.32, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + sound.dur);
+
+      osc.connect(gain);
+      gain.connect(state.soundpadGainNode);
+      osc.start(now);
+      osc.stop(now + sound.dur);
+    }
+
+    async function playCustomSound(dataUrl) {
+      await initAudioEngine();
+      if (state.audioCtx.state === 'suspended') await state.audioCtx.resume();
+      const res = await fetch(dataUrl);
+      const arr = await res.arrayBuffer();
+      const audioBuf = await state.audioCtx.decodeAudioData(arr);
+      const src = state.audioCtx.createBufferSource();
+      src.buffer = audioBuf;
+      src.connect(state.soundpadGainNode);
+      src.start();
+    }
+
+    function renderSoundpad() {
+      const grid = document.getElementById('soundpadGrid');
+      if (!grid) return;
+      grid.innerHTML = '';
+
+      BUILTIN_SOUNDS.forEach((s) => {
+        const btn = document.createElement('button');
+        btn.className = 'sp-pad';
+        btn.textContent = s.name;
+        btn.onclick = () => playBuiltInSound(s);
+        grid.appendChild(btn);
+      });
+
+      state.customSounds.forEach((cs, idx) => {
+        const btn = document.createElement('button');
+        btn.className = 'sp-pad';
+        btn.innerHTML = `🎵 ${cs.name} <span class="sp-del" title="Удалить">✕</span>`;
+        btn.onclick = (e) => {
+          if (e.target.classList.contains('sp-del')) {
+            state.customSounds.splice(idx, 1);
+            renderSoundpad();
+            return;
+          }
+          playCustomSound(cs.dataUrl);
+        };
+        grid.appendChild(btn);
+      });
+    }
+
+    /*************************************************************************
+     * 10. ИНДИКАЦИЯ ГОЛОСА (ЗЕЛЕНАЯ ОБВОДКА) И СТАТИСТИКА FPS/БИТРЕЙТА
+     *************************************************************************/
+    function startVoiceActivityLoop() {
+      const buf = new Uint8Array(64);
+      const tick = () => {
+        if (state.localAnalyser) {
+          state.localAnalyser.getByteFrequencyData(buf);
+          let sum = 0;
+          for (let i = 0; i < buf.length; i++) sum += buf[i];
+          const avg = sum / buf.length;
+          const pct = Math.min(100, Math.round(avg * 1.4));
+          const meter = document.getElementById('micLevelFill');
+          if (meter) meter.style.width = pct + '%';
+
+          const isTalking = state.micEnabled && avg > 14;
+          document.getElementById('topAvatarBtn').classList.toggle('speaking', isTalking);
+        }
+
+        if (state.remoteAnalyser) {
+          state.remoteAnalyser.getByteFrequencyData(buf);
+          let rSum = 0;
+          for (let i = 0; i < buf.length; i++) rSum += buf[i];
+          const rAvg = rSum / buf.length;
+          const remoteTalking = rAvg > 12;
+          document.getElementById('remoteAvatarBig').classList.toggle('speaking', remoteTalking);
+          document.getElementById('videoFrame').classList.toggle('remote-speaking', remoteTalking);
+        }
+        requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    }
+
+    function startStatsMonitor() {
+      let lastBytes = 0;
+      let lastTime = performance.now();
+      clearInterval(state.statsTimer);
+      state.statsTimer = setInterval(async () => {
+        if (!state.pc) return;
         try {
-          document.execCommand('copy');
-          showToast('Ссылка скопирована в буфер');
-          logEvent('Ссылка скопирована (fallback copy)', 'ok');
-        } catch (err) {
-          logEvent('Не удалось скопировать ссылку: ' + err.message, 'err');
-        }
-        document.body.removeChild(ta);
-      }
-
-      els.copyLinkBtn.addEventListener('click', copyInviteLink);
-
-      els.manualConnectBtn.addEventListener('click', () => {
-        const target = els.manualPeerInput.value.trim();
-        if (!target) {
-          logEvent('Введите ID хоста для ручного подключения', 'warn');
-          return;
-        }
-        connectToRemotePeer(target);
-      });
-
-      els.newRoomBtn.addEventListener('click', () => {
-        const newId = generateRoomId();
-        state.isHost = true;
-        state.roomId = newId;
-        state.myPeerId = newId;
-        state.remotePeerId = '';
-        try {
-          window.history.replaceState(null, '', '#' + newId);
-        } catch (_) {
-          window.location.hash = newId;
-        }
-        els.roomIdDisplay.textContent = newId;
-        els.roleBadge.textContent = 'ROLE: HOST';
-        els.roleBadge.className = 'badge role-host';
-        initPeerInstance();
-        showToast('Создана новая комната: ' + newId);
-      });
-
-      els.micMuteBtn.addEventListener('click', toggleMicMute);
-      els.audioModeBtn.addEventListener('click', switchAudioMode);
-      els.screenShareBtn.addEventListener('click', toggleScreenShare);
-      els.reapplyBitrateBtn.addEventListener('click', () => {
-        enforceAllSendersParameters();
-        showToast('Лимиты 128 kbps Audio / 8 Mbps 60 FPS Video применены');
-      });
-
-      els.remoteVolumeSlider.addEventListener('input', () => {
-        const val = Number(els.remoteVolumeSlider.value);
-        els.remoteVolumeLabel.textContent = val + '%';
-        els.remoteAudio.volume = val / 100;
-        els.remoteVideo.volume = val / 100;
-      });
-
-      els.reconnectBtn.addEventListener('click', () => {
-        logEvent('Перезапуск сигналинга и P2P-соединения...', 'info');
-        initPeerInstance();
-      });
-
-      els.clearLogBtn.addEventListener('click', () => {
-        els.logContainer.innerHTML = '';
-        logEvent('Журнал очищен', 'info');
-      });
-
-      els.fullscreenBtn.addEventListener('click', () => {
-        if (!document.fullscreenElement) {
-          els.videoContainer.requestFullscreen().catch(err => {
-            logEvent('Ошибка перехода в полный экран: ' + err.message, 'warn');
+          const stats = await state.pc.getStats();
+          let fps = 60;
+          let bytes = 0;
+          stats.forEach((report) => {
+            if (report.type === 'inbound-rtp' && report.kind === 'video') {
+              bytes += report.bytesReceived || 0;
+              if (report.framesPerSecond) fps = Math.round(report.framesPerSecond);
+            }
+            if (report.type === 'outbound-rtp' && report.kind === 'video') {
+              bytes += report.bytesSent || 0;
+              if (report.framesPerSecond) fps = Math.round(report.framesPerSecond);
+            }
           });
+          const now = performance.now();
+          const kbps = Math.round(((bytes - lastBytes) * 8) / (now - lastTime));
+          lastBytes = bytes;
+          lastTime = now;
+          document.getElementById('statsBadge').textContent = `${fps} FPS • ${Math.max(0, kbps)} kbps`;
+        } catch (_) {}
+      }, 1500);
+    }
+
+    /*************************************************************************
+     * 11. РЕНДЕР АВАТАРОК, ТЕМ И ПРИВЯЗКА ВСЕХ КНОПОК
+     *************************************************************************/
+    function renderAvatarElement(container, key, customUrl, frameClass) {
+      if (!container) return;
+      container.className = container.className.replace(/frame-\S+/g, '').trim() + ' ' + (frameClass || 'frame-mordor');
+      if (customUrl) {
+        container.innerHTML = `<img src="${customUrl}" alt="avatar" />`;
+      } else {
+        const preset = AVATAR_PRESETS[key] || AVATAR_PRESETS.sauron;
+        container.innerHTML = preset.svg;
+      }
+    }
+
+    function updateMyAvatarUi() {
+      renderAvatarElement(
+        document.getElementById('topAvatarBtn'),
+        state.avatarKey,
+        state.customAvatarUrl,
+        state.avatarFrame
+      );
+      saveConfig();
+      syncMyProfileToPeer();
+    }
+
+    function initAvatarGrid() {
+      const grid = document.getElementById('avatarPresetGrid');
+      if (!grid) return;
+      grid.innerHTML = '';
+      Object.entries(AVATAR_PRESETS).forEach(([key, item]) => {
+        const div = document.createElement('div');
+        div.className = 'av-item' + (state.avatarKey === key && !state.customAvatarUrl ? ' active' : '');
+        div.innerHTML = `<div class="av-preview">${item.svg}</div><div class="av-name">${item.name}</div>`;
+        div.onclick = () => {
+          state.avatarKey = key;
+          state.customAvatarUrl = null;
+          grid.querySelectorAll('.av-item').forEach(el => el.classList.remove('active'));
+          div.classList.add('active');
+          updateMyAvatarUi();
+        };
+        grid.appendChild(div);
+      });
+    }
+
+    function copyInviteLink() {
+      const baseUrl = location.href.split('#')[0];
+      const link = `${baseUrl}#${state.myId}`;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(link).then(() => {
+          showToast('Инвайт-ссылка скопирована в буфер обмена!');
+        }).catch(() => fallbackCopy(link));
+      } else {
+        fallbackCopy(link);
+      }
+    }
+
+    function fallbackCopy(text) {
+      const input = document.getElementById('lobbyInviteInput');
+      if (input) {
+        input.value = text;
+        input.select();
+        document.execCommand('copy');
+        showToast('Инвайт-ссылка скопирована!');
+      }
+    }
+
+    // Инициализация интерфейса сразу при загрузке DOM
+    window.addEventListener('DOMContentLoaded', () => {
+      // 1. Сразу выводим ID и инвайт-ссылку (никаких ожиданий сервера!)
+      const inviteUrl = `${location.href.split('#')[0]}#${state.myId}`;
+      document.getElementById('topMyId').textContent = state.myId;
+      document.getElementById('lobbyInviteInput').value = inviteUrl;
+      document.getElementById('nicknameInput').value = state.nickname;
+
+      updateMyAvatarUi();
+      initAvatarGrid();
+      renderSoundpad();
+
+      // 2. Запускаем мульти-шлюз сигналинга без VPN
+      signaling = new MultiMeshSignaling(
+        state.myId,
+        (msg) => handleSignalingMessage(msg),
+        (openCount) => {
+          const relayLabel = document.getElementById('relayCountText');
+          if (openCount > 0) {
+            setStatus(`Онлайн • Без VPN (${openCount} шлюза)`, 'ready');
+            if (relayLabel) relayLabel.textContent = `Активно шлюзов: ${openCount}/4`;
+          } else {
+            setStatus('Локальный режим / Поиск шлюза...', 'ready');
+          }
+        }
+      );
+      signaling.start();
+
+      // 3. Автоматический вход, если открыта ссылка друга с #ds-xxxxxx
+      const hashId = extractCleanPeerId(location.hash);
+      if (hashId && hashId !== state.myId) {
+        document.getElementById('lobbyJoinInput').value = hashId;
+        document.getElementById('topJoinInput').value = hashId;
+        setTimeout(() => startCallToFriend(hashId), 900);
+      }
+
+      // 4. Привязка кнопок копирования и входа
+      document.getElementById('topCopyBtn').onclick = copyInviteLink;
+      document.getElementById('lobbyCopyBtn').onclick = copyInviteLink;
+
+      document.getElementById('topJoinBtn').onclick = () => {
+        startCallToFriend(document.getElementById('topJoinInput').value);
+      };
+      document.getElementById('lobbyJoinBtn').onclick = () => {
+        startCallToFriend(document.getElementById('lobbyJoinInput').value);
+      };
+
+      // 5. Нижняя панель звонка
+      document.getElementById('micToggleBtn').onclick = async () => {
+        await initAudioEngine();
+        state.micEnabled = !state.micEnabled;
+        if (state.micGainNode) {
+          state.micGainNode.gain.value = state.micEnabled ? 1.0 : 0.0;
+        }
+        const btn = document.getElementById('micToggleBtn');
+        btn.textContent = state.micEnabled ? '🎙️ Микро вкл' : '🔇 Микро выкл';
+        btn.classList.toggle('active', state.micEnabled);
+        btn.classList.toggle('muted', !state.micEnabled);
+      };
+
+      document.getElementById('screenShareBtn').onclick = startScreenShare;
+      document.getElementById('webcamBtn').onclick = startWebcam;
+      document.getElementById('hangupBtn').onclick = () => leaveCall(true);
+
+      document.getElementById('fullscreenBtn').onclick = () => {
+        const frame = document.getElementById('videoFrame');
+        if (!document.fullscreenElement) {
+          frame.requestFullscreen().catch(() => {});
         } else {
           document.exitFullscreen().catch(() => {});
         }
+      };
+
+      // 6. Саундпад
+      document.getElementById('soundpadBtn').onclick = () => {
+        document.getElementById('soundpadPopover').classList.toggle('open');
+      };
+      document.getElementById('closeSoundpadBtn').onclick = () => {
+        document.getElementById('soundpadPopover').classList.remove('open');
+      };
+      document.getElementById('soundpadVolSlider').oninput = (e) => {
+        if (state.soundpadGainNode) {
+          state.soundpadGainNode.gain.value = Number(e.target.value) / 100;
+        }
+      };
+      document.getElementById('soundpadFileInput').onchange = (e) => {
+        const files = Array.from(e.target.files || []);
+        files.forEach((f) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            state.customSounds.push({
+              name: f.name.replace(/\.[^.]+$/, '').slice(0, 14),
+              dataUrl: reader.result
+            });
+            renderSoundpad();
+          };
+          reader.readAsDataURL(f);
+        });
+      };
+
+      // 7. Чат
+      document.getElementById('toggleChatBtn').onclick = () => {
+        document.getElementById('chatSidebar').classList.toggle('collapsed');
+      };
+
+      const sendChat = () => {
+        const inp = document.getElementById('chatInput');
+        const text = inp.value.trim();
+        if (!text) return;
+        inp.value = '';
+        appendChatMessage(state.nickname, text, true);
+        sendChatMeta({ type: 'CHAT_TEXT', sender: state.nickname, text });
+      };
+      document.getElementById('chatSendBtn').onclick = sendChat;
+      document.getElementById('chatInput').onkeydown = (e) => {
+        if (e.key === 'Enter') sendChat();
+      };
+      document.getElementById('chatFileInput').onchange = (e) => {
+        if (e.target.files[0]) sendFileOverDataChannel(e.target.files[0]);
+      };
+
+      // 8. Модальное окно настроек и вкладки
+      const openSettings = async (tabId) => {
+        await initAudioEngine();
+        document.getElementById('settingsBackdrop').classList.add('open');
+        if (tabId) switchSettingsTab(tabId);
+      };
+      document.getElementById('openSettingsBtn').onclick = () => openSettings('tabVoice');
+      document.getElementById('dockSettingsBtn').onclick = () => openSettings('tabVoice');
+      document.getElementById('topAvatarBtn').onclick = () => openSettings('tabProfile');
+
+      document.querySelectorAll('.close-settings-btn').forEach((b) => {
+        b.onclick = () => document.getElementById('settingsBackdrop').classList.remove('open');
       });
 
-      els.pipToggleBtn.addEventListener('click', async () => {
-        try {
-          if (document.pictureInPictureElement) {
-            await document.exitPictureInPicture();
-          } else if (els.remoteVideo.readyState >= 2) {
-            await els.remoteVideo.requestPictureInPicture();
-          } else {
-            logEvent('Видеопоток еще не активен для режима Picture-in-Picture', 'warn');
+      function switchSettingsTab(tabId) {
+        document.querySelectorAll('.s-tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tabId));
+        document.querySelectorAll('.s-pane').forEach(p => p.classList.toggle('active', p.id === tabId));
+      }
+      document.querySelectorAll('.s-tab-btn').forEach((btn) => {
+        btn.onclick = () => switchSettingsTab(btn.dataset.tab);
+      });
+
+      // Настройки Krisp AI и звука
+      document.querySelectorAll('[data-krisp]').forEach((card) => {
+        card.onclick = () => {
+          document.querySelectorAll('[data-krisp]').forEach(c => c.classList.remove('active'));
+          card.classList.add('active');
+          state.krispMode = card.dataset.krisp;
+          updateKrispParams();
+          saveConfig();
+          showToast('Профиль Krisp AI: ' + card.querySelector('.preset-title').textContent);
+        };
+      });
+
+      document.getElementById('noiseGateSlider').oninput = (e) => {
+        state.noiseGate = Number(e.target.value);
+        updateKrispParams();
+      };
+
+      document.getElementById('loopbackTestBtn').onclick = async (e) => {
+        await initAudioEngine();
+        state.loopbackEnabled = !state.loopbackEnabled;
+        if (state.loopbackGainNode) {
+          state.loopbackGainNode.gain.value = state.loopbackEnabled ? 1.0 : 0.0;
+        }
+        e.target.textContent = state.loopbackEnabled ? '🎧 Прослушать себя: ВКЛ' : '🎧 Прослушать себя: Выкл';
+        e.target.classList.toggle('btn-primary', state.loopbackEnabled);
+      };
+
+      document.getElementById('micDeviceSelect').onchange = (e) => captureMicrophone(e.target.value);
+      document.getElementById('micGainSlider').oninput = (e) => {
+        if (state.micGainNode && state.micEnabled) state.micGainNode.gain.value = Number(e.target.value) / 100;
+      };
+      document.getElementById('screenAudioGainSlider').oninput = (e) => {
+        if (state.screenAudioGainNode) state.screenAudioGainNode.gain.value = Number(e.target.value) / 100;
+      };
+      document.getElementById('remoteVolSlider').oninput = (e) => {
+        document.getElementById('remoteAudio').volume = Number(e.target.value) / 100;
+      };
+      document.getElementById('iceTransportSelect').onchange = (e) => {
+        state.iceTransportPolicy = e.target.value;
+        showToast('Режим сети обновлен');
+      };
+
+      // Профиль и Аватарки
+      document.getElementById('nicknameInput').oninput = (e) => {
+        state.nickname = e.target.value.trim() || 'Rider';
+        saveConfig();
+        syncMyProfileToPeer();
+      };
+      document.getElementById('avatarFrameSelect').onchange = (e) => {
+        state.avatarFrame = e.target.value;
+        updateMyAvatarUi();
+      };
+      document.getElementById('customAvatarInput').onchange = (e) => {
+        const f = e.target.files[0];
+        if (!f) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          state.customAvatarUrl = reader.result;
+          updateMyAvatarUi();
+        };
+        reader.readAsDataURL(f);
+      };
+
+      // Стрим 60 FPS
+      document.getElementById('streamQualitySelect').onchange = (e) => {
+        state.streamQuality = e.target.value;
+        applyVideoSenderBitrate();
+      };
+      document.getElementById('streamHintSelect').onchange = (e) => {
+        state.streamHint = e.target.value;
+        applyVideoSenderBitrate();
+      };
+      document.getElementById('ambilightCheck').onchange = (e) => {
+        state.ambilight = e.target.checked;
+      };
+
+      // Темы оформления
+      document.querySelectorAll('[data-theme]').forEach((card) => {
+        card.onclick = () => {
+          document.querySelectorAll('[data-theme]').forEach(c => c.classList.remove('active'));
+          card.classList.add('active');
+          const t = THEME_PRESETS[card.dataset.theme];
+          if (t) {
+            document.documentElement.style.setProperty('--accent-1', t.a1);
+            document.documentElement.style.setProperty('--accent-2', t.a2);
+            document.documentElement.style.setProperty('--bg-base', t.bg);
           }
-        } catch (err) {
-          logEvent('Ошибка PiP: ' + err.message, 'warn');
-        }
+        };
       });
 
-      window.addEventListener('hashchange', () => {
-        const newHash = (window.location.hash || '').replace(/^#\/?/, '').trim();
-        if (newHash && newHash !== state.roomId) {
-          logEvent('Изменен URL Hash на #' + newHash + ', переключение комнаты...', 'info');
-          resolveRoleFromHash();
-          initPeerInstance();
-        }
-      });
-
-      // Запуск приложения
-      window.addEventListener('DOMContentLoaded', initApplication);
-    })();
+      document.getElementById('tagFontSelect').onchange = (e) => {
+        document.documentElement.style.setProperty('--tag-font', e.target.value);
+      };
+      document.getElementById('sceneBgSelect').onchange = (e) => {
+        document.getElementById('sceneBg').className = 'scene-bg ' + e.target.value;
+      };
+    });
   </script>
 </body>
 </html>
